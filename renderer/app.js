@@ -41,6 +41,7 @@ const $ = (sel) => document.querySelector(sel);
 const screens = {
   home: $('#screen-home'),
   mode: $('#screen-mode'),
+  pay: $('#screen-pay'),
   capture: $('#screen-capture'),
   select: $('#screen-select'),
   processing: $('#screen-processing'),
@@ -62,6 +63,7 @@ function show(name) {
 document.querySelectorAll('[data-goto]').forEach((el) => {
   el.addEventListener('click', () => {
     const target = el.dataset.goto;
+    stopPayPoll();
     if (target === 'home') stopCamera();
     if (target === 'mode') { /* keep camera for re-capture */ }
     show(target);
@@ -275,13 +277,55 @@ function buildModeGrid() {
 
 async function chooseMode(m) {
   state.mode = m;
-  state.rawFrames = [];
+  state.rawFrames = []; state.captured = null; state.sessionAnim = null; state._shareRes = null;
+  // refresh settings (price may have changed on the webadmin)
+  try { state.settings = await window.booth.getSettings(); } catch (_e) {}
+  const pay = state.settings && state.settings.payment;
+  if (pay && pay.enabled) { await openPayScreen(m); }
+  else { await beginCapture(m); }
+}
+
+async function beginCapture(m) {
   buildFilterBar($('#filter-bar-capture'));
   show('capture');
   await startCamera();
   applyLivePreviewFilter();
   renderShotDots(0);
 }
+
+// ---- payment gate ----
+function stopPayPoll() { if (state.payTimer) { clearInterval(state.payTimer); state.payTimer = null; } }
+async function openPayScreen(m) {
+  stopPayPoll();
+  show('pay');
+  $('#pay-status').textContent = '';
+  $('#pay-qr').style.display = 'none';
+  $('#pay-confirm').style.display = 'none';
+  $('#pay-amount').textContent = 'Đang tạo đơn…';
+  $('#pay-info').textContent = '';
+  let order;
+  try { order = await window.booth.pay.createOrder(m.id); } catch (_e) { order = { enabled: false }; }
+  if (!order || !order.enabled) { await beginCapture(m); return; }
+  state.payOrder = order;
+  const cur = order.currency || 'đ';
+  $('#pay-amount').textContent = 'Số tiền: ' + Number(order.amount).toLocaleString('vi-VN') + cur;
+  if (order.qrUrl) {
+    $('#pay-qr').src = order.qrUrl; $('#pay-qr').style.display = 'block';
+    $('#pay-info').textContent = 'Quét QR để chuyển khoản • Nội dung: ' + order.code;
+  } else {
+    $('#pay-info').textContent = 'Chưa cấu hình VietQR (điền tài khoản trên webadmin).';
+  }
+  if (order.allowStaffOverride) $('#pay-confirm').style.display = 'inline-block';
+  if (order.method === 'sepay') {
+    $('#pay-status').textContent = 'Đang chờ xác nhận chuyển khoản…';
+    state.payTimer = setInterval(async () => {
+      const r = await window.booth.pay.check(order.amount, order.code).catch(() => ({ paid: false }));
+      if (r.paid) { $('#pay-status').textContent = '✅ Đã nhận thanh toán!'; onPaid(m); }
+    }, 3000);
+  }
+}
+async function onPaid(m) { stopPayPoll(); await beginCapture(m); }
+$('#pay-confirm').addEventListener('click', () => onPaid(state.mode));
 
 function renderShotDots(done) {
   const total = state.mode.kind === 'photo' ? (state.mode.captureCount || state.mode.select || 1) : 1;
@@ -1108,6 +1152,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   buildModeGrid();
   buildSourceBar(false); // don't power on the webcam just to read labels at startup
   buildHomeShowcase();
+  try { state.settings = await window.booth.getSettings(); } catch (_e) {}
 });
 
 // Dải "mẫu khung" ở màn hình chờ (ảnh từ config, hoặc placeholder gradient).

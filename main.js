@@ -5,6 +5,7 @@ const os = require('os');
 const QRCode = require('qrcode');
 const { startServer } = require('./server');
 const canon = require('./canon');
+const settingsStore = require('./settings');
 const CFG = require('./renderer/config.js');
 
 const KIOSK = (CFG && CFG.kiosk) || {};
@@ -64,6 +65,45 @@ let powerBlockerId = null;
 const CAPTURES_DIR = app.isPackaged
   ? path.join(app.getPath('userData'), 'captures')
   : path.join(__dirname, 'captures');
+
+const SETTINGS_PATH = app.isPackaged
+  ? path.join(app.getPath('userData'), 'booth-settings.json')
+  : path.join(__dirname, 'booth-settings.json');
+const getSettings = () => settingsStore.read(SETTINGS_PATH);
+const saveSettings = (o) => settingsStore.write(SETTINGS_PATH, o);
+
+function priceForMode(pay, modeId) {
+  if (pay.priceMode === 'perMode') {
+    const v = pay.perMode && pay.perMode[modeId];
+    return (v != null) ? v : pay.fixedPrice;
+  }
+  return pay.fixedPrice;
+}
+
+function buildVietQr(bank, amount, code) {
+  if (!bank || !bank.bankCode || !bank.accountNumber) return null;
+  const base = `https://img.vietqr.io/image/${encodeURIComponent(bank.bankCode)}-${encodeURIComponent(bank.accountNumber)}-compact2.png`;
+  const q = `?amount=${amount}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(bank.accountName || '')}`;
+  return base + q;
+}
+
+// Poll SePay for an incoming transfer matching the amount + order code.
+async function sepayPaid(sepay, amount, code) {
+  if (!sepay || !sepay.apiToken) return false;
+  try {
+    const resp = await fetch('https://my.sepay.vn/userapi/transactions/list?limit=20', {
+      headers: { Authorization: 'Bearer ' + sepay.apiToken },
+    });
+    if (!resp.ok) return false;
+    const j = await resp.json();
+    const txs = j.transactions || j.data || [];
+    return txs.some((t) => {
+      const amt = Number(t.amount_in || t.amountIn || t.amount || 0);
+      const content = String(t.transaction_content || t.content || t.description || '').toUpperCase();
+      return amt >= amount && content.includes(String(code).toUpperCase());
+    });
+  } catch { return false; }
+}
 
 // ---- helpers -------------------------------------------------------------
 
@@ -137,7 +177,11 @@ app.whenReady().then(async () => {
   });
 
   const lanIp = getLanIp();
-  serverInfo = await startServer(lanIp, CAPTURES_DIR);
+  serverInfo = await startServer(lanIp, CAPTURES_DIR, 3737, {
+    read: getSettings,
+    save: saveSettings,
+    publicView: settingsStore.publicView,
+  });
 
   // Auto-start on Windows login (registers the current executable).
   try {
@@ -317,3 +361,29 @@ ipcMain.handle('canon:capture', async () => canon.capture());
 ipcMain.handle('canon:getSettings', async () => canon.getSettings());
 ipcMain.handle('canon:setSetting', async (_evt, { key, value }) => canon.setSetting(key, value));
 ipcMain.handle('canon:shutdown', async () => { canon.shutdown(); return { ok: true }; });
+
+// ---- Payment ----
+ipcMain.handle('booth:getSettings', async () => settingsStore.publicView(getSettings()));
+
+ipcMain.handle('pay:createOrder', async (_evt, { modeId }) => {
+  const pay = getSettings().payment;
+  if (!pay.enabled) return { enabled: false };
+  const amount = priceForMode(pay, modeId);
+  const code = 'YB' + Date.now().toString().slice(-7);
+  const orderId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  return {
+    enabled: true, orderId, amount, code, currency: pay.currency,
+    method: pay.method, allowStaffOverride: pay.allowStaffOverride !== false,
+    qrUrl: buildVietQr(pay.bank, amount, code),
+    bank: pay.bank,
+  };
+});
+
+ipcMain.handle('pay:check', async (_evt, { amount, code }) => {
+  const pay = getSettings().payment;
+  if (pay.method === 'sepay') {
+    const paid = await sepayPaid(pay.sepay, amount, code);
+    return { paid };
+  }
+  return { paid: false }; // manual → staff confirms in the app
+});

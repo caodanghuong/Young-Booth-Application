@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld('booth', {
   listPrinters: () => ipcRenderer.invoke('booth:listPrinters'),
   /** { lanUrl } of the sharing server. */
   info: () => ipcRenderer.invoke('booth:info'),
+  /** Public settings (pricing + payment, no secrets). */
+  getSettings: () => ipcRenderer.invoke('booth:getSettings'),
+  pay: {
+    createOrder: (modeId) => ipcRenderer.invoke('pay:createOrder', { modeId }),
+    check: (amount, code) => ipcRenderer.invoke('pay:check', { amount, code }),
+  },
   /** Open a URL / mailto link in the OS default handler. */
   openExternal: (url) => ipcRenderer.invoke('booth:openExternal', { url }),
 

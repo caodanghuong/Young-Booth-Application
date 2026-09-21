@@ -9,10 +9,34 @@ const fs = require('fs');
  * @param {string} capturesDir a WRITABLE folder where captures are stored
  * Returns { port, lanUrl }.
  */
-function startServer(lanIp, capturesDir, preferredPort = 3737) {
+function startServer(lanIp, capturesDir, preferredPort = 3737, settingsApi = null) {
   const server = express();
+  server.use(express.json({ limit: '1mb' }));
 
   server.use('/captures', express.static(capturesDir, { maxAge: 0 }));
+
+  // ---------- Webadmin (pricing + payment) ----------
+  if (settingsApi) {
+    const checkPin = (pin) => {
+      try { return String(pin || '') === String(settingsApi.read().adminPin || ''); }
+      catch { return false; }
+    };
+
+    server.get('/admin/data', (req, res) => {
+      if (!checkPin(req.query.pin)) return res.status(401).json({ error: 'Sai PIN' });
+      res.json(settingsApi.read());
+    });
+
+    server.post('/admin/save', (req, res) => {
+      const { pin, settings } = req.body || {};
+      if (!checkPin(pin)) return res.status(401).json({ error: 'Sai PIN' });
+      try { const saved = settingsApi.save(settings); res.json({ ok: true, settings: saved }); }
+      catch (e) { res.status(500).json({ error: e.message }); }
+    });
+
+    server.get('/admin', (_req, res) => res.send(adminPageHtml()));
+  }
+  // --------------------------------------------------
 
   // Friendly download/preview page for a single capture.
   server.get('/p/:file', (req, res) => {
@@ -97,6 +121,102 @@ function startServer(lanIp, capturesDir, preferredPort = 3737) {
       });
     });
   });
+}
+
+function adminPageHtml() {
+  return `<!doctype html><html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Young Booth — Webadmin</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0b0b12;color:#f5f5f7;padding:20px}
+  .wrap{max-width:560px;margin:0 auto}
+  h1{font-size:22px}
+  fieldset{border:1px solid #333;border-radius:12px;margin:16px 0;padding:14px}
+  legend{padding:0 8px;color:#c084fc;font-weight:700}
+  label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;font-size:15px}
+  input,select{background:#1e1e2a;color:#fff;border:1px solid #333;border-radius:8px;padding:9px 11px;font-size:15px;width:220px}
+  input[type=checkbox]{width:20px;height:20px}
+  button{background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#fff;border:none;border-radius:999px;padding:13px 30px;font-size:16px;font-weight:800;cursor:pointer;width:100%;margin-top:10px}
+  .msg{margin-top:12px;font-size:14px}
+  .hint{color:#888;font-size:12px}
+</style></head><body><div class="wrap">
+<h1>⚙️ Young Booth — Cài đặt thanh toán &amp; giá</h1>
+<div id="app">Đang tải…</div>
+<script>
+let PIN='';
+async function load(){
+  PIN = prompt('Nhập PIN quản trị:')||'';
+  const r = await fetch('/admin/data?pin='+encodeURIComponent(PIN));
+  if(!r.ok){ document.getElementById('app').innerHTML='<p class="msg">❌ Sai PIN. Tải lại trang để thử lại.</p>'; return; }
+  render(await r.json());
+}
+function render(s){
+  const p=s.payment;
+  const num=(v)=>v==null?'':v;
+  document.getElementById('app').innerHTML=\`
+  <fieldset><legend>Thanh toán</legend>
+    <label>Bật thu tiền trước khi chụp <input type="checkbox" id="enabled" \${p.enabled?'checked':''}></label>
+    <label>Hình thức
+      <select id="method">
+        <option value="manual" \${p.method==='manual'?'selected':''}>Nhân viên xác nhận</option>
+        <option value="sepay" \${p.method==='sepay'?'selected':''}>Tự động (SePay)</option>
+      </select></label>
+    <label>Cho nhân viên bấm "Đã thanh toán" <input type="checkbox" id="override" \${p.allowStaffOverride!==false?'checked':''}></label>
+  </fieldset>
+  <fieldset><legend>Giá (đồng)</legend>
+    <label>Kiểu tính giá
+      <select id="priceMode">
+        <option value="fixed" \${p.priceMode==='fixed'?'selected':''}>1 giá cố định</option>
+        <option value="perMode" \${p.priceMode==='perMode'?'selected':''}>Theo kiểu chụp</option>
+      </select></label>
+    <label>Giá cố định <input type="number" id="fixedPrice" value="\${num(p.fixedPrice)}"></label>
+    <label>Ảnh đơn <input type="number" id="m_single" value="\${num(p.perMode.single)}"></label>
+    <label>Dải 4 ảnh <input type="number" id="m_strip" value="\${num(p.perMode.strip)}"></label>
+    <label>Lưới 2×2 <input type="number" id="m_grid" value="\${num(p.perMode.grid)}"></label>
+    <label>GIF <input type="number" id="m_gif" value="\${num(p.perMode.gif)}"></label>
+    <label>Boomerang <input type="number" id="m_boom" value="\${num(p.perMode.boom)}"></label>
+  </fieldset>
+  <fieldset><legend>VietQR (tài khoản nhận tiền)</legend>
+    <label>Mã ngân hàng <input id="bankCode" value="\${p.bank.bankCode||''}" placeholder="vd VCB, MB, TCB"></label>
+    <label>Số tài khoản <input id="accountNumber" value="\${p.bank.accountNumber||''}"></label>
+    <label>Tên tài khoản <input id="accountName" value="\${p.bank.accountName||''}"></label>
+    <p class="hint">Điền để tạo mã QR chuyển khoản cho khách quét.</p>
+  </fieldset>
+  <fieldset><legend>SePay (tự xác nhận — tuỳ chọn)</legend>
+    <label>API Token <input id="sepayToken" value="\${(p.sepay&&p.sepay.apiToken)||''}"></label>
+    <label>STK theo dõi <input id="sepayAcc" value="\${(p.sepay&&p.sepay.accountNumber)||''}"></label>
+    <p class="hint">Có token thì app tự phát hiện khách đã chuyển khoản.</p>
+  </fieldset>
+  <fieldset><legend>Bảo mật</legend>
+    <label>Đổi PIN quản trị <input id="adminPin" value="\${s.adminPin||''}"></label>
+  </fieldset>
+  <button onclick="save()">💾 Lưu cài đặt</button>
+  <div class="msg" id="msg"></div>\`;
+}
+async function save(){
+  const g=(id)=>document.getElementById(id);
+  const settings={
+    adminPin:g('adminPin').value,
+    payment:{
+      enabled:g('enabled').checked,
+      method:g('method').value,
+      allowStaffOverride:g('override').checked,
+      priceMode:g('priceMode').value,
+      fixedPrice:Number(g('fixedPrice').value||0),
+      perMode:{ single:Number(g('m_single').value||0), strip:Number(g('m_strip').value||0), grid:Number(g('m_grid').value||0), gif:Number(g('m_gif').value||0), boom:Number(g('m_boom').value||0) },
+      bank:{ bankCode:g('bankCode').value.trim(), accountNumber:g('accountNumber').value.trim(), accountName:g('accountName').value.trim() },
+      sepay:{ apiToken:g('sepayToken').value.trim(), accountNumber:g('sepayAcc').value.trim() },
+    }
+  };
+  const r=await fetch('/admin/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:PIN,settings})});
+  const j=await r.json();
+  g('msg').textContent = r.ok ? '✅ Đã lưu. Giá mới áp dụng ngay cho lượt chụp tiếp theo.' : ('❌ '+(j.error||'Lỗi'));
+  if(r.ok) PIN = settings.adminPin || PIN;
+}
+load();
+</script>
+</div></body></html>`;
 }
 
 module.exports = { startServer };

@@ -29,6 +29,19 @@
       <div class="mode-grid" id="mode-grid"><!-- filled by JS --></div>
     </section>
 
+    <!-- ============ PAYMENT ============ -->
+    <section class="screen" id="screen-pay">
+      <button class="btn-back" data-goto="mode">← Đổi kiểu</button>
+      <h2 class="screen-title">Thanh toán</h2>
+      <div class="pay-box">
+        <div class="pay-amount" id="pay-amount"></div>
+        <img id="pay-qr" class="pay-qr" alt="QR thanh toán" />
+        <div class="pay-info" id="pay-info"></div>
+        <div class="pay-status" id="pay-status"></div>
+        <button class="btn-primary" id="pay-confirm">✅ Đã thanh toán</button>
+      </div>
+    </section>
+
     <!-- ============ CAPTURE ============ -->
     <section class="screen" id="screen-capture">
       <button class="btn-back" data-goto="mode">← Đổi kiểu</button>
