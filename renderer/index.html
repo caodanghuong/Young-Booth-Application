@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YoungBooth</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ============ HOME / ATTRACT ============ -->
+    <section class="screen active" id="screen-home">
+      <div class="home-inner">
+        <div class="logo">📸</div>
+        <h1 class="brand-title">YOUNG <span>BOOTH</span></h1>
+        <p class="brand-sub">Chạm để bắt đầu chụp ảnh</p>
+        <button class="btn-primary big pulse" id="btn-start">BẮT ĐẦU</button>
+      </div>
+      <div class="home-showcase" id="home-showcase"></div>
+    </section>
+
+    <!-- ============ MODE SELECT ============ -->
+    <section class="screen" id="screen-mode">
+      <button class="btn-back" data-goto="home">← Quay lại</button>
+      <button class="btn-settings" id="btn-settings">⚙️ Cài đặt</button>
+      <h2 class="screen-title">Chọn kiểu chụp</h2>
+      <div class="source-bar" id="source-bar"><!-- filled by JS --></div>
+      <div class="mode-grid" id="mode-grid"><!-- filled by JS --></div>
+    </section>
+
+    <!-- ============ CAPTURE ============ -->
+    <section class="screen" id="screen-capture">
+      <button class="btn-back" data-goto="mode">← Đổi kiểu</button>
+      <button class="btn-settings" id="btn-settings-capture">⚙️ Máy ảnh</button>
+      <div class="capture-stage">
+        <div class="video-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <img id="live-img" alt="live view" />
+          <div class="countdown" id="countdown"></div>
+          <div class="flash" id="flash"></div>
+          <div class="shot-progress" id="shot-progress"></div>
+        </div>
+      </div>
+      <div class="filter-bar" id="filter-bar-capture"></div>
+      <div class="capture-actions">
+        <button class="btn-primary big" id="btn-capture">📷 Chụp</button>
+      </div>
+    </section>
+
+    <!-- ============ SELECT PHOTOS ============ -->
+    <section class="screen" id="screen-select">
+      <h2 class="screen-title" id="select-title">Chọn ảnh</h2>
+      <div class="select-grid" id="select-grid"></div>
+      <div class="select-bar">
+        <span class="select-count" id="select-count">Đã chọn 0/0</span>
+        <button class="btn-ghost" id="btn-select-retake">🔄 Chụp lại</button>
+        <button class="btn-primary" id="btn-select-continue" disabled>Tiếp tục →</button>
+      </div>
+    </section>
+
+    <!-- ============ PROCESSING ============ -->
+    <section class="screen" id="screen-processing">
+      <div class="spinner"></div>
+      <p class="proc-text" id="proc-text">Đang xử lý…</p>
+    </section>
+
+    <!-- ============ RESULT ============ -->
+    <section class="screen" id="screen-result">
+      <div class="result-layout">
+        <div class="result-preview">
+          <img id="result-img" alt="Kết quả" />
+        </div>
+        <div class="result-side">
+          <h2 class="screen-title small">Ảnh của bạn 🎉</h2>
+
+          <div class="filter-bar compact" id="filter-bar-result"></div>
+
+          <div class="result-buttons">
+            <button class="btn-secondary" id="btn-sticker">🎨 Thêm sticker</button>
+            <button class="btn-primary" id="btn-print">🖨️ In ảnh</button>
+            <button class="btn-secondary" id="btn-share">📱 Chia sẻ / QR</button>
+            <button class="btn-secondary" id="btn-email">✉️ Gửi Email</button>
+            <button class="btn-ghost" id="btn-retake">🔄 Chụp lại</button>
+            <button class="btn-ghost" id="btn-home">🏠 Kết thúc</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SHARE MODAL ============ -->
+    <div class="modal-overlay" id="share-modal">
+      <div class="modal">
+        <h3>Quét QR để tải ảnh về điện thoại</h3>
+        <img id="qr-img" class="qr-img" alt="QR" />
+        <p class="qr-url" id="qr-url"></p>
+        <p class="qr-note">Điện thoại phải dùng chung Wi‑Fi với máy này.</p>
+        <button class="btn-secondary" id="btn-close-share">Đóng</button>
+      </div>
+    </div>
+
+    <!-- ============ EMAIL MODAL ============ -->
+    <div class="modal-overlay" id="email-modal">
+      <div class="modal">
+        <h3>Gửi ảnh qua Email</h3>
+        <input type="email" id="email-input" class="email-input" placeholder="ban@example.com" />
+        <p class="qr-note">Sẽ mở ứng dụng email với link tải ảnh đính kèm.</p>
+        <div class="modal-btn-row">
+          <button class="btn-primary" id="btn-email-send">Gửi</button>
+          <button class="btn-ghost" id="btn-close-email">Hủy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS MODAL ============ -->
+    <div class="modal-overlay" id="settings-modal">
+      <div class="modal settings">
+        <h3>⚙️ Cài đặt in</h3>
+        <div class="set-row">
+          <label>Máy in</label>
+          <select id="set-printer" class="webcam-select"></select>
+        </div>
+        <div class="set-row">
+          <label>Số bản mỗi lần in</label>
+          <input type="number" id="set-copies" min="1" max="10" value="1" class="set-num" />
+        </div>
+        <div class="set-row">
+          <label>In tự động (không hiện hộp thoại)</label>
+          <input type="checkbox" id="set-silent" />
+        </div>
+        <div class="set-row">
+          <label>Dải 4 ảnh: in 2 bản/tờ 4×6 (cắt đôi)</label>
+          <input type="checkbox" id="set-stripdouble" />
+        </div>
+
+        <div id="canon-panel" style="display:none;">
+          <hr class="set-sep" />
+          <div class="set-cam-head">
+            <span>📸 Máy ảnh Canon</span>
+            <button class="btn-ghost btn-cam-refresh" id="cam-refresh">↻ Làm mới</button>
+          </div>
+          <div class="cam-readout" id="cam-readout"></div>
+          <div class="set-row"><label>ISO</label><select id="cam-ISOSpeed" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label>Khẩu độ (Av)</label><select id="cam-Av" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label>Tốc độ (Tv)</label><select id="cam-Tv" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label>Bù sáng (EV)</label><select id="cam-ExposureCompensation" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label>Cân bằng trắng</label><select id="cam-WhiteBalance" class="webcam-select cam-ctl"></select></div>
+          <p class="cam-note" id="cam-note"></p>
+        </div>
+
+        <div class="modal-btn-row">
+          <button class="btn-primary" id="btn-settings-save">Lưu</button>
+          <button class="btn-ghost" id="btn-settings-close">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STICKER EDITOR ============ -->
+    <div class="sticker-editor" id="sticker-editor">
+      <div class="se-head">
+        <span class="se-title">✽ Chọn Sticker và di chuyển đến vị trí mong muốn ✽</span>
+      </div>
+      <div class="se-stage-wrap">
+        <div class="se-stage" id="se-stage">
+          <img id="se-base" alt="ảnh" />
+        </div>
+      </div>
+      <div class="se-picker">
+        <button class="se-arrow" id="se-prev" aria-label="Trang trước">‹</button>
+        <div class="se-grid" id="se-grid"></div>
+        <button class="se-arrow" id="se-next" aria-label="Trang sau">›</button>
+      </div>
+      <div class="se-links">
+        <button class="se-link" id="se-undo">Xóa bản trước đó</button>
+        <button class="se-link" id="se-clear">Xóa toàn bộ</button>
+      </div>
+      <p class="se-hint">Trang trí ảnh rồi ấn <b>PRINT</b> để in ảnh bạn nhé! ^^</p>
+      <div class="se-actions">
+        <button class="btn-ghost" id="se-cancel">Huỷ</button>
+        <button class="btn-secondary" id="se-done">✅ Xong</button>
+        <button class="btn-primary" id="se-print">🖨️ PRINT</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hidden work canvas -->
+  <canvas id="work-canvas" style="display:none"></canvas>
+
+  <script src="vendor/gif.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

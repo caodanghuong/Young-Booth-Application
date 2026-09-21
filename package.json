@@ -1,0 +1,45 @@
+{
+  "name": "youngbooth",
+  "version": "0.1.0",
+  "description": "YoungBooth - a LumaBooth-style photo booth app for Windows",
+  "main": "main.js",
+  "author": "Cao Dang Huong",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "gif.js": "^0.2.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "electron": "^32.1.2",
+    "electron-builder": "^25.0.5"
+  },
+  "build": {
+    "appId": "com.youngbooth.app",
+    "productName": "YoungBooth",
+    "files": [
+      "main.js",
+      "preload.js",
+      "server.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "asarUnpack": [
+      "renderer/vendor/**",
+      "node_modules/@brick-a-brack/napi-canon-cameras/**"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
