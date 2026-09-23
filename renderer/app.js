@@ -35,6 +35,7 @@ function loadPrintCfg() {
   } catch { return def; }
 }
 state.printCfg = loadPrintCfg();
+state.beauty = !!(CFG.beauty && CFG.beauty.enabled);
 
 // ---- element refs ----
 const $ = (sel) => document.querySelector(sel);
@@ -278,6 +279,7 @@ function buildModeGrid() {
 async function chooseMode(m) {
   state.mode = m;
   state.rawFrames = []; state.captured = null; state.sessionAnim = null; state._shareRes = null;
+  clearBeautyCache();
   // refresh settings (price may have changed on the webadmin)
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
   const pay = state.settings && state.settings.payment;
@@ -499,6 +501,71 @@ async function rerenderResult() {
   show('result');
 }
 
+/* ================= beauty (mịn da + làm nét) ================= */
+const _beautyCache = new Map();
+function clearBeautyCache() { _beautyCache.clear(); }
+
+// Unsharp/Laplacian sharpen in-place on a 2d context.
+function sharpenCtx(ctx, w, h, amount) {
+  if (amount <= 0) return;
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const src = new Uint8ClampedArray(d);
+  const idx = (x, y) => ((y * w + x) << 2);
+  const k = amount * 0.8;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const o = idx(x, y);
+      for (let c = 0; c < 3; c++) {
+        const i = o + c, ctr = src[i];
+        const lap = src[idx(x - 1, y) + c] + src[idx(x + 1, y) + c] +
+                    src[idx(x, y - 1) + c] + src[idx(x, y + 1) + c] - 4 * ctr;
+        d[i] = ctr - k * lap;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// Produce a beautified copy of a raw frame canvas (cached).
+function beautifyCanvas(src) {
+  const b = CFG.beauty || {};
+  const w = src.width, h = src.height;
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const ctx = out.getContext('2d');
+
+  // base with a slight brighten/glow
+  ctx.filter = `brightness(${1 + (b.glow || 0)}) saturate(1.03)`;
+  ctx.drawImage(src, 0, 0);
+  ctx.filter = 'none';
+
+  // skin smoothing: overlay a blurred copy
+  if (b.smooth > 0) {
+    const blur = document.createElement('canvas');
+    blur.width = w; blur.height = h;
+    const bx = blur.getContext('2d');
+    const radius = Math.max(1, Math.round(Math.min(w, h) * 0.008 * b.smooth * 2));
+    bx.filter = `blur(${radius}px)`;
+    bx.drawImage(src, 0, 0);
+    ctx.globalAlpha = Math.min(0.8, b.smooth);
+    ctx.drawImage(blur, 0, 0);
+    ctx.globalAlpha = 1;
+  }
+
+  // sharpen to keep eyes / edges crisp
+  sharpenCtx(ctx, w, h, b.sharpen || 0);
+  return out;
+}
+
+// Return the frame to draw: beautified (cached) when beauty is on, else raw.
+function frameFor(src) {
+  if (!state.beauty) return src;
+  let cached = _beautyCache.get(src);
+  if (!cached) { cached = beautifyCanvas(src); _beautyCache.set(src, cached); }
+  return cached;
+}
+
 /* ================= composition ================= */
 
 function roundRectPath(ctx, x, y, w, h, r) {
@@ -626,7 +693,7 @@ async function composePhoto() {
     canvas.width = O.photoW; canvas.height = O.photoH;
     fillBackground(ctx, canvas.width, canvas.height);
     const pad = 60, footer = showBrand ? 240 : 60;
-    drawCover(ctx, state.rawFrames[0], pad, pad, canvas.width - pad * 2, canvas.height - pad * 2 - footer, f, rad);
+    drawCover(ctx, frameFor(state.rawFrames[0]), pad, pad, canvas.width - pad * 2, canvas.height - pad * 2 - footer, f, rad);
     if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 4, true);
 
   } else if (layout === 'strip') {
@@ -637,7 +704,7 @@ async function composePhoto() {
     const cellW = canvas.width - pad * 2;
     const cellH = (canvas.height - footer - pad * 2 - gap * (n - 1)) / n;
     state.rawFrames.forEach((fr, i) => {
-      drawCover(ctx, fr, pad, pad + i * (cellH + gap), cellW, cellH, f, Math.min(rad, 18));
+      drawCover(ctx, frameFor(fr), pad, pad + i * (cellH + gap), cellW, cellH, f, Math.min(rad, 18));
     });
     if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 2, false);
 
@@ -651,7 +718,7 @@ async function composePhoto() {
     const cellH = areaH / rows;
     state.rawFrames.forEach((fr, i) => {
       const c = i % cols, r = Math.floor(i / cols);
-      drawCover(ctx, fr, pad + c * (cellW + gap), pad + r * (cellH + gap), cellW, cellH, f, rad);
+      drawCover(ctx, frameFor(fr), pad + c * (cellW + gap), pad + r * (cellH + gap), cellW, cellH, f, rad);
     });
     if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 4, true);
   }
@@ -679,7 +746,7 @@ async function composeTemplate(m) {
 
   m.slots.forEach((s, i) => {
     const fr = state.rawFrames[i % state.rawFrames.length];
-    if (fr) drawCover(ctx, fr, s.x, s.y, s.w, s.h, f, s.radius || 0);
+    if (fr) drawCover(ctx, frameFor(fr), s.x, s.y, s.w, s.h, f, s.radius || 0);
   });
 
   if (m.overlay) {
@@ -705,7 +772,7 @@ function framesToGif(rawFrames, boomerang, delay) {
       if (onGradient) { ctx.fillStyle = brandBgGradient(ctx, size, size + bar); }
       else { ctx.fillStyle = '#fff'; }
       ctx.fillRect(0, 0, c.width, c.height);
-      drawCover(ctx, fr, 0, 0, size, size, f);
+      drawCover(ctx, frameFor(fr), 0, 0, size, size, f);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = CFG.brand.brandTextColor || (onGradient ? '#ffffff' : CFG.brand.accent1);
       ctx.font = '800 34px "Segoe UI", sans-serif';

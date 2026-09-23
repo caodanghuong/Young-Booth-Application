@@ -42,6 +42,14 @@ const BOOTH_CONFIG = {
   countdownSeconds: 3,   // đếm ngược cho kiểu GIF/Boomerang
   prepSeconds: 15,       // thời gian chuẩn bị + đếm ngược trước MỖI ảnh (kiểu ảnh)
 
+  // Làm đẹp: mịn da + làm nét. 0 = tắt, 1 = mạnh.
+  beauty: {
+    enabled: true,       // bật sẵn (có nút bật/tắt ở màn kết quả)
+    smooth: 0.45,        // mịn da (0–1)
+    sharpen: 0.35,       // làm nét (0–1)
+    glow: 0.05,          // sáng da nhẹ (0–1)
+  },
+
   // Sticker dán lên ảnh (màn kết quả). emojis = mặc định; images = PNG trong renderer/stickers/.
   stickers: {
     emojis: ['😎', '🥳', '😍', '🤩', '😂', '❤️', '🔥', '⭐', '🎉', '🎂', '👑', '🕶️', '💯', '🦄', '🌈', '✨', '💖', '🎈', '🍾', '💋', '🌸', '🐶'],
