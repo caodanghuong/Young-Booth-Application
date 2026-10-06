@@ -126,6 +126,7 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       showBrand: false,
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 56, y: 40, h: 76 },
       // Các dòng chữ sửa được (id dùng để lưu giá trị). label = nhãn hiện trong Cài đặt.
       texts: [
         { id: 'invite', label: 'Dòng mời (trên)', value: 'YOU ARE INVITED TO CELEBRATE THE WEDDING OF',
