@@ -38,7 +38,7 @@ const BOOTH_CONFIG = {
     showcase: {
       enabled: true,
       title: 'MẪU KHUNG ẢNH',
-      images: [], // vd: ['home/mau1.png','home/mau2.png','home/mau3.png'] (bỏ file vào renderer/home/)
+      images: ['home/showcase1.png', 'home/showcase2.png', 'home/showcase3.png'],
     },
   },
 
