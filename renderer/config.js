@@ -96,10 +96,10 @@ const BOOTH_CONFIG = {
   // PNG phải 1200×1800, CHỪA TRONG SUỐT đúng các ô ảnh (slots); đổi khung = thay PNG, không build lại.
   modes: [
     // Layout A — 1 ảnh (nền tối, YOUNG BOOTH)
-    { id: 'A', name: 'Layout A', icon: '🖼️', desc: '4×6" · 1 ảnh', kind: 'photo',
+    { id: 'A', name: 'Khoảnh Khắc', icon: '🖼️', desc: '4×6" · 1 ảnh', kind: 'photo',
       captureCount: 1, select: 1,
       canvas: { w: 1200, h: 1800 },
-      background: '#2b3a5e',
+      background: '#dde5ec',
       slots: [
         { x: 80, y: 180, w: 1040, h: 1420, radius: 0 },
       ],
@@ -109,14 +109,14 @@ const BOOTH_CONFIG = {
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 44, h: 112 },
       texts: [
         { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
-          x: 600, y: 1700, size: 28, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+          x: 600, y: 1700, size: 28, color: '#5c6672', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
-          x: 600, y: 1748, w: 1000, size: 24, color: '#9fb0d4', ff: 'Arial, sans-serif', italic: true, lh: 32 },
+          x: 600, y: 1748, w: 1000, size: 24, color: '#7a828c', ff: 'Arial, sans-serif', italic: true, lh: 32 },
       ],
     },
 
     // Layout B — 2 ảnh (khung Cưới). Chữ VẼ ĐỘNG (sửa trong Cài đặt ⚙️ → "Chữ khung cưới").
-    { id: 'B', name: 'Layout B', icon: '💍', desc: '4×6" · 2 ảnh', kind: 'photo',
+    { id: 'B', name: 'Ngọt Ngào', icon: '💍', desc: '4×6" · 2 ảnh', kind: 'photo',
       captureCount: 2, select: 2,
       canvas: { w: 1200, h: 1800 },
       background: '#ffffff',
@@ -143,10 +143,10 @@ const BOOTH_CONFIG = {
     },
 
     // Layout C — 6 ảnh (khung Navy 2×3)
-    { id: 'C', name: 'Layout C', icon: '🎞️', desc: '4×6" · 6 ảnh', kind: 'photo',
+    { id: 'C', name: 'Nhật Ký', icon: '🎞️', desc: '4×6" · 6 ảnh', kind: 'photo',
       captureCount: 6, select: 6,
       canvas: { w: 1200, h: 1800 },
-      background: '#2b3a5e',
+      background: '#e4e8e0',
       slots: [
         { x: 60,  y: 130,  w: 528, h: 497, radius: 0 },
         { x: 612, y: 130,  w: 528, h: 497, radius: 0 },
@@ -160,17 +160,17 @@ const BOOTH_CONFIG = {
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 12, h: 104 },
       texts: [
         { id: 'date', label: 'Ngày', value: '06 . 10 . 2026',
-          x: 600, y: 1708, size: 26, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+          x: 600, y: 1708, size: 26, color: '#5f655a', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
-          x: 600, y: 1752, w: 1000, size: 22, color: '#9fb0d4', ff: 'Arial, sans-serif', italic: true, lh: 30 },
+          x: 600, y: 1752, w: 1000, size: 22, color: '#7c8274', ff: 'Arial, sans-serif', italic: true, lh: 30 },
       ],
     },
 
     // Layout F — 4 ảnh (khung Charcoal 2×2)
-    { id: 'F', name: 'Layout F', icon: '🖼️', desc: '4×6" · 4 ảnh', kind: 'photo',
+    { id: 'F', name: 'Dịu Dàng', icon: '🖼️', desc: '4×6" · 4 ảnh', kind: 'photo',
       captureCount: 4, select: 4,
       canvas: { w: 1200, h: 1800 },
-      background: '#3a3a3c',
+      background: '#f1e4de',
       slots: [
         { x: 60,  y: 130, w: 528, h: 755, radius: 0 },
         { x: 612, y: 130, w: 528, h: 755, radius: 0 },
@@ -182,9 +182,9 @@ const BOOTH_CONFIG = {
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 12, h: 104 },
       texts: [
         { id: 'date', label: 'Ngày', value: '06 . 10 . 2026',
-          x: 600, y: 1708, size: 26, color: '#ededed', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+          x: 600, y: 1708, size: 26, color: '#6e5f57', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
-          x: 600, y: 1752, w: 1000, size: 22, color: '#c9c9cc', ff: 'Arial, sans-serif', italic: true, lh: 30 },
+          x: 600, y: 1752, w: 1000, size: 22, color: '#8a7a70', ff: 'Arial, sans-serif', italic: true, lh: 30 },
       ],
     },
   ],
