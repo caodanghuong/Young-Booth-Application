@@ -58,6 +58,7 @@ const BOOTH_CONFIG = {
   stickers: {
     // Prop chữ tiệc/quẩy (SVG tự vẽ) — hiện trước, rồi tới emoji.
     images: [
+      'stickers/trai-tim-doodle.svg',
       'stickers/umbala.svg',
       'stickers/quay-len-nao.svg',
       'stickers/quay-kho-mau.svg',
