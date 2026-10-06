@@ -901,8 +901,49 @@ async function composeTemplate(m) {
     try { const img = await loadImage(m.overlay); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
     catch (e) { console.warn(e.message); }
   }
+  drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
   if (m.showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - 120, true);
   return canvas;
+}
+
+// ---- Chữ động trên khung (sửa trong Cài đặt) ----
+function getFrameTextStore() {
+  try { return JSON.parse(localStorage.getItem('booth.frameText') || '{}'); } catch (_e) { return {}; }
+}
+function frameTextValue(modeId, t) {
+  const v = getFrameTextStore()[modeId + '.' + t.id];
+  return (v != null && v !== '') ? v : (t.value || '');
+}
+function drawFrameTexts(ctx, m) {
+  if (!m.texts || !m.texts.length) return;
+  for (const t of m.texts) {
+    const text = frameTextValue(m.id, t);
+    if (!text) continue;
+    ctx.font = (t.italic ? 'italic ' : '') + (t.weight || '400') + ' ' + t.size + 'px ' + (t.ff || 'Arial, sans-serif');
+    ctx.fillStyle = t.color || '#000';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    const ls = t.ls || 0;
+    const drawLine = (str, cy) => {
+      if (!ls) { ctx.fillText(str, t.x, cy); return; }
+      let tot = 0; for (const c of str) tot += ctx.measureText(c).width + ls; tot -= ls;
+      let cx = t.x - tot / 2;
+      for (const c of str) { const w = ctx.measureText(c).width; ctx.fillText(c, cx + w / 2, cy); cx += w + ls; }
+    };
+    if (t.w) { // tự xuống dòng theo bề rộng
+      const words = String(text).split(/\s+/);
+      const lines = []; let line = '';
+      for (const wd of words) {
+        const test = line ? line + ' ' + wd : wd;
+        const ww = ctx.measureText(test).width + (ls ? ls * Math.max(0, test.length - 1) : 0);
+        if (ww > t.w && line) { lines.push(line); line = wd; } else line = test;
+      }
+      if (line) lines.push(line);
+      const lh = t.lh || t.size * 1.3;
+      lines.forEach((ln, i) => drawLine(ln, t.y + i * lh));
+    } else {
+      drawLine(String(text), t.y);
+    }
+  }
 }
 
 // Build an animated GIF from a list of raw frames (square photo + brand bar).
@@ -1083,6 +1124,7 @@ async function openSettings() {
   $('#set-tagline').value = (state.brandOverride && typeof state.brandOverride.tagline === 'string')
     ? state.brandOverride.tagline : (CFG.brand.tagline || '');
   $('#set-subfooter').value = (state.brandOverride && state.brandOverride.subFooter) || '';
+  buildFrameTextFields();
 
   // Canon control panel: only when the EDSDK module is present.
   const canonAvail = await window.booth.canon.available().catch(() => false);
@@ -1109,6 +1151,8 @@ function saveSettings() {
   state.brandOverride = { tagline: $('#set-tagline').value, subFooter: $('#set-subfooter').value };
   try { localStorage.setItem('booth.brand', JSON.stringify(state.brandOverride)); } catch {}
 
+  saveFrameTextFields();
+
   $('#settings-modal').classList.remove('show');
 
   // Nếu đang ở màn kết quả, dựng lại ảnh để áp nội dung mới ngay.
@@ -1117,6 +1161,45 @@ function saveSettings() {
     rerenderResult();
   }
 }
+// Dựng ô nhập chữ cho mọi khung có `texts` (sửa tên/ngày/lời mời... ngay trong app).
+function buildFrameTextFields() {
+  const wrap = $('#frame-text-wrap');
+  const box = $('#frame-text-fields');
+  if (!wrap || !box) return;
+  const store = getFrameTextStore();
+  const modesWithText = (CFG.modes || []).filter((m) => m.texts && m.texts.length);
+  box.innerHTML = '';
+  if (!modesWithText.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  modesWithText.forEach((m) => {
+    const grp = document.createElement('div');
+    grp.innerHTML = `<div style="font-weight:800;margin:10px 0 4px;opacity:0.85">${m.name}</div>`;
+    m.texts.forEach((t) => {
+      const key = m.id + '.' + t.id;
+      const val = (store[key] != null) ? store[key] : (t.value || '');
+      const row = document.createElement('div');
+      row.className = 'set-row';
+      row.style.cssText = 'flex-direction:column;align-items:stretch;gap:6px;';
+      const inpId = 'ft-' + m.id + '-' + t.id;
+      row.innerHTML = `<label>${t.label || t.id}</label>` +
+        `<input type="text" id="${inpId}" class="set-text" value="${String(val).replace(/"/g, '&quot;')}" />`;
+      grp.appendChild(row);
+    });
+    box.appendChild(grp);
+  });
+}
+function saveFrameTextFields() {
+  const store = {};
+  (CFG.modes || []).forEach((m) => {
+    if (!m.texts) return;
+    m.texts.forEach((t) => {
+      const el = document.getElementById('ft-' + m.id + '-' + t.id);
+      if (el) store[m.id + '.' + t.id] = el.value;
+    });
+  });
+  try { localStorage.setItem('booth.frameText', JSON.stringify(store)); } catch (_e) {}
+}
+
 $('#btn-settings').addEventListener('click', openSettings);
 $('#btn-settings-capture').addEventListener('click', openSettings);
 $('#btn-settings-save').addEventListener('click', saveSettings);

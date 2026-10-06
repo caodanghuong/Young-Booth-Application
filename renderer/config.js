@@ -107,7 +107,7 @@ const BOOTH_CONFIG = {
       showBrand: false,
     },
 
-    // Layout B — 2 ảnh (khung Cưới)
+    // Layout B — 2 ảnh (khung Cưới). Chữ VẼ ĐỘNG (sửa trong Cài đặt ⚙️ → "Chữ khung cưới").
     { id: 'B', name: 'Layout B', icon: '💍', desc: '4×6" · 2 ảnh', kind: 'photo',
       captureCount: 2, select: 2,
       canvas: { w: 1200, h: 1800 },
@@ -118,6 +118,19 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       showBrand: false,
+      // Các dòng chữ sửa được (id dùng để lưu giá trị). label = nhãn hiện trong Cài đặt.
+      texts: [
+        { id: 'invite', label: 'Dòng mời (trên)', value: 'YOU ARE INVITED TO CELEBRATE THE WEDDING OF',
+          x: 600, y: 108, w: 860, size: 26, color: '#9c6b4f', ff: 'Georgia, serif', weight: '600', ls: 4, lh: 38 },
+        { id: 'mono', label: 'Ký tự monogram (trong vòng tròn)', value: '&',
+          x: 600, y: 256, size: 52, color: '#9c6b4f', ff: 'Georgia, serif', italic: true },
+        { id: 'names', label: 'Tên cô dâu & chú rể', value: 'Anh & Em',
+          x: 600, y: 1662, size: 64, color: '#9c6b4f', ff: 'Georgia, serif', italic: true },
+        { id: 'date', label: 'Ngày cưới', value: '01 . 01 . 2026',
+          x: 600, y: 1712, size: 30, color: '#5a4a3c', ff: 'Georgia, serif', weight: '600', ls: 6 },
+        { id: 'thanks', label: 'Lời cảm ơn (dưới)', value: 'Thank you for being part of our special day',
+          x: 600, y: 1748, w: 900, size: 22, color: '#b98c6d', ff: 'Georgia, serif', italic: true, lh: 30 },
+      ],
     },
 
     // Layout C — 6 ảnh (khung Navy 2×3)
