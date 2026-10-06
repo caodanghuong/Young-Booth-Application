@@ -778,12 +778,23 @@ function drawBrand(ctx, cx, y, big) {
 const _imgCache = {};
 function loadImage(src) {
   if (_imgCache[src]) return _imgCache[src];
-  const p = new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Không nạp được ảnh: ' + src));
-    img.src = src;
-  });
+  const p = (async () => {
+    let realSrc = src;
+    // Ảnh khung NGOÀI (file:// hoặc đường dẫn tuyệt đối Windows) → đọc qua tiến trình
+    // chính thành dataURL để tránh "tainted canvas" làm hỏng xuất/in ảnh.
+    if (/^file:/i.test(src) || /^[a-zA-Z]:[\\/]/.test(src)) {
+      try {
+        const r = await window.booth.readImage(src);
+        if (r && r.ok && r.dataUrl) realSrc = r.dataUrl;
+      } catch (_e) {}
+    }
+    return await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Không nạp được ảnh: ' + src));
+      img.src = realSrc;
+    });
+  })();
   _imgCache[src] = p;
   return p;
 }

@@ -96,6 +96,23 @@ const BOOTH_CONFIG = {
     { id: 'C', name: 'Layout C',  icon: '2×3', desc: '4×6" · 6 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 3, captureCount: 6, select: 6 },
     { id: 'D', name: 'Layout D',  icon: '2×4', desc: '4×6" · 8 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 4, captureCount: 8, select: 8 },
     { id: 'F', name: 'Layout F',  icon: '🎞️',  desc: '2×6" · 4 ảnh (dải)', kind: 'photo', layout: 'strip', captureCount: 4, select: 4 },
+
+    // Khung CƯỚI 4×6 (2 ảnh) — dùng file PNG thiết kế sẵn (frames/wedding-4x6.png).
+    // Canvas 1200×1800. App vẽ 2 ảnh vào 2 slot dưới đây, rồi phủ PNG lên trên.
+    // => File PNG phải CHỪA TRONG SUỐT đúng 2 ô này; phần còn lại (chữ/monogram/ngày/QR) vẽ đè.
+    { id: 'W', name: 'Khung Cưới', icon: '💍', desc: '4×6" · 2 ảnh (đám cưới)', kind: 'photo',
+      captureCount: 2, select: 2,
+      canvas: { w: 1200, h: 1800 },
+      background: '#ffffff',              // nền trắng (PNG phủ lên trên)
+      slots: [
+        { x: 100, y: 320,  w: 1000, h: 620, radius: 0 }, // ô ảnh TRÊN
+        { x: 100, y: 960,  w: 1000, h: 620, radius: 0 }, // ô ảnh DƯỚI
+      ],
+      // PNG khung đọc từ thư mục NGOÀI để đổi mỗi đám cưới KHÔNG cần build lại.
+      // Bỏ file PNG 1200×1800 (trong suốt 2 ô ảnh) vào:  C:\YoungBooth-Frames\wedding-4x6.png
+      overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
+      showBrand: false,                  // PNG cưới tự có branding → tắt footer mặc định
+    },
   ],
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,

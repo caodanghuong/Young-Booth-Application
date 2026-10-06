@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('booth', {
   },
   /** Open a URL / mailto link in the OS default handler. */
   openExternal: (url) => ipcRenderer.invoke('booth:openExternal', { url }),
+  /** Read an external image file (file:// or absolute path) → { ok, dataUrl }. */
+  readImage: (src) => ipcRenderer.invoke('booth:readImage', { src }),
 
   // ---- Canon EDSDK ----
   canon: {

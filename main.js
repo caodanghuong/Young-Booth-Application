@@ -430,6 +430,19 @@ ipcMain.handle('booth:info', async () => {
   return { lanUrl: serverInfo ? serverInfo.lanUrl : null };
 });
 
+// Đọc 1 file ảnh ngoài (file:// hoặc đường dẫn tuyệt đối) → dataURL cho renderer.
+ipcMain.handle('booth:readImage', async (_evt, { src }) => {
+  try {
+    let p = String(src || '');
+    if (/^file:/i.test(p)) p = decodeURIComponent(p.replace(/^file:\/\/\/?/i, ''));
+    const buf = fs.readFileSync(p);
+    const ext = path.extname(p).toLowerCase();
+    const mime = (ext === '.jpg' || ext === '.jpeg') ? 'image/jpeg'
+      : ext === '.webp' ? 'image/webp' : 'image/png';
+    return { ok: true, dataUrl: `data:${mime};base64,` + buf.toString('base64') };
+  } catch (e) { return { ok: false, reason: e.message }; }
+});
+
 ipcMain.handle('booth:openExternal', async (_evt, { url }) => {
   // Only allow safe schemes.
   if (/^(https?:|mailto:)/i.test(url)) {
