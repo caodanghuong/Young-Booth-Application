@@ -92,35 +92,39 @@ const BOOTH_CONFIG = {
   //  (captureCount > select → hiện màn hình chọn ảnh sau khi chụp)
   // Bộ layout chuẩn photobooth (4×6" và 2×6"). cols×rows = số ô ảnh.
   // captureCount = select = số ô → chụp đúng số ô, không có bước chọn.
+  // Mỗi Layout = 1 KHUNG ĐẸP thiết kế sẵn (PNG ngoài ở C:\YoungBooth-Frames).
+  // PNG phải 1200×1800, CHỪA TRONG SUỐT đúng các ô ảnh (slots); đổi khung = thay PNG, không build lại.
   modes: [
-    { id: 'A', name: 'Layout A',  icon: '🖼️',  desc: '4×6" · 1 ảnh', kind: 'photo', layout: 'single', captureCount: 1, select: 1 },
-    { id: 'B', name: 'Layout B',  icon: '2×2', desc: '4×6" · 4 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 2, captureCount: 4, select: 4 },
-    { id: 'C', name: 'Layout C',  icon: '2×3', desc: '4×6" · 6 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 3, captureCount: 6, select: 6 },
-    { id: 'F', name: 'Layout F',  icon: '🎞️',  desc: '2×6" · 4 ảnh (dải)', kind: 'photo', layout: 'strip', captureCount: 4, select: 4 },
-
-    // Khung CƯỚI 4×6 (2 ảnh) — dùng file PNG thiết kế sẵn (frames/wedding-4x6.png).
-    // Canvas 1200×1800. App vẽ 2 ảnh vào 2 slot dưới đây, rồi phủ PNG lên trên.
-    // => File PNG phải CHỪA TRONG SUỐT đúng 2 ô này; phần còn lại (chữ/monogram/ngày/QR) vẽ đè.
-    { id: 'W', name: 'Khung Cưới', icon: '💍', desc: '4×6" · 2 ảnh (đám cưới)', kind: 'photo',
-      captureCount: 2, select: 2,
+    // Layout A — 1 ảnh (nền tối, YOUNG BOOTH)
+    { id: 'A', name: 'Layout A', icon: '🖼️', desc: '4×6" · 1 ảnh', kind: 'photo',
+      captureCount: 1, select: 1,
       canvas: { w: 1200, h: 1800 },
-      background: '#ffffff',              // nền trắng (PNG phủ lên trên)
+      background: '#2b3a5e',
       slots: [
-        { x: 100, y: 320,  w: 1000, h: 620, radius: 0 }, // ô ảnh TRÊN
-        { x: 100, y: 960,  w: 1000, h: 620, radius: 0 }, // ô ảnh DƯỚI
+        { x: 80, y: 180, w: 1040, h: 1420, radius: 0 },
       ],
-      // PNG khung đọc từ thư mục NGOÀI để đổi mỗi đám cưới KHÔNG cần build lại.
-      // Bỏ file PNG 1200×1800 (trong suốt 2 ô ảnh) vào:  C:\YoungBooth-Frames\wedding-4x6.png
-      overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
-      showBrand: false,                  // PNG cưới tự có branding → tắt footer mặc định
+      overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
+      showBrand: false,
     },
 
-    // Khung NAVY 2×3 (6 ảnh) — kiểu photobooth xanh than, dùng PNG ngoài.
-    // File: C:\YoungBooth-Frames\grid6-navy.png (1200×1800, trong suốt 6 ô ảnh).
-    { id: 'N', name: 'Khung Navy', icon: '🎞️', desc: '4×6" · 6 ảnh (xanh than)', kind: 'photo',
+    // Layout B — 2 ảnh (khung Cưới)
+    { id: 'B', name: 'Layout B', icon: '💍', desc: '4×6" · 2 ảnh', kind: 'photo',
+      captureCount: 2, select: 2,
+      canvas: { w: 1200, h: 1800 },
+      background: '#ffffff',
+      slots: [
+        { x: 100, y: 320, w: 1000, h: 620, radius: 0 },
+        { x: 100, y: 960, w: 1000, h: 620, radius: 0 },
+      ],
+      overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
+      showBrand: false,
+    },
+
+    // Layout C — 6 ảnh (khung Navy 2×3)
+    { id: 'C', name: 'Layout C', icon: '🎞️', desc: '4×6" · 6 ảnh', kind: 'photo',
       captureCount: 6, select: 6,
       canvas: { w: 1200, h: 1800 },
-      background: '#2b3a5e',             // nền navy (PNG phủ lên trên)
+      background: '#2b3a5e',
       slots: [
         { x: 60,  y: 150,  w: 528, h: 514, radius: 0 },
         { x: 612, y: 150,  w: 528, h: 514, radius: 0 },
@@ -133,9 +137,8 @@ const BOOTH_CONFIG = {
       showBrand: false,
     },
 
-    // Khung CHARCOAL 2×2 (4 ảnh) — nền xám than, dùng PNG ngoài.
-    // File: C:\YoungBooth-Frames\grid4-charcoal.png (1200×1800, trong suốt 4 ô ảnh).
-    { id: 'H', name: 'Khung Charcoal', icon: '🖼️', desc: '4×6" · 4 ảnh (xám than)', kind: 'photo',
+    // Layout F — 4 ảnh (khung Charcoal 2×2)
+    { id: 'F', name: 'Layout F', icon: '🖼️', desc: '4×6" · 4 ảnh', kind: 'photo',
       captureCount: 4, select: 4,
       canvas: { w: 1200, h: 1800 },
       background: '#3a3a3c',
