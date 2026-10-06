@@ -907,7 +907,8 @@ async function composeTemplate(m) {
       const img = await loadImage(m.logo.src);
       const h = m.logo.h || 110;
       const w = m.logo.w || (h * (img.naturalWidth / img.naturalHeight || 3));
-      ctx.drawImage(img, m.logo.x != null ? m.logo.x : 60, m.logo.y != null ? m.logo.y : 48, w, h);
+      const lx = m.logo.center ? (canvas.width - w) / 2 : (m.logo.x != null ? m.logo.x : 60);
+      ctx.drawImage(img, lx, m.logo.y != null ? m.logo.y : 48, w, h);
     } catch (e) { console.warn('logo:', e.message); }
   }
   drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
@@ -933,26 +934,29 @@ function drawFrameTexts(ctx, m) {
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     const ls = t.ls || 0;
     const align = t.align || 'center'; // 'left' | 'center' | 'right'
-    const drawLine = (str, cy) => {
-      const chars = [...str];
-      const widths = chars.map((c) => ctx.measureText(c).width);
-      const tot = widths.reduce((a, b) => a + b, 0) + ls * Math.max(0, chars.length - 1);
-      let cx = align === 'left' ? t.x : align === 'right' ? (t.x - tot) : (t.x - tot / 2);
-      for (let i = 0; i < chars.length; i++) { ctx.fillText(chars[i], cx, cy); cx += widths[i] + ls; }
-    };
-    if (t.w) { // tự xuống dòng theo bề rộng
-      const words = String(text).split(/\s+/);
-      const lines = []; let line = '';
-      for (const wd of words) {
-        const test = line ? line + ' ' + wd : wd;
-        const ww = ctx.measureText(test).width + (ls ? ls * Math.max(0, test.length - 1) : 0);
-        if (ww > t.w && line) { lines.push(line); line = wd; } else line = test;
+    const xs = Array.isArray(t.xs) ? t.xs : [t.x]; // vẽ ở nhiều cột nếu có xs
+    for (const X of xs) {
+      const drawLine = (str, cy) => {
+        const chars = [...str];
+        const widths = chars.map((c) => ctx.measureText(c).width);
+        const tot = widths.reduce((a, b) => a + b, 0) + ls * Math.max(0, chars.length - 1);
+        let cx = align === 'left' ? X : align === 'right' ? (X - tot) : (X - tot / 2);
+        for (let i = 0; i < chars.length; i++) { ctx.fillText(chars[i], cx, cy); cx += widths[i] + ls; }
+      };
+      if (t.w) { // tự xuống dòng theo bề rộng
+        const words = String(text).split(/\s+/);
+        const lines = []; let line = '';
+        for (const wd of words) {
+          const test = line ? line + ' ' + wd : wd;
+          const ww = ctx.measureText(test).width + (ls ? ls * Math.max(0, test.length - 1) : 0);
+          if (ww > t.w && line) { lines.push(line); line = wd; } else line = test;
+        }
+        if (line) lines.push(line);
+        const lh = t.lh || t.size * 1.3;
+        lines.forEach((ln, i) => drawLine(ln, t.y + i * lh));
+      } else {
+        drawLine(String(text), t.y);
       }
-      if (line) lines.push(line);
-      const lh = t.lh || t.size * 1.3;
-      lines.forEach((ln, i) => drawLine(ln, t.y + i * lh));
-    } else {
-      drawLine(String(text), t.y);
     }
   }
 }
