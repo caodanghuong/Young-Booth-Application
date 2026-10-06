@@ -94,7 +94,6 @@ const BOOTH_CONFIG = {
     { id: 'A', name: 'Layout A',  icon: '🖼️',  desc: '4×6" · 1 ảnh', kind: 'photo', layout: 'single', captureCount: 1, select: 1 },
     { id: 'B', name: 'Layout B',  icon: '2×2', desc: '4×6" · 4 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 2, captureCount: 4, select: 4 },
     { id: 'C', name: 'Layout C',  icon: '2×3', desc: '4×6" · 6 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 3, captureCount: 6, select: 6 },
-    { id: 'D', name: 'Layout D',  icon: '2×4', desc: '4×6" · 8 ảnh', kind: 'photo', layout: 'grid', cols: 2, rows: 4, captureCount: 8, select: 8 },
     { id: 'F', name: 'Layout F',  icon: '🎞️',  desc: '2×6" · 4 ảnh (dải)', kind: 'photo', layout: 'strip', captureCount: 4, select: 4 },
 
     // Khung CƯỚI 4×6 (2 ảnh) — dùng file PNG thiết kế sẵn (frames/wedding-4x6.png).
