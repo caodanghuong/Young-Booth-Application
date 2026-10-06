@@ -990,11 +990,8 @@ async function doPrint() {
     else paper = '4x6';
   }
 
-  // Xoay 90° CHỈ cho DẢI (2×6): để ghép 2 dải nằm ngang trên 1 tờ 4×6, máy cắt đôi → tiết kiệm giấy.
-  // Khung NGUYÊN TỜ 4×6 (ảnh đơn / lưới / Cưới / Navy / Charcoal) IN DỌC đúng thiết kế,
-  // KHÔNG xoay — xoay sẽ lệch khổ làm máy DNP cắt/xén ảnh.
-  const shouldRotate = state.printCfg.rotate && isStrip;
-  if (shouldRotate) {
+  // Xoay 90° cho TẤT CẢ ảnh (in NGANG để khớp giấy DNP nằm ngang) + đổi khổ sang khổ NGANG.
+  if (state.printCfg.rotate) {
     dataUrl = await rotate90(dataUrl);
     const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
     if (toLandscape[paper]) paper = toLandscape[paper];
