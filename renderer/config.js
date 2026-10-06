@@ -105,6 +105,12 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
       showBrand: false,
+      texts: [
+        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
+          x: 66, y: 104, size: 46, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
+        { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
+          x: 600, y: 1700, size: 28, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+      ],
     },
 
     // Layout B — 2 ảnh (khung Cưới). Chữ VẼ ĐỘNG (sửa trong Cài đặt ⚙️ → "Chữ khung cưới").
@@ -148,6 +154,12 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid6-navy.png',
       showBrand: false,
+      texts: [
+        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
+          x: 66, y: 104, size: 42, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
+        { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
+          x: 600, y: 1778, size: 26, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+      ],
     },
 
     // Layout F — 4 ảnh (khung Charcoal 2×2)
@@ -163,6 +175,12 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
       showBrand: false,
+      texts: [
+        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
+          x: 66, y: 104, size: 42, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
+        { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
+          x: 600, y: 1778, size: 26, color: '#ededed', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+      ],
     },
   ],
 

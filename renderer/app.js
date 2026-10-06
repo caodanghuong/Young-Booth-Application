@@ -921,13 +921,15 @@ function drawFrameTexts(ctx, m) {
     if (!text) continue;
     ctx.font = (t.italic ? 'italic ' : '') + (t.weight || '400') + ' ' + t.size + 'px ' + (t.ff || 'Arial, sans-serif');
     ctx.fillStyle = t.color || '#000';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     const ls = t.ls || 0;
+    const align = t.align || 'center'; // 'left' | 'center' | 'right'
     const drawLine = (str, cy) => {
-      if (!ls) { ctx.fillText(str, t.x, cy); return; }
-      let tot = 0; for (const c of str) tot += ctx.measureText(c).width + ls; tot -= ls;
-      let cx = t.x - tot / 2;
-      for (const c of str) { const w = ctx.measureText(c).width; ctx.fillText(c, cx + w / 2, cy); cx += w + ls; }
+      const chars = [...str];
+      const widths = chars.map((c) => ctx.measureText(c).width);
+      const tot = widths.reduce((a, b) => a + b, 0) + ls * Math.max(0, chars.length - 1);
+      let cx = align === 'left' ? t.x : align === 'right' ? (t.x - tot) : (t.x - tot / 2);
+      for (let i = 0; i < chars.length; i++) { ctx.fillText(chars[i], cx, cy); cx += widths[i] + ls; }
     };
     if (t.w) { // tự xuống dòng theo bề rộng
       const words = String(text).split(/\s+/);
