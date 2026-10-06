@@ -110,6 +110,8 @@ const BOOTH_CONFIG = {
           x: 66, y: 104, size: 46, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
         { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
           x: 600, y: 1700, size: 28, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
+        { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
+          x: 600, y: 1748, w: 1000, size: 24, color: '#9fb0d4', ff: 'Arial, sans-serif', italic: true, lh: 32 },
       ],
     },
 
