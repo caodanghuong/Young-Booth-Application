@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- Sparkle / ngôi sao 4 cánh doodle (viền trắng) — cụm 4 ngôi sao -->
+  <g fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <g transform="translate(120,24) scale(0.62)">
+      <path d="M50 2 C53 32 68 47 98 50 C68 53 53 68 50 98 C47 68 32 53 2 50 C32 47 47 32 50 2 Z"/>
+    </g>
+    <g transform="translate(34,64) scale(0.82)">
+      <path d="M50 2 C53 32 68 47 98 50 C68 53 53 68 50 98 C47 68 32 53 2 50 C32 47 47 32 50 2 Z"/>
+    </g>
+    <g transform="translate(150,112) scale(0.4)">
+      <path d="M50 2 C53 32 68 47 98 50 C68 53 53 68 50 98 C47 68 32 53 2 50 C32 47 47 32 50 2 Z"/>
+    </g>
+    <g transform="translate(52,158) scale(0.5)">
+      <path d="M50 2 C53 32 68 47 98 50 C68 53 53 68 50 98 C47 68 32 53 2 50 C32 47 47 32 50 2 Z"/>
+    </g>
+  </g>
+</svg>
