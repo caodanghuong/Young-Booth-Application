@@ -104,8 +104,15 @@ html, body {
 }
 .btn-settings:hover { filter: brightness(1.1); }
 
-.modal.settings { max-width: 480px; text-align: left; }
+.modal.settings { max-width: 480px; text-align: left; max-height: 88vh; overflow-y: auto; }
 .modal.settings h3 { text-align: center; }
+/* Ghim nút Lưu/Đóng ở đáy khi nội dung dài (cuộn) */
+.modal.settings .modal-btn-row {
+  position: sticky; bottom: -32px; z-index: 2;
+  background: var(--panel); margin: 16px -32px -32px; padding: 16px 32px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -10px 20px -10px rgba(0,0,0,0.5);
+}
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 14px 0; }
 .set-row label { font-size: 15px; color: var(--text); }
 .set-num { width: 72px; padding: 10px; border-radius: 10px; background: var(--panel2); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 15px; }
