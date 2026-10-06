@@ -22,9 +22,7 @@
     "appId": "com.youngbooth.app",
     "productName": "YoungBooth",
     "files": [
-      "main.js",
-      "preload.js",
-      "server.js",
+      "*.js",
       "renderer/**/*",
       "assets/**/*"
     ],
