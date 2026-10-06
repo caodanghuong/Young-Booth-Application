@@ -131,6 +131,22 @@ const BOOTH_CONFIG = {
       overlay: 'file:///C:/YoungBooth-Frames/grid6-navy.png',
       showBrand: false,
     },
+
+    // Khung CHARCOAL 2×2 (4 ảnh) — nền xám than, dùng PNG ngoài.
+    // File: C:\YoungBooth-Frames\grid4-charcoal.png (1200×1800, trong suốt 4 ô ảnh).
+    { id: 'H', name: 'Khung Charcoal', icon: '🖼️', desc: '4×6" · 4 ảnh (xám than)', kind: 'photo',
+      captureCount: 4, select: 4,
+      canvas: { w: 1200, h: 1800 },
+      background: '#3a3a3c',
+      slots: [
+        { x: 60,  y: 150, w: 528, h: 783, radius: 0 },
+        { x: 612, y: 150, w: 528, h: 783, radius: 0 },
+        { x: 60,  y: 957, w: 528, h: 783, radius: 0 },
+        { x: 612, y: 957, w: 528, h: 783, radius: 0 },
+      ],
+      overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
+      showBrand: false,
+    },
   ],
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,
