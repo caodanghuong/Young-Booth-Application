@@ -105,9 +105,9 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
       showBrand: false,
+      // Logo màu góc trên (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 44, h: 112 },
       texts: [
-        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
-          x: 66, y: 104, size: 46, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
         { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
           x: 600, y: 1700, size: 28, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
@@ -156,9 +156,8 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid6-navy.png',
       showBrand: false,
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 12, h: 104 },
       texts: [
-        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
-          x: 66, y: 104, size: 42, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
         { id: 'date', label: 'Ngày', value: '06 . 10 . 2026',
           x: 600, y: 1708, size: 26, color: '#e9ecf5', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
@@ -179,9 +178,8 @@ const BOOTH_CONFIG = {
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
       showBrand: false,
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 60, y: 12, h: 104 },
       texts: [
-        { id: 'title', label: 'Tiêu đề (góc trên)', value: 'YOUNG BOOTH',
-          x: 66, y: 104, size: 42, color: '#ffffff', ff: 'Arial, sans-serif', weight: '800', align: 'left' },
         { id: 'date', label: 'Ngày', value: '06 . 10 . 2026',
           x: 600, y: 1708, size: 26, color: '#ededed', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',

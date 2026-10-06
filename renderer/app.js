@@ -901,6 +901,15 @@ async function composeTemplate(m) {
     try { const img = await loadImage(m.overlay); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
     catch (e) { console.warn(e.message); }
   }
+  // Logo (ảnh màu) ở góc, nếu khung có khai báo.
+  if (m.logo && m.logo.src) {
+    try {
+      const img = await loadImage(m.logo.src);
+      const h = m.logo.h || 110;
+      const w = m.logo.w || (h * (img.naturalWidth / img.naturalHeight || 3));
+      ctx.drawImage(img, m.logo.x != null ? m.logo.x : 60, m.logo.y != null ? m.logo.y : 48, w, h);
+    } catch (e) { console.warn('logo:', e.message); }
+  }
   drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
   if (m.showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - 120, true);
   return canvas;
