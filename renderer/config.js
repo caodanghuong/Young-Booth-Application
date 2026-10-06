@@ -113,6 +113,24 @@ const BOOTH_CONFIG = {
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       showBrand: false,                  // PNG cưới tự có branding → tắt footer mặc định
     },
+
+    // Khung NAVY 2×3 (6 ảnh) — kiểu photobooth xanh than, dùng PNG ngoài.
+    // File: C:\YoungBooth-Frames\grid6-navy.png (1200×1800, trong suốt 6 ô ảnh).
+    { id: 'N', name: 'Khung Navy', icon: '🎞️', desc: '4×6" · 6 ảnh (xanh than)', kind: 'photo',
+      captureCount: 6, select: 6,
+      canvas: { w: 1200, h: 1800 },
+      background: '#2b3a5e',             // nền navy (PNG phủ lên trên)
+      slots: [
+        { x: 60,  y: 150,  w: 528, h: 514, radius: 0 },
+        { x: 612, y: 150,  w: 528, h: 514, radius: 0 },
+        { x: 60,  y: 688,  w: 528, h: 514, radius: 0 },
+        { x: 612, y: 688,  w: 528, h: 514, radius: 0 },
+        { x: 60,  y: 1226, w: 528, h: 514, radius: 0 },
+        { x: 612, y: 1226, w: 528, h: 514, radius: 0 },
+      ],
+      overlay: 'file:///C:/YoungBooth-Frames/grid6-navy.png',
+      showBrand: false,
+    },
   ],
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,

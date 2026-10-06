@@ -341,7 +341,13 @@ function buildModeGrid() {
   CFG.modes.forEach((m) => {
     const card = document.createElement('div');
     card.className = 'mode-card';
-    card.innerHTML = `<div class="ic">${m.icon}</div><div class="nm">${m.name}</div><div class="ds">${m.desc}</div>`;
+    // Khung có thiết kế (overlay/thumb) → hiện ảnh preview thật cho khách chọn;
+    // kiểu thường → hiện icon emoji.
+    const preview = m.thumb || m.overlay;
+    const top = preview
+      ? `<img class="thumb" src="${preview}" alt="" onerror="this.outerHTML='<div class=&quot;ic&quot;>${m.icon}</div>'">`
+      : `<div class="ic">${m.icon}</div>`;
+    card.innerHTML = `${top}<div class="nm">${m.name}</div><div class="ds">${m.desc}</div>`;
     card.addEventListener('click', () => chooseMode(m));
     grid.appendChild(card);
   });

@@ -145,12 +145,13 @@ html, body {
 /* ---------- mode grid ---------- */
 .mode-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 980px; }
 .mode-card {
-  width: 178px; height: 200px; background: var(--panel); border: 1px solid rgba(255,255,255,0.08);
+  width: 178px; height: 224px; background: var(--panel); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; padding: 14px;
 }
 .mode-card:hover { transform: translateY(-6px); border-color: var(--accent2); background: var(--panel2); }
 .mode-card .ic { font-size: 54px; }
+.mode-card .thumb { height: 124px; width: auto; max-width: 150px; border-radius: 10px; object-fit: contain; background: #d7dce8; box-shadow: 0 3px 10px rgba(0,0,0,0.35); }
 .mode-card .nm { font-size: 20px; font-weight: 800; }
 .mode-card .ds { font-size: 13px; color: var(--muted); text-align: center; }
 
