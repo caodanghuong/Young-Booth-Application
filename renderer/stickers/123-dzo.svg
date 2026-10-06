@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <path d="M40,150 a200,110 0 0 1 400,0 a200,110 0 0 1 -400,0 Z" fill="#E4162A" stroke="#ffffff" stroke-width="10"/>
+  <text x="240" y="130" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="800" font-size="52" fill="#FFE04A">1 · 2 · 3</text>
+  <text x="240" y="210" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="80" fill="#ffffff">DzÔ!</text>
+</svg>

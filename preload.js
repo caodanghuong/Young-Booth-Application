@@ -30,11 +30,18 @@ contextBridge.exposeInMainWorld('booth', {
     getSettings: () => ipcRenderer.invoke('canon:getSettings'),
     setSetting: (key, value) => ipcRenderer.invoke('canon:setSetting', { key, value }),
     shutdown: () => ipcRenderer.invoke('canon:shutdown'),
-    /** Subscribe to live-view frames. Returns an unsubscribe function. */
+    /** Subscribe to EDSDK live-view frames. Returns an unsubscribe function. */
     onLiveViewFrame: (cb) => {
       const h = (_e, dataUrl) => cb(dataUrl);
       ipcRenderer.on('canon:liveview', h);
       return () => ipcRenderer.removeListener('canon:liveview', h);
     },
+  },
+  // ---- digiCamControl (DSLR Canon) ----
+  dcc: {
+    available: () => ipcRenderer.invoke('dcc:available'),
+    liveFrame: () => ipcRenderer.invoke('dcc:liveFrame'),
+    startLiveView: () => ipcRenderer.invoke('dcc:startLiveView'),
+    capture: () => ipcRenderer.invoke('dcc:capture'),
   },
 });

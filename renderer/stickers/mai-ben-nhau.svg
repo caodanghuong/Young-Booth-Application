@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <ellipse cx="240" cy="165" rx="220" ry="110" fill="#ffffff" stroke="#f0d0dc" stroke-width="6"/>
+  <text x="240" y="150" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="70" fill="#E5197B">Mãi bên nhau</text>
+  <text x="240" y="225" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="52" fill="#2a2a2a">bạn nhé!...</text>
+  <g transform="translate(240,58)">
+    <path d="M0,4 C-26,-20 -54,-6 -52,10 C-50,26 -20,34 0,20 C20,34 50,26 52,10 C54,-6 26,-20 0,4 Z" fill="#E4162A" stroke="#8a0d19" stroke-width="2"/>
+    <path d="M-52,10 C-30,4 30,4 52,10 C30,16 -30,16 -52,10 Z" fill="#ffffff" opacity="0.5"/>
+  </g>
+</svg>

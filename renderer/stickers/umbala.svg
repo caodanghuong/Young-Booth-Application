@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <g>
+    <ellipse cx="240" cy="150" rx="220" ry="120" fill="#2FA85B" stroke="#ffffff" stroke-width="10"/>
+    <text x="235" y="120" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="800" font-size="60" fill="#FFE04A">#Úmbala</text>
+    <text x="215" y="210" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="72" fill="#ffffff">Thoát Ế</text>
+    <g transform="translate(392,96)">
+      <path d="M0,-26 L7,-8 L26,-8 L11,4 L17,23 L0,11 L-17,23 L-11,4 L-26,-8 L-7,-8 Z" fill="#FFE04A" stroke="#fff" stroke-width="2"/>
+      <circle cx="20" cy="20" r="3" fill="#fff"/><circle cx="-22" cy="-18" r="2.5" fill="#fff"/>
+    </g>
+  </g>
+</svg>

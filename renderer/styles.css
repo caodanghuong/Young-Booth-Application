@@ -109,6 +109,7 @@ html, body {
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 14px 0; }
 .set-row label { font-size: 15px; color: var(--text); }
 .set-num { width: 72px; padding: 10px; border-radius: 10px; background: var(--panel2); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 15px; }
+.set-text { width: 100%; padding: 11px 13px; border-radius: 10px; background: var(--panel2); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 15px; }
 .set-row input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: var(--accent2); }
 .set-row .webcam-select { max-width: 240px; }
 .set-sep { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 18px 0 12px; }
@@ -169,6 +170,20 @@ html, body {
 }
 .countdown.show { display: flex; animation: pop 0.9s ease; }
 @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+
+/* safe-area guide on the capture preview = vùng sẽ được in */
+.safe-frame {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  border: 3px dashed rgba(255,255,255,0.92); border-radius: 8px;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.35), 0 0 0 3000px rgba(0,0,0,0.28);
+  pointer-events: none; display: none;
+}
+.video-wrap.guide .safe-frame { display: block; }
+.safe-label {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.55); color: #fff; font-size: 14px; font-weight: 700;
+  padding: 5px 14px; border-radius: 999px; white-space: nowrap;
+}
 
 .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
 .flash.fire { animation: flash 0.4s ease; }

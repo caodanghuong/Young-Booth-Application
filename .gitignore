@@ -3,3 +3,4 @@ dist/
 captures/*
 !captures/.gitkeep
 booth-settings.json
+cleanup.bat

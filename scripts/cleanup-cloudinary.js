@@ -10,7 +10,7 @@
  *   $env:CLOUDINARY_CLOUD_NAME="youngbooth"
  *   $env:CLOUDINARY_API_KEY="123..."
  *   $env:CLOUDINARY_API_SECRET="abc..."
- *   node scripts/cleanup-cloudinary.js --days 15 --folder young-booth
+ *   node scripts/cleanup-cloudinary.js --days 2 --folder young-booth
  *
  *   Thêm --dry để CHỈ liệt kê, chưa xoá.
  */
@@ -26,7 +26,7 @@ function arg(name, def) {
   return v && !v.startsWith('--') ? v : true;
 }
 
-const DAYS = parseInt(arg('days', '15'), 10);
+const DAYS = parseInt(arg('days', '2'), 10);
 const FOLDER = arg('folder', 'young-booth');
 const DRY = !!arg('dry', false);
 

@@ -2,11 +2,14 @@ const { app, BrowserWindow, ipcMain, session, shell, globalShortcut, powerSaveBl
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { spawn } = require('child_process');
 const QRCode = require('qrcode');
 const { startServer } = require('./server');
 const canon = require('./canon');
+const dcc = require('./dcc');
 const settingsStore = require('./settings');
 const CFG = require('./renderer/config.js');
+try { if (CFG.camera && CFG.camera.canon && CFG.camera.canon.dccUrl) dcc.setBase(CFG.camera.canon.dccUrl); } catch (_e) {}
 
 const KIOSK = (CFG && CFG.kiosk) || {};
 const GALLERY = (CFG && CFG.gallery) || {};
@@ -167,8 +170,61 @@ function createWindow() {
 
 // ---- app lifecycle -------------------------------------------------------
 
+// Tìm CameraControl.exe (digiCamControl) ở các vị trí cài phổ biến.
+function findDccExe() {
+  const CAM = (CFG.camera && CFG.camera.canon) || {};
+  const LAD = process.env.LOCALAPPDATA || '';
+  const PF = process.env['ProgramFiles'] || 'C:\\Program Files';
+  const PF86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+  const candidates = [
+    CAM.dccExe,
+    path.join(PF86, 'digiCamControl', 'CameraControl.exe'),
+    path.join(PF, 'digiCamControl', 'CameraControl.exe'),
+    LAD && path.join(LAD, 'Programs', 'digiCamControl', 'CameraControl.exe'),
+    'D:\\Young Booth\\CameraControl.exe',
+    'D:\\digiCamControl\\CameraControl.exe',
+    'C:\\digiCamControl\\CameraControl.exe',
+  ].filter(Boolean);
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return p; } catch (_e) {}
+  }
+  return null;
+}
+
+// Đảm bảo digiCamControl đang chạy (cầu nối tới máy ảnh Canon). Tự mở nếu chưa chạy.
+async function ensureDccRunning() {
+  const CAM = (CFG.camera && CFG.camera.canon) || {};
+  if (!(CFG.camera && CFG.camera.source === 'canon' && CAM.provider === 'dcc')) return;
+  if (CAM.dccAutoLaunch === false) return;
+  try { if (await dcc.available()) return; } catch (_e) {}
+
+  const exe = findDccExe();
+  if (!exe) {
+    console.warn('[dcc] Không tìm thấy CameraControl.exe để tự mở (hãy cài digiCamControl).');
+    return;
+  }
+  try {
+    console.log('[dcc] Đang mở digiCamControl:', exe);
+    const child = spawn(exe, [], { detached: true, stdio: 'ignore', cwd: path.dirname(exe) });
+    child.unref();
+  } catch (e) {
+    console.warn('[dcc] Không mở được digiCamControl:', e.message);
+    return;
+  }
+  // Chờ webserver digiCamControl lên (tối đa ~25s).
+  const deadline = Date.now() + 25000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 1500));
+    try { if (await dcc.available()) { console.log('[dcc] digiCamControl sẵn sàng.'); return; } } catch (_e) {}
+  }
+  console.warn('[dcc] digiCamControl chưa phản hồi sau khi mở (kiểm tra Webserver đã bật + máy ảnh đã cắm).');
+}
+
 app.whenReady().then(async () => {
   ensureCapturesDir();
+
+  // Tự mở digiCamControl (cầu nối Canon) nếu cấu hình dùng Canon qua dcc.
+  ensureDccRunning().catch(() => {});
 
   // Auto-approve camera / microphone permission requests for the booth.
   session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => {
@@ -183,9 +239,17 @@ app.whenReady().then(async () => {
     publicView: settingsStore.publicView,
   });
 
-  // Auto-start on Windows login (registers the current executable).
+  // Auto-start on Windows login (registers the installed executable).
+  // Chỉ áp dụng cho bản đã ĐÓNG GÓI (cài qua installer) — bản dev (electron .) bỏ qua
+  // để không đăng ký nhầm electron.exe vào khởi động cùng Windows.
   try {
-    app.setLoginItemSettings({ openAtLogin: !!KIOSK.autoStart });
+    if (app.isPackaged) {
+      app.setLoginItemSettings({
+        openAtLogin: !!KIOSK.autoStart,
+        path: process.execPath,
+        args: [],
+      });
+    }
   } catch (_e) {}
 
   createWindow();
@@ -300,13 +364,16 @@ ipcMain.handle('booth:listPrinters', async () => {
 ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   opts = opts || {};
   const printWin = new BrowserWindow({ show: false, webPreferences: { offscreen: false } });
-  const html = `<!doctype html><html><head><style>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>
     @page { margin: 0; }
     html,body{margin:0;padding:0;height:100%;}
     body{display:flex;align-items:center;justify-content:center;}
     img{max-width:100%;max-height:100%;}
   </style></head><body><img src="${dataUrl}"></body></html>`;
-  await printWin.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  // Write to a temp file (data: URLs are too short for a full-res image → ERR_INVALID_URL).
+  const tmpHtml = path.join(app.getPath('temp'), `yb-print-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.html`);
+  try { fs.writeFileSync(tmpHtml, html, 'utf8'); } catch (e) { printWin.close(); return { success: false, reason: e.message }; }
+  await printWin.loadFile(tmpHtml);
 
   // Make sure the image has actually decoded before printing (avoid blank pages).
   try {
@@ -325,9 +392,35 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   };
   if (opts.printerName) printOpts.deviceName = opts.printerName;
 
+  // Force the paper size so it lands on the right photo paper (microns).
+  const MIC = 25400; // microns per inch
+  const CM = 10000; // microns per cm
+  const PAPER = {
+    '4x6': { width: Math.round(4 * MIC), height: Math.round(6 * MIC) }, // = 4R dọc
+    '6x4': { width: Math.round(6 * MIC), height: Math.round(4 * MIC) }, // = 4R ngang
+    '2x6': { width: Math.round(2 * MIC), height: Math.round(6 * MIC) },
+    '5.5x15.5': { width: Math.round(5.5 * CM), height: Math.round(15.5 * CM) },   // dải sự kiện
+    '10.5x15.5': { width: Math.round(10.5 * CM), height: Math.round(15.5 * CM) }, // ảnh cưới
+    // các khổ NGANG (khi xoay 90° cho giấy nằm ngang)
+    '6x2': { width: Math.round(6 * MIC), height: Math.round(2 * MIC) },
+    '15.5x5.5': { width: Math.round(15.5 * CM), height: Math.round(5.5 * CM) },
+    '15.5x10.5': { width: Math.round(15.5 * CM), height: Math.round(10.5 * CM) },
+    'a4': 'A4',
+    'letter': 'Letter',
+  };
+  const paper = (opts.paper || '').toLowerCase();
+  if (PAPER[paper]) {
+    printOpts.pageSize = PAPER[paper];
+    // Trang ngang (width>height) → in landscape.
+    if (typeof printOpts.pageSize === 'object' && printOpts.pageSize.width > printOpts.pageSize.height) {
+      printOpts.landscape = true;
+    }
+  }
+
   return new Promise((resolve) => {
     printWin.webContents.print(printOpts, (success, reason) => {
       printWin.close();
+      try { fs.unlinkSync(tmpHtml); } catch (_e) {}
       resolve({ success, reason });
     });
   });
@@ -361,6 +454,12 @@ ipcMain.handle('canon:capture', async () => canon.capture());
 ipcMain.handle('canon:getSettings', async () => canon.getSettings());
 ipcMain.handle('canon:setSetting', async (_evt, { key, value }) => canon.setSetting(key, value));
 ipcMain.handle('canon:shutdown', async () => { canon.shutdown(); return { ok: true }; });
+
+// ---- digiCamControl (DSLR Canon) ----
+ipcMain.handle('dcc:available', async () => dcc.available());
+ipcMain.handle('dcc:liveFrame', async () => dcc.liveFrame());
+ipcMain.handle('dcc:startLiveView', async () => { await dcc.startLiveView(); return { ok: true }; });
+ipcMain.handle('dcc:capture', async () => dcc.capture());
 
 // ---- Payment ----
 ipcMain.handle('booth:getSettings', async () => settingsStore.publicView(getSettings()));

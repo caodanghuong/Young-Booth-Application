@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <rect x="30" y="55" width="420" height="190" rx="48" fill="#F5B301" stroke="#ffffff" stroke-width="10"/>
+  <text x="255" y="140" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="66" fill="#2a2a2a" stroke="#ffffff" stroke-width="1">Quẩy khô máu</text>
+  <text x="240" y="205" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="800" font-size="42" fill="#ffffff">ANH EM ƠI!</text>
+  <g transform="translate(92,150)">
+    <rect x="-22" y="-46" width="44" height="70" rx="6" fill="#FCE27A" stroke="#c99a12" stroke-width="3"/>
+    <rect x="-22" y="-58" width="44" height="16" rx="6" fill="#ffffff"/>
+    <path d="M22,-38 q22,6 22,30 q0,22 -22,26" fill="none" stroke="#c99a12" stroke-width="6"/>
+  </g>
+  <g transform="translate(392,150) rotate(18)">
+    <rect x="-13" y="-48" width="26" height="72" rx="8" fill="#3a9d4f" stroke="#1f5e2e" stroke-width="3"/>
+    <rect x="-6" y="-66" width="12" height="22" rx="3" fill="#1f5e2e"/>
+  </g>
+</svg>

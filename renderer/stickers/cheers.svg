@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <rect x="40" y="70" width="400" height="160" rx="80" fill="#ED7D25" stroke="#ffffff" stroke-width="10"/>
+  <text x="240" y="185" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="800" font-size="86" fill="#ffffff" letter-spacing="2">CHEERS!</text>
+  <g transform="translate(70,80) rotate(-18)">
+    <rect x="-14" y="-30" width="28" height="46" rx="5" fill="#FCE27A" stroke="#c99a12" stroke-width="3"/>
+    <rect x="-14" y="-38" width="28" height="12" rx="5" fill="#fff"/>
+  </g>
+  <g transform="translate(410,80) rotate(18)">
+    <rect x="-14" y="-30" width="28" height="46" rx="5" fill="#FCE27A" stroke="#c99a12" stroke-width="3"/>
+    <rect x="-14" y="-38" width="28" height="12" rx="5" fill="#fff"/>
+  </g>
+</svg>

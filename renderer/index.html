@@ -50,6 +50,7 @@
         <div class="video-wrap">
           <video id="video" autoplay playsinline muted></video>
           <img id="live-img" alt="live view" />
+          <div class="safe-frame" id="safe-frame"><span class="safe-label">Đứng trong khung để in đủ người</span></div>
           <div class="countdown" id="countdown"></div>
           <div class="flash" id="flash"></div>
           <div class="shot-progress" id="shot-progress"></div>
@@ -130,8 +131,25 @@
       <div class="modal settings">
         <h3>⚙️ Cài đặt in</h3>
         <div class="set-row">
-          <label>Máy in</label>
+          <label>Máy in (ảnh/lưới 4×6)</label>
           <select id="set-printer" class="webcam-select"></select>
+        </div>
+        <div class="set-row">
+          <label>Máy in dải 2×6 (2inch cut)</label>
+          <select id="set-printer-strip" class="webcam-select"></select>
+        </div>
+        <div class="set-row">
+          <label>Khổ giấy</label>
+          <select id="set-paper" class="webcam-select">
+            <option value="auto">Tự động (theo kiểu chụp)</option>
+            <option value="4x6">4×6 inch (4R dọc)</option>
+            <option value="6x4">6×4 inch (4R ngang)</option>
+            <option value="2x6">2×6 inch (dải)</option>
+            <option value="10.5x15.5">10.5×15.5 cm (ảnh cưới)</option>
+            <option value="5.5x15.5">5.5×15.5 cm (dải sự kiện)</option>
+            <option value="a4">A4</option>
+            <option value="letter">Letter</option>
+          </select>
         </div>
         <div class="set-row">
           <label>Số bản mỗi lần in</label>
@@ -144,6 +162,21 @@
         <div class="set-row">
           <label>Dải 4 ảnh: in 2 bản/tờ 4×6 (cắt đôi)</label>
           <input type="checkbox" id="set-stripdouble" />
+        </div>
+        <div class="set-row">
+          <label>Xoay 90° cho giấy nằm ngang</label>
+          <input type="checkbox" id="set-rotate" />
+        </div>
+
+        <hr class="set-sep" />
+        <div class="set-cam-head"><span>✏️ Nội dung trên ảnh</span></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+          <label>Dòng chữ (tagline)</label>
+          <input type="text" id="set-tagline" class="set-text" placeholder="Chụp ảnh theo phong cách của bạn" />
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+          <label>Ngày / dòng dưới (để trống = ngày hôm nay)</label>
+          <input type="text" id="set-subfooter" class="set-text" placeholder="vd: Sinh nhật Minh Anh · 28/09/2026" />
         </div>
 
         <div id="canon-panel" style="display:none;">

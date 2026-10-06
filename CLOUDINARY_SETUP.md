@@ -51,10 +51,10 @@ $env:CLOUDINARY_API_KEY="123456789012345"
 $env:CLOUDINARY_API_SECRET="xxxxxxxxxxxxxxxxxxxxxx"
 
 # Xem trước (chưa xoá):
-node scripts/cleanup-cloudinary.js --days 15 --folder young-booth --dry
+node scripts/cleanup-cloudinary.js --days 2 --folder young-booth --dry
 
-# Xoá thật ảnh cũ hơn 15 ngày:
-node scripts/cleanup-cloudinary.js --days 15 --folder young-booth
+# Xoá thật ảnh cũ hơn 2 ngày:
+node scripts/cleanup-cloudinary.js --days 2 --folder young-booth
 ```
 
 > Đổi số sau `--days` để chỉnh thời gian hết hạn (vd `--days 7`, `--days 30`).
@@ -65,10 +65,10 @@ node scripts/cleanup-cloudinary.js --days 15 --folder young-booth
    set CLOUDINARY_CLOUD_NAME=youngbooth
    set CLOUDINARY_API_KEY=123456789012345
    set CLOUDINARY_API_SECRET=xxxxxxxxxxxx
-   node "%~dp0scripts\cleanup-cloudinary.js" --days 15 --folder young-booth
+   node "%~dp0scripts\cleanup-cloudinary.js" --days 2 --folder young-booth
    ```
 2. Mở **Task Scheduler** → Create Basic Task → chạy **hằng ngày** → Action = chạy `cleanup.bat`.
-   Chạy mỗi ngày nên ảnh sẽ tồn tại tối đa ~15 ngày rồi tự bị xoá.
+   Chạy mỗi ngày nên ảnh sẽ tồn tại tối đa ~2 ngày rồi tự bị xoá.
 
 > Giữ `cleanup.bat` an toàn vì có chứa API Secret (không đưa lên git/chia sẻ).
 

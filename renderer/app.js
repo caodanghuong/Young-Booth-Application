@@ -27,15 +27,27 @@ const state = {
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
 // Print settings: config defaults, overridden by what the user saved in the UI.
+const PRINT_CFG_VERSION = 4; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
 function loadPrintCfg() {
-  const def = Object.assign({ printerName: '', copies: 1, silent: false, stripDoubleOn4x6: false }, CFG.print || {});
+  const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: true, __v: PRINT_CFG_VERSION }, CFG.print || {});
   try {
     const saved = JSON.parse(localStorage.getItem('booth.print') || '{}');
+    if (saved.__v !== PRINT_CFG_VERSION) {
+      // Cài cũ (khác phiên bản) → dựng lại theo mặc định mới, chỉ giữ tên máy in đã chọn.
+      const fresh = Object.assign({}, def, {
+        printerName: saved.printerName || '',
+        stripPrinterName: saved.stripPrinterName || '',
+        __v: PRINT_CFG_VERSION,
+      });
+      try { localStorage.setItem('booth.print', JSON.stringify(fresh)); } catch {}
+      return fresh;
+    }
     return Object.assign(def, saved);
   } catch { return def; }
 }
 state.printCfg = loadPrintCfg();
 state.beauty = !!(CFG.beauty && CFG.beauty.enabled);
+try { state.brandOverride = JSON.parse(localStorage.getItem('booth.brand') || '{}'); } catch { state.brandOverride = {}; }
 
 // ---- element refs ----
 const $ = (sel) => document.querySelector(sel);
@@ -92,7 +104,14 @@ async function startWebcam() {
     };
     if (state.webcamDeviceId) videoConstraints.deviceId = { exact: state.webcamDeviceId };
     else videoConstraints.facingMode = 'user';
-    state.stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+    try {
+      state.stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+    } catch (err) {
+      // Saved camera unplugged/renamed → fall back to the default camera instead of failing.
+      if (!state.webcamDeviceId || err.name !== 'OverconstrainedError' && err.name !== 'NotFoundError') throw err;
+      delete videoConstraints.deviceId;
+      state.stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+    }
     video.srcObject = state.stream;
     videoWrap.classList.toggle('mirror', !!CFG.camera.mirror);
     await video.play().catch(() => {});
@@ -103,6 +122,37 @@ async function startWebcam() {
 }
 
 async function startCanon() {
+  const provider = (CFG.camera.canon && CFG.camera.canon.provider) || 'dcc';
+  if (provider === 'dcc') return startDcc();
+  return startEdsdk();
+}
+
+// Canon qua digiCamControl (HTTP webserver) — full-res + liveview.
+async function startDcc() {
+  try {
+    if (!(await window.booth.dcc.available())) {
+      console.warn('[dcc] digiCamControl không sẵn sàng');
+      alert('Chưa kết nối máy ảnh Canon qua digiCamControl.\n\nKiểm tra: digiCamControl đang MỞ, đã bật Webserver, máy ảnh bật + cắm cáp (đừng mở EOS Utility).\n\nTạm dùng webcam.');
+      return false;
+    }
+    state.usingCanon = true; state.usingDcc = true;
+    videoWrap.classList.remove('mirror');
+    try { await window.booth.dcc.startLiveView(); } catch (_e) {}
+    if (state.dccTimer) clearInterval(state.dccTimer);
+    const fps = (CFG.camera.canon && CFG.camera.canon.liveViewFps) || 12;
+    let busy = false;
+    state.dccTimer = setInterval(async () => {
+      if (busy) return; busy = true;
+      try { const f = await window.booth.dcc.liveFrame(); if (f) liveImg.src = f; } catch (_e) {}
+      busy = false;
+    }, Math.max(Math.round(1000 / fps), 60));
+    video.style.display = 'none';
+    liveImg.style.display = 'block';
+    return true;
+  } catch (err) { console.error('[dcc] start error', err); return false; }
+}
+
+async function startEdsdk() {
   try {
     if (!(await window.booth.canon.available())) {
       console.warn('[canon] module not available');
@@ -134,11 +184,19 @@ async function stopCamera() {
     state.stream = null;
     video.srcObject = null;
   }
+  if (state.dccTimer) { clearInterval(state.dccTimer); state.dccTimer = null; }
+  if (state.usingDcc) { state.usingDcc = false; state.usingCanon = false; return; }
   if (state.usingCanon) {
     try { await window.booth.canon.stopLiveView(); } catch (_e) {}
     try { await window.booth.canon.shutdown(); } catch (_e) {}
     state.usingCanon = false;
   }
+}
+
+// Chụp full-res từ Canon (digiCamControl hoặc EDSDK).
+async function canonCapture() {
+  if (state.usingDcc) return window.booth.dcc.capture();
+  return window.booth.canon.capture();
 }
 
 /** Turn a data URL into a canvas (used for full-res Canon photos). */
@@ -202,7 +260,10 @@ async function listWebcams(allowPrompt = true) {
 
 async function buildSourceBar(allowPrompt = true) {
   const bar = $('#source-bar');
-  const canonAvailable = await window.booth.canon.available().catch(() => false);
+  const canonProvider = (CFG.camera.canon && CFG.camera.canon.provider) || 'dcc';
+  const canonAvailable = (canonProvider === 'dcc')
+    ? await window.booth.dcc.available().catch(() => false)
+    : await window.booth.canon.available().catch(() => false);
   const cams = await listWebcams(allowPrompt);
 
   // If the saved choice is Canon but it isn't available, keep the choice but flag it.
@@ -216,7 +277,10 @@ async function buildSourceBar(allowPrompt = true) {
   const mkChip = (src, icon, text, enabled, connected) => {
     const chip = document.createElement('button');
     chip.className = 'source-chip' + (state.source === src ? ' active' : '');
-    if (!enabled) chip.setAttribute('disabled', '');
+    if (!enabled) {
+      chip.setAttribute('disabled', '');
+      chip.title = 'Chưa kết nối Canon. Mở digiCamControl + bật Webserver + cắm máy ảnh (đừng mở EOS Utility).';
+    }
     chip.innerHTML = `<span class="dot${connected ? ' ok' : ''}"></span>${icon} ${text}`;
     chip.addEventListener('click', () => {
       if (!enabled) return;
@@ -229,6 +293,13 @@ async function buildSourceBar(allowPrompt = true) {
 
   bar.appendChild(mkChip('webcam', '📷', 'Webcam', true, cams.length > 0));
   bar.appendChild(mkChip('canon', '📸', 'Máy ảnh Canon', canonAvailable, canonAvailable));
+
+  // No (valid) saved choice yet → prefer a Canon camera (e.g. EOS R50 via UVC) over the laptop cam,
+  // so what the picker shows is what actually gets opened.
+  if (cams.length && cams[0].label && !cams.some((c) => c.deviceId === state.webcamDeviceId)) {
+    const preferred = cams.find((c) => /canon|eos/i.test(c.label)) || cams[0];
+    state.webcamDeviceId = preferred.deviceId;
+  }
 
   // Webcam device picker (only when webcam chosen and more than one exists)
   if (state.source === 'webcam' && cams.length > 1) {
@@ -253,8 +324,8 @@ async function buildSourceBar(allowPrompt = true) {
   status.className = 'source-status';
   if (state.source === 'canon') {
     status.textContent = canonAvailable
-      ? '✅ Sẵn sàng dùng máy ảnh Canon (EDSDK). Cắm máy & bật nguồn trước khi chụp.'
-      : '⚠️ Chưa cài EDSDK — sẽ tự dùng webcam. Xem CANON_SETUP.md để bật Canon.';
+      ? '✅ Sẵn sàng dùng máy ảnh Canon (digiCamControl). Giữ digiCamControl mở + máy bật.'
+      : '⚠️ Chưa kết nối Canon — sẽ tự dùng webcam. Mở digiCamControl + bật Webserver + cắm máy.';
   } else {
     status.textContent = cams.length
       ? `Đang dùng webcam${cams.length > 1 ? ' (chọn thiết bị bên trên)' : ''}.`
@@ -293,6 +364,44 @@ async function beginCapture(m) {
   await startCamera();
   applyLivePreviewFilter();
   renderShotDots(0);
+  updateSafeFrame();
+}
+
+// Tỉ lệ vùng ảnh sẽ được IN cho kiểu chụp hiện tại (để vẽ khung nét đứt).
+function cellAspectForMode(m) {
+  const O = CFG.output;
+  if (m.slots && m.slots.length) { const s = m.slots[0]; return (s.w && s.h) ? s.w / s.h : 1; }
+  if (m.kind !== 'photo') return 1; // gif/boomerang ~ vuông
+  if (m.layout === 'single') { const W = m.outW || O.photoW, H = m.outH || O.photoH, pad = 60, footer = 240; return (W - 2 * pad) / (H - 2 * pad - footer); }
+  if (m.layout === 'single-wide') { const pad = 50, footer = 190; return (O.wideW - 2 * pad) / (O.wideH - 2 * pad - footer); }
+  if (m.layout === 'strip') {
+    const W = m.outW || O.stripW, H = m.outH || O.stripH, pad = 26, gap = 16, footer = 210, n = m.select || m.captureCount || 4;
+    return (W - 2 * pad) / ((H - footer - 2 * pad - gap * (n - 1)) / n);
+  }
+  if (m.layout === 'grid') {
+    const W = m.outW || O.photoW, H = m.outH || O.photoH, pad = 40, gap = 24, footer = 240;
+    const cols = m.cols || 2, rows = m.rows || 2;
+    const cellW = (W - 2 * pad - gap * (cols - 1)) / cols;
+    const cellH = (H - footer - 2 * pad - gap * (rows - 1)) / rows;
+    return cellW / cellH;
+  }
+  return 1;
+}
+
+// Vẽ khung nét đứt = phần ảnh thật sự được in (căn giữa) trên preview.
+function updateSafeFrame() {
+  const wrap = videoWrap;
+  const el = $('#safe-frame');
+  if (!CFG.showCaptureGuide || !state.mode) { wrap.classList.remove('guide'); return; }
+  const rcell = cellAspectForMode(state.mode);
+  const rect = wrap.getBoundingClientRect();
+  const rprev = (rect.width && rect.height) ? rect.width / rect.height : (16 / 9);
+  let wPct, hPct;
+  if (rcell <= rprev) { hPct = 1; wPct = rcell / rprev; }
+  else { wPct = 1; hPct = rprev / rcell; }
+  el.style.width = Math.round(wPct * 100) + '%';
+  el.style.height = Math.round(hPct * 100) + '%';
+  wrap.classList.add('guide');
 }
 
 // ---- payment gate ----
@@ -386,7 +495,7 @@ async function captureBurst(nFrames, delay) {
 
 // ---- main capture button ----
 $('#btn-capture').addEventListener('click', async () => {
-  if (state.busy || !state.stream) return;
+  if (state.busy || (!state.stream && !state.usingCanon)) return;
   state.busy = true;
   $('#btn-capture').disabled = true;
 
@@ -399,7 +508,7 @@ $('#btn-capture').addEventListener('click', async () => {
       for (let i = 0; i < cap; i++) {
         await runCountdown(prep);
         if (canonFullRes) {
-          const shot = await window.booth.canon.capture(); // full-res JPEG from the DSLR
+          const shot = await canonCapture(); // full-res JPEG from the DSLR
           state.captured.push(await dataUrlToCanvas(shot.dataUrl));
         } else {
           state.captured.push(grabRawFrame());
@@ -614,6 +723,19 @@ function dateStr() {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+// Tagline + dòng ngày/nội dung: ưu tiên cấu hình trong app (⚙️), rồi config, rồi ngày hôm nay.
+function brandTagline() {
+  const o = state.brandOverride;
+  if (o && typeof o.tagline === 'string') return o.tagline;
+  return CFG.brand.tagline || '';
+}
+function brandSub() {
+  const o = state.brandOverride && state.brandOverride.subFooter;
+  if (o != null && String(o).trim() !== '') return o;
+  if (CFG.brand.subFooter) return CFG.brand.subFooter;
+  return dateStr();
+}
+
 // Footer: brand name + gold divider + date + tagline. White text on gradient,
 // accent text on white frames. `y` = vertical center of the footer band.
 function drawBrand(ctx, cx, y, big) {
@@ -638,14 +760,15 @@ function drawBrand(ctx, cx, y, big) {
   ctx.stroke();
 
   // tagline (above the date)
-  if (CFG.brand.tagline) {
+  const tagline = brandTagline();
+  if (tagline) {
     ctx.fillStyle = onGradient ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
     ctx.font = `italic 500 ${Math.round(22 * s)}px "Segoe UI", sans-serif`;
-    ctx.fillText(CFG.brand.tagline, cx, titleY + 66 * s);
+    ctx.fillText(tagline, cx, titleY + 66 * s);
   }
 
   // date at the very bottom
-  const sub = CFG.brand.subFooter || dateStr();
+  const sub = brandSub();
   ctx.fillStyle = onGradient ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.55)';
   ctx.font = `600 ${Math.round(24 * s)}px "Segoe UI", sans-serif`;
   ctx.fillText(sub, cx, titleY + 100 * s);
@@ -690,14 +813,22 @@ async function composePhoto() {
   const showBrand = m.showBrand !== false;
 
   if (layout === 'single') {
-    canvas.width = O.photoW; canvas.height = O.photoH;
+    canvas.width = m.outW || O.photoW; canvas.height = m.outH || O.photoH;
     fillBackground(ctx, canvas.width, canvas.height);
     const pad = 60, footer = showBrand ? 240 : 60;
     drawCover(ctx, frameFor(state.rawFrames[0]), pad, pad, canvas.width - pad * 2, canvas.height - pad * 2 - footer, f, rad);
     if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 4, true);
 
+  } else if (layout === 'single-wide') {
+    // Ảnh sự kiện NGANG (6×4) — rộng để lọt nhóm đông người.
+    canvas.width = O.wideW; canvas.height = O.wideH;
+    fillBackground(ctx, canvas.width, canvas.height);
+    const pad = 50, footer = showBrand ? 190 : 50;
+    drawCover(ctx, frameFor(state.rawFrames[0]), pad, pad, canvas.width - pad * 2, canvas.height - pad * 2 - footer, f, rad);
+    if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 6, true);
+
   } else if (layout === 'strip') {
-    canvas.width = O.stripW; canvas.height = O.stripH;
+    canvas.width = m.outW || O.stripW; canvas.height = m.outH || O.stripH;
     fillBackground(ctx, canvas.width, canvas.height);
     const pad = 26, gap = 16, footer = showBrand ? 210 : 26;
     const n = state.rawFrames.length;
@@ -708,11 +839,11 @@ async function composePhoto() {
     });
     if (showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - footer / 2 - 2, false);
 
-  } else { // grid 2x2
-    canvas.width = O.photoW; canvas.height = O.photoH;
+  } else { // grid cols×rows
+    canvas.width = m.outW || O.photoW; canvas.height = m.outH || O.photoH;
     fillBackground(ctx, canvas.width, canvas.height);
     const pad = 40, gap = 24, footer = showBrand ? 240 : 40;
-    const cols = 2, rows = 2;
+    const cols = m.cols || 2, rows = m.rows || 2;
     const cellW = (canvas.width - pad * 2 - gap * (cols - 1)) / cols;
     const areaH = canvas.height - footer - pad * 2 - gap * (rows - 1);
     const cellH = areaH / rows;
@@ -777,10 +908,11 @@ function framesToGif(rawFrames, boomerang, delay) {
       ctx.fillStyle = CFG.brand.brandTextColor || (onGradient ? '#ffffff' : CFG.brand.accent1);
       ctx.font = '800 34px "Segoe UI", sans-serif';
       ctx.fillText(CFG.brand.footer, size / 2, size + bar * 0.38);
-      if (CFG.brand.tagline) {
+      const _tag = brandTagline();
+      if (_tag) {
         ctx.fillStyle = onGradient ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
         ctx.font = 'italic 500 20px "Segoe UI", sans-serif';
-        ctx.fillText(CFG.brand.tagline, size / 2, size + bar * 0.74);
+        ctx.fillText(_tag, size / 2, size + bar * 0.74);
       }
       return c;
     });
@@ -826,14 +958,38 @@ async function ensureSessionAnim() {
 async function doPrint() {
   if (!state.lastOutput) return;
   let dataUrl = state.lastOutput.dataUrl;
+  const isStrip = state.mode && state.mode.layout === 'strip';
+  const doubled = state.printCfg.stripDoubleOn4x6 && isStrip;
   // Strip: optionally lay 2 copies side by side on a 4×6 sheet.
-  if (state.printCfg.stripDoubleOn4x6 && state.mode && state.mode.layout === 'strip') {
-    dataUrl = await makeDoubleStrip(dataUrl);
+  if (doubled) dataUrl = await makeDoubleStrip(dataUrl);
+
+  // Decide paper size.
+  let paper = state.printCfg.paper || 'auto';
+  if (paper === 'auto') {
+    if (doubled) paper = '4x6';
+    else if (state.mode && state.mode.paper) paper = state.mode.paper; // khổ riêng của kiểu (vd 5.5×15.5)
+    else if (isStrip) paper = '2x6';
+    else if (state.mode && state.mode.layout === 'single-wide') paper = '6x4'; // 4R ngang
+    else paper = '4x6';
   }
+
+  // Xoay 90° cho giấy nằm ngang: xoay ảnh + đổi khổ sang khổ NGANG tương ứng.
+  if (state.printCfg.rotate) {
+    dataUrl = await rotate90(dataUrl);
+    const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
+    if (toLandscape[paper]) paper = toLandscape[paper];
+  }
+
+  // Dải dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
+  const printerName = isStrip
+    ? (state.printCfg.stripPrinterName || state.printCfg.printerName)
+    : state.printCfg.printerName;
+
   const res = await window.booth.print(dataUrl, {
-    printerName: state.printCfg.printerName,
+    printerName,
     copies: state.printCfg.copies,
     silent: state.printCfg.silent,
+    paper,
   });
   if (res && res.success === false && res.reason) console.warn('Print:', res.reason);
   return res;
@@ -845,6 +1001,24 @@ $('#btn-print').addEventListener('click', async () => {
   catch (e) { alert('Lỗi khi in: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = label; }
 });
+
+// Xoay ảnh 90° (dọc → ngang) để in vừa giấy nằm ngang.
+function rotate90(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.height; c.height = img.width; // hoán đổi
+      const ctx = c.getContext('2d');
+      ctx.translate(c.width / 2, c.height / 2);
+      ctx.rotate(Math.PI / 2); // xoay 90° theo chiều kim đồng hồ
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
 
 // Build a 4×6 (1200×1800) sheet with two copies of the strip side by side.
 function makeDoubleStrip(stripDataUrl) {
@@ -870,21 +1044,28 @@ function makeDoubleStrip(stripDataUrl) {
 
 // ---- settings modal ----
 async function openSettings() {
-  const sel = $('#set-printer');
-  sel.innerHTML = '<option value="">(Máy in mặc định)</option>';
-  try {
-    const printers = await window.booth.listPrinters();
+  let printers = [];
+  try { printers = await window.booth.listPrinters(); } catch {}
+  const fillPrinterSelect = (sel, current) => {
+    sel.innerHTML = '<option value="">(Máy in mặc định)</option>';
     printers.forEach((p) => {
       const opt = document.createElement('option');
       opt.value = p.name;
       opt.textContent = (p.displayName || p.name) + (p.isDefault ? ' — mặc định' : '');
-      if (state.printCfg.printerName === p.name) opt.selected = true;
+      if (current === p.name) opt.selected = true;
       sel.appendChild(opt);
     });
-  } catch {}
+  };
+  fillPrinterSelect($('#set-printer'), state.printCfg.printerName);
+  fillPrinterSelect($('#set-printer-strip'), state.printCfg.stripPrinterName);
+  $('#set-paper').value = state.printCfg.paper || 'auto';
   $('#set-copies').value = state.printCfg.copies || 1;
   $('#set-silent').checked = !!state.printCfg.silent;
   $('#set-stripdouble').checked = !!state.printCfg.stripDoubleOn4x6;
+  $('#set-rotate').checked = !!state.printCfg.rotate;
+  $('#set-tagline').value = (state.brandOverride && typeof state.brandOverride.tagline === 'string')
+    ? state.brandOverride.tagline : (CFG.brand.tagline || '');
+  $('#set-subfooter').value = (state.brandOverride && state.brandOverride.subFooter) || '';
 
   // Canon control panel: only when the EDSDK module is present.
   const canonAvail = await window.booth.canon.available().catch(() => false);
@@ -897,12 +1078,27 @@ async function openSettings() {
 function saveSettings() {
   state.printCfg = {
     printerName: $('#set-printer').value,
+    stripPrinterName: $('#set-printer-strip').value,
+    paper: $('#set-paper').value,
     copies: Math.max(1, parseInt($('#set-copies').value, 10) || 1),
     silent: $('#set-silent').checked,
     stripDoubleOn4x6: $('#set-stripdouble').checked,
+    rotate: $('#set-rotate').checked,
+    __v: PRINT_CFG_VERSION,
   };
   try { localStorage.setItem('booth.print', JSON.stringify(state.printCfg)); } catch {}
+
+  // nội dung trên ảnh (tagline + ngày/dòng dưới)
+  state.brandOverride = { tagline: $('#set-tagline').value, subFooter: $('#set-subfooter').value };
+  try { localStorage.setItem('booth.brand', JSON.stringify(state.brandOverride)); } catch {}
+
   $('#settings-modal').classList.remove('show');
+
+  // Nếu đang ở màn kết quả, dựng lại ảnh để áp nội dung mới ngay.
+  if (screens.result.classList.contains('active') && state.lastOutput) {
+    state.sessionAnim = null; state._shareRes = null;
+    rerenderResult();
+  }
 }
 $('#btn-settings').addEventListener('click', openSettings);
 $('#btn-settings-capture').addEventListener('click', openSettings);
@@ -996,8 +1192,8 @@ const SE_PAGE_SIZE = 9; // 3×3 mỗi trang
 function buildStickerItems() {
   const S = CFG.stickers || {};
   SE.items = [
-    ...(S.emojis || []).map((ch) => ({ type: 'emoji', char: ch })),
     ...(S.images || []).map((src) => ({ type: 'img', src })),
+    ...(S.emojis || []).map((ch) => ({ type: 'emoji', char: ch })),
   ];
   SE.page = 0;
 }
@@ -1039,7 +1235,7 @@ function removeSticker(m) {
 }
 
 function addSticker(opts) {
-  const size = Math.round(SE.stageW * 0.22);
+  const size = Math.round(SE.stageW * (opts.type === 'img' ? 0.4 : 0.22));
   const m = Object.assign({ cx: SE.stageW / 2, cy: SE.stageH / 2, size }, opts);
   const el = document.createElement('div');
   el.className = 'se-sticker';
@@ -1104,7 +1300,13 @@ async function bakeStickers() {
       ctx.font = Math.round(size * 0.82) + 'px "Segoe UI Emoji", "Segoe UI", sans-serif';
       ctx.fillText(m.char, cx, cy);
     } else {
-      try { const im = await loadImage(m.src); ctx.drawImage(im, cx - size / 2, cy - size / 2, size, size); } catch (_e) {}
+      try {
+        const im = await loadImage(m.src);
+        const ar = (im.width && im.height) ? im.width / im.height : 1;
+        let dw = size, dh = size;
+        if (ar >= 1) dh = size / ar; else dw = size * ar; // giữ tỉ lệ (contain trong ô)
+        ctx.drawImage(im, cx - dw / 2, cy - dh / 2, dw, dh);
+      } catch (_e) {}
     }
   }
   return canvas.toDataURL('image/png');

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <path d="M60,30 h360 a40,40 0 0 1 40,40 v120 a40,40 0 0 1 -40,40 h-150 l-30,40 l-10,-40 h-170 a40,40 0 0 1 -40,-40 v-120 a40,40 0 0 1 40,-40 Z"
+        fill="#1FA39A" stroke="#ffffff" stroke-width="10"/>
+  <text x="300" y="110" text-anchor="middle" font-family="'Segoe Script','Brush Script MT',cursive" font-size="70" fill="#ffffff">Quẩy</text>
+  <rect x="150" y="130" width="250" height="34" rx="17" fill="#ffffff" opacity="0.25"/>
+  <text x="275" y="158" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="800" font-size="40" fill="#ffffff">Lên nào</text>
+  <g transform="translate(110,150)">
+    <rect x="-16" y="-70" width="32" height="90" rx="10" fill="#E8A33D" stroke="#7a4a12" stroke-width="3"/>
+    <rect x="-8" y="-92" width="16" height="26" rx="4" fill="#7a4a12"/>
+    <rect x="-14" y="-40" width="28" height="40" rx="6" fill="#fff" opacity="0.85"/>
+    <path d="M-10,-30 l4,16 M0,-30 l0,16 M10,-30 l-4,16" stroke="#E8A33D" stroke-width="3"/>
+  </g>
+</svg>
