@@ -106,6 +106,18 @@ html, body {
 .pkg-price { font-weight: 800; font-size: 12px; color: #2b2b2b; white-space: nowrap; }
 .pkg-note { font-size: 9.5px; color: #777; margin-top: 1px; }
 
+/* Thẻ sự kiện khung fanclub (phong cách poster giấy kem) */
+.hs-card.hs-event { width: 256px; height: 330px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  background: #f3ecdb; background-image: radial-gradient(120% 90% at 50% 0%, #fbf6ea 0%, #efe6d2 70%); overflow: hidden; }
+.event-pad { padding: 14px 16px 10px; }
+.event-top { display: flex; justify-content: space-between; font-size: 7.5px; font-weight: 700; letter-spacing: 1px; color: #9b8a66; text-transform: uppercase; line-height: 1.25; }
+.event-title { text-align: center; font-family: 'Segoe Script', 'Brush Script MT', cursive; font-size: 40px; color: #4b4030; margin: 2px 0 4px; line-height: 1; }
+.event-body { flex: 1; padding: 2px 16px 6px; overflow: hidden; }
+.event-period { margin-bottom: 11px; }
+.event-range { display: inline-block; font-weight: 800; font-size: 12px; color: #6b5a3c; border-bottom: 2px solid #cdb98a; padding-bottom: 1px; margin-bottom: 5px; letter-spacing: 0.5px; }
+.event-items { font-size: 10px; line-height: 1.6; color: #5b5240; }
+.event-note { text-align: center; font-size: 7.5px; font-style: italic; color: #a4977b; padding: 0 12px 10px; }
+
 /* ---------- buttons ---------- */
 .btn-primary, .btn-secondary, .btn-ghost {
   border: none; border-radius: 999px; font-weight: 800; cursor: pointer;

@@ -1567,18 +1567,36 @@ function priceCardHtml(p) {
     <div class="price-body">${rows}</div>
   </div>`;
 }
+function eventCardHtml(e) {
+  const nl = (s) => esc(s).replace(/\n/g, '<br>');
+  const periods = (e.periods || []).map((pr) => `
+    <div class="event-period">
+      <div class="event-range">${esc(pr.range)}</div>
+      <div class="event-items">${(pr.items || []).map(esc).join('&nbsp;·&nbsp;')}</div>
+    </div>`).join('');
+  return `<div class="hs-card hs-event">
+    <div class="event-pad">
+      <div class="event-top"><span>${nl(e.brandLeft || 'FANCLUB\nFRAME EVENT')}</span><span style="text-align:right">${nl(e.brandRight || 'YOUNG BOOTH\nVIỆT NAM')}</span></div>
+      <div class="event-title">${esc(e.month || 'Tháng 9')}</div>
+    </div>
+    <div class="event-body">${periods}</div>
+    <div class="event-note">${esc(e.note || '')}</div>
+  </div>`;
+}
 function buildHomeShowcase() {
   const cfg = (CFG.home && CFG.home.showcase) || {};
   const promo = (CFG.home && CFG.home.promo) || {};
   const pricing = (CFG.home && CFG.home.pricing) || {};
+  const event = (CFG.home && CFG.home.event) || {};
   const wrap = $('#home-showcase');
   if (!wrap) return;
   if (cfg.enabled === false) { wrap.style.display = 'none'; return; }
   let cards = '';
   if (promo.enabled) cards += promoCardHtml(promo);
   if (pricing.enabled) cards += priceCardHtml(pricing);
+  if (event.enabled) cards += eventCardHtml(event);
   const imgs = (cfg.images && cfg.images.length) ? cfg.images : null;
   if (imgs) cards += imgs.map((src) => `<div class="hs-card"><img src="${src}" alt="mẫu khung"></div>`).join('');
-  else if (!promo.enabled && !pricing.enabled) cards += [1, 2, 3].map((n) => `<div class="hs-card hs-ph">Khung ${n}</div>`).join('');
+  else if (!promo.enabled && !pricing.enabled && !event.enabled) cards += [1, 2, 3].map((n) => `<div class="hs-card hs-ph">Khung ${n}</div>`).join('');
   wrap.innerHTML = `<div class="hs-title">${esc(cfg.title || '')}</div><div class="hs-row">${cards}</div>`;
 }

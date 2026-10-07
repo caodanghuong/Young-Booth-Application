@@ -67,10 +67,22 @@ const BOOTH_CONFIG = {
         { name: 'GÓI PREMIUM',  price: '5.000.000đ', color: '#e84c9a', note: '3.5 giờ · in không giới hạn · đồ VIP' },
       ],
     },
+    // Thẻ "Sự kiện khung fanclub" (Khung 3) — phong cách poster giấy.
+    event: {
+      enabled: true,
+      month: 'Tháng 9',
+      brandLeft: 'FANCLUB\nFRAME EVENT',
+      brandRight: 'YOUNG BOOTH\nVIỆT NAM',
+      periods: [
+        { range: '01.09 ~ 15.09', items: ['Jungkook', 'NCT Haechan', 'StrayKids Han', 'Jimmy & Sea', 'Sungho'] },
+        { range: '16.09 ~ 30.09', items: ['Faker & Peanut', 'Keria', 'BLG Bin', 'Thiều Bảo Trâm', 'Doran'] },
+      ],
+      note: '(*) Áp dụng tại các cửa hàng YOUNG BOOTH Việt Nam',
+    },
     showcase: {
       enabled: true,
       title: 'MẪU KHUNG ẢNH',
-      images: ['home/showcase3.png'],
+      images: [],
     },
   },
 
