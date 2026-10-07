@@ -907,8 +907,12 @@ async function composeTemplate(m) {
       const img = await loadImage(m.logo.src);
       const h = m.logo.h || 110;
       const w = m.logo.w || (h * (img.naturalWidth / img.naturalHeight || 3));
-      const lx = m.logo.center ? (canvas.width - w) / 2 : (m.logo.x != null ? m.logo.x : 60);
-      ctx.drawImage(img, lx, m.logo.y != null ? m.logo.y : 48, w, h);
+      const ly = m.logo.y != null ? m.logo.y : 48;
+      if (Array.isArray(m.logo.xs)) m.logo.xs.forEach((cx) => ctx.drawImage(img, cx - w / 2, ly, w, h)); // nhiều cột (tâm)
+      else {
+        const lx = m.logo.center ? (canvas.width - w) / 2 : (m.logo.x != null ? m.logo.x : 60);
+        ctx.drawImage(img, lx, ly, w, h);
+      }
     } catch (e) { console.warn('logo:', e.message); }
   }
   drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
@@ -1047,7 +1051,7 @@ async function doPrint() {
   }
 
   // Xoay 90° cho TẤT CẢ ảnh (in NGANG để khớp giấy DNP nằm ngang) + đổi khổ sang khổ NGANG.
-  if (state.printCfg.rotate) {
+  if (state.printCfg.rotate && !(state.mode && state.mode.noRotate)) {
     dataUrl = await rotate90(dataUrl);
     const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
     if (toLandscape[paper]) paper = toLandscape[paper];

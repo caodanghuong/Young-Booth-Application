@@ -160,29 +160,26 @@ const BOOTH_CONFIG = {
     },
 
     // Layout B — 2 ảnh (khung Cưới). Chữ VẼ ĐỘNG (sửa trong Cài đặt ⚙️ → "Chữ khung cưới").
-    { id: 'B', name: 'Ngọt Ngào', icon: '💍', desc: '4×6" · 2 ảnh', kind: 'photo',
+    // Layout B — Ngọt Ngào: khung NGANG giấy kem, 2 ảnh cạnh nhau, đường cắt nét đứt giữa.
+    // Mỗi bên: logo + 1 ảnh + "Young Booth" (script) + ngày. Khổ 6×4 ngang → noRotate.
+    { id: 'B', name: 'Ngọt Ngào', icon: '💞', desc: '6×4" · 2 ảnh (ngang)', kind: 'photo',
       captureCount: 2, select: 2,
-      canvas: { w: 1200, h: 1800 },
-      background: '#ffffff',
+      canvas: { w: 1800, h: 1200 },
+      background: '#f3ede1',
+      paper: '6x4',
+      noRotate: true,
       slots: [
-        { x: 100, y: 320, w: 1000, h: 620, radius: 0 },
-        { x: 100, y: 960, w: 1000, h: 620, radius: 0 },
+        { x: 150,  y: 150, w: 600, h: 640, radius: 0 },
+        { x: 1050, y: 150, w: 600, h: 640, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       showBrand: false,
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 56, y: 40, h: 76 },
-      // Các dòng chữ sửa được (id dùng để lưu giá trị). label = nhãn hiện trong Cài đặt.
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 48, h: 60 },
       texts: [
-        { id: 'invite', label: 'Dòng mời (trên)', value: 'YOU ARE INVITED TO CELEBRATE THE WEDDING OF',
-          x: 600, y: 108, w: 860, size: 26, color: '#9c6b4f', ff: 'Georgia, serif', weight: '600', ls: 4, lh: 38 },
-        { id: 'mono', label: 'Ký tự monogram (trong vòng tròn)', value: '&',
-          x: 600, y: 256, size: 52, color: '#9c6b4f', ff: 'Georgia, serif', italic: true },
-        { id: 'names', label: 'Tên cô dâu & chú rể', value: 'Anh & Em',
-          x: 600, y: 1662, size: 64, color: '#9c6b4f', ff: 'Georgia, serif', italic: true },
-        { id: 'date', label: 'Ngày cưới', value: '01 . 01 . 2026',
-          x: 600, y: 1712, size: 30, color: '#5a4a3c', ff: 'Georgia, serif', weight: '600', ls: 6 },
-        { id: 'thanks', label: 'Lời cảm ơn (dưới)', value: 'Thank you for being part of our special day',
-          x: 600, y: 1748, w: 900, size: 22, color: '#b98c6d', ff: 'Georgia, serif', italic: true, lh: 30 },
+        { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'Young Booth',
+          xs: [450, 1350], y: 882, size: 52, color: '#4b4030', ff: '"Segoe Script", "Brush Script MT", cursive' },
+        { id: 'date', label: 'Ngày (2 bên)', value: '07 . 10 . 2026',
+          xs: [450, 1350], y: 946, size: 24, color: '#8a7a60', ff: 'Georgia, serif', ls: 5 },
       ],
     },
 
@@ -212,6 +209,28 @@ const BOOTH_CONFIG = {
           xs: [310, 890], y: 1650, size: 24, color: '#555555', ff: 'Georgia, serif', ls: 3 },
         { id: 'loc', label: 'Địa điểm (2 cột)', value: 'Saigon, Vietnam',
           xs: [310, 890], y: 1692, size: 22, color: '#777777', ff: 'Georgia, serif' },
+      ],
+    },
+
+    // Layout D — Chia Đôi: giấy 6×4 NGANG, 2 ảnh khác nhau, cắt đôi giữa → 2 tấm 3×4" dọc.
+    // Canvas đã ngang nên KHÔNG xoay khi in (noRotate). Vạch cắt nét đứt ở x=900.
+    { id: 'D', name: 'Chia Đôi', icon: '✂️', desc: '6×4" · 2 ảnh → cắt 2 tấm 3×4', kind: 'photo',
+      captureCount: 2, select: 2,
+      canvas: { w: 1800, h: 1200 },
+      paper: '6x4', noRotate: true,
+      background: '#f7f1ea',
+      slots: [
+        { x: 70,  y: 150, w: 760, h: 860, radius: 0 },
+        { x: 970, y: 150, w: 760, h: 860, radius: 0 },
+      ],
+      overlay: 'file:///C:/YoungBooth-Frames/split2-ivory.png',
+      showBrand: false,
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 34, h: 84 },
+      texts: [
+        { id: 'title', label: 'Tiêu đề (2 tấm)', value: 'Young Booth',
+          xs: [450, 1350], y: 1092, size: 46, color: '#4a3f38', ff: '"Segoe Script", "Brush Script MT", cursive' },
+        { id: 'date', label: 'Ngày (2 tấm)', value: '07 . 10 . 2026',
+          xs: [450, 1350], y: 1150, size: 22, color: '#7a6d63', ff: 'Georgia, serif', ls: 4 },
       ],
     },
 
