@@ -33,12 +33,32 @@ const BOOTH_CONFIG = {
     },
   },
 
-  // Dải "mẫu khung / khuyến mãi" hiển thị ở màn hình chờ (giống Hari Film).
+  // Dải hiển thị ở màn hình chờ: thẻ Ưu đãi (HTML) + ảnh mẫu khung.
   home: {
+    // Thẻ "Ưu đãi & Chính sách" (Khung 1). Sửa nội dung ở đây.
+    promo: {
+      enabled: true,
+      title: 'ƯU ĐÃI & CHÍNH SÁCH',
+      brand: 'YOUNG BOOTH',
+      offersTitle: 'Ưu đãi',
+      offers: [
+        'Mỗi lượt tặng 01 bản in thêm',
+        'Nhóm từ 4 người: giảm 10%',
+        'Tặng ảnh GIF khi check-in Fanpage',
+        'Khách cũ quay lại: giảm 15.000đ',
+      ],
+      policiesTitle: 'Chính sách',
+      policies: [
+        'Nhiều kiểu khung để chọn',
+        'Ảnh lưu cloud, quét QR tải về',
+        'Giữ gìn đạo cụ, không mang ra ngoài',
+        'Mỗi lượt tối đa 6 người',
+      ],
+    },
     showcase: {
       enabled: true,
       title: 'MẪU KHUNG ẢNH',
-      images: ['home/showcase1.png', 'home/showcase2.png', 'home/showcase3.png'],
+      images: ['home/showcase2.png', 'home/showcase3.png'],
     },
   },
 

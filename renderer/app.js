@@ -1539,15 +1539,30 @@ window.addEventListener('DOMContentLoaded', async () => {
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
 });
 
-// Dải "mẫu khung" ở màn hình chờ (ảnh từ config, hoặc placeholder gradient).
+// Dải "mẫu khung" ở màn hình chờ (thẻ ưu đãi + ảnh mẫu khung).
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+function promoCardHtml(p) {
+  const li = (arr) => (arr || []).map((x) => `<li>${esc(x)}</li>`).join('');
+  return `<div class="hs-card hs-promo">
+    <div class="promo-head"><div class="promo-title">${esc(p.title || 'ƯU ĐÃI & CHÍNH SÁCH')}</div><div class="promo-sub">${esc(p.brand || 'YOUNG BOOTH')}</div></div>
+    <div class="promo-body">
+      <div class="promo-sec"><div class="promo-h promo-h1">${esc(p.offersTitle || 'Ưu đãi')}</div><ul class="promo-list l1">${li(p.offers)}</ul></div>
+      <div class="promo-sec"><div class="promo-h promo-h2">${esc(p.policiesTitle || 'Chính sách')}</div><ul class="promo-list l2">${li(p.policies)}</ul></div>
+    </div>
+  </div>`;
+}
 function buildHomeShowcase() {
   const cfg = (CFG.home && CFG.home.showcase) || {};
+  const promo = (CFG.home && CFG.home.promo) || {};
   const wrap = $('#home-showcase');
   if (!wrap) return;
   if (cfg.enabled === false) { wrap.style.display = 'none'; return; }
+  let cards = '';
+  if (promo.enabled) cards += promoCardHtml(promo);
   const imgs = (cfg.images && cfg.images.length) ? cfg.images : null;
-  const cards = imgs
-    ? imgs.map((src) => `<div class="hs-card"><img src="${src}" alt="mẫu khung"></div>`).join('')
-    : [1, 2, 3].map((n) => `<div class="hs-card hs-ph">Khung ${n}</div>`).join('');
-  wrap.innerHTML = `<div class="hs-title">${cfg.title || ''}</div><div class="hs-row">${cards}</div>`;
+  if (imgs) cards += imgs.map((src) => `<div class="hs-card"><img src="${src}" alt="mẫu khung"></div>`).join('');
+  else if (!promo.enabled) cards += [1, 2, 3].map((n) => `<div class="hs-card hs-ph">Khung ${n}</div>`).join('');
+  wrap.innerHTML = `<div class="hs-title">${esc(cfg.title || '')}</div><div class="hs-row">${cards}</div>`;
 }
