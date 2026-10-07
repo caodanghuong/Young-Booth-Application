@@ -55,10 +55,22 @@ const BOOTH_CONFIG = {
         'Mỗi lượt tối đa 6 người',
       ],
     },
+    // Thẻ "Bảng giá" (Khung giữa). Sửa giá/nội dung ở đây.
+    pricing: {
+      enabled: true,
+      title: 'BẢNG GIÁ',
+      brand: 'YOUNG BOOTH',
+      packages: [
+        { name: 'GÓI MINI',     price: '3.000.000đ', color: '#2f8fd0', note: '2 giờ · in 120 ảnh · 1 nhân sự' },
+        { name: 'GÓI BASIC',    price: '3.500.000đ', color: '#2bbd7e', note: '2.5 giờ · in 200 ảnh · phụ kiện + sổ dán' },
+        { name: 'GÓI PRO',      price: '4.200.000đ', color: '#f3a52a', popular: true, note: '3 giờ · in không giới hạn · tranh 40×60' },
+        { name: 'GÓI PREMIUM',  price: '5.000.000đ', color: '#e84c9a', note: '3.5 giờ · in không giới hạn · đồ VIP' },
+      ],
+    },
     showcase: {
       enabled: true,
       title: 'MẪU KHUNG ẢNH',
-      images: ['home/showcase2.png', 'home/showcase3.png'],
+      images: ['home/showcase3.png'],
     },
   },
 
