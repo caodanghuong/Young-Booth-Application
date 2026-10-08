@@ -13,6 +13,8 @@ try { if (CFG.camera && CFG.camera.canon && CFG.camera.canon.dccUrl) dcc.setBase
 
 const KIOSK = (CFG && CFG.kiosk) || {};
 const GALLERY = (CFG && CFG.gallery) || {};
+// Khách có đồng ý đăng ảnh CÔNG KHAI lên gallery không (ảnh hưởng tag Cloudinary).
+let SHARE_PUBLIC = GALLERY.publicDefault !== false;
 
 /** Upload a saved capture to the online gallery. Returns a public URL or null. */
 async function uploadToGallery(filePath, filename, kind) {
@@ -29,7 +31,9 @@ async function uploadToGallery(filePath, filename, kind) {
     form.append('upload_preset', c.uploadPreset);
     if (c.folder) form.append('folder', c.folder);
     // Gắn tag để trang gallery lọc + liệt kê được qua Cloudinary list API.
-    form.append('tags', (c.tags || 'young-booth'));
+    // Chỉ gắn tag (để gallery công khai liệt kê) khi khách ĐỒNG Ý công khai.
+    // Riêng tư: vẫn upload để QR tải được, nhưng KHÔNG hiện trên gallery chung.
+    if (SHARE_PUBLIC) form.append('tags', (c.tags || 'young-booth'));
     const resp = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/image/upload`, {
       method: 'POST',
       body: form,
@@ -324,6 +328,9 @@ ipcMain.handle('booth:save', async (_evt, { dataUrl, kind }) => {
 
   return { id, filename, fileUrl, pageUrl, qrDataUrl, cloud };
 });
+
+// Khách chọn công khai / riêng tư ở màn kết quả.
+ipcMain.handle('booth:setPublic', async (_evt, { v }) => { SHARE_PUBLIC = !!v; return { ok: true, public: SHARE_PUBLIC }; });
 
 // Đẩy ảnh (vd khi bấm IN) lên gallery cloud. Chạy ngầm, không chặn in.
 ipcMain.handle('booth:galleryPush', async (_evt, { dataUrl, kind }) => {

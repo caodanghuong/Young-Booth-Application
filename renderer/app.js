@@ -1069,8 +1069,8 @@ async function doPrint() {
     paper,
   });
   if (res && res.success === false && res.reason) console.warn('Print:', res.reason);
-  // Đẩy ảnh đã ghép (ảnh gốc, chưa xoay in) lên gallery cloud — chạy ngầm, không chặn in.
-  try { window.booth.galleryPush(state.lastOutput.dataUrl, 'photo'); } catch (_e) {}
+  // Đẩy ảnh lên gallery CÔNG KHAI chỉ khi khách đồng ý (ngầm, không chặn in).
+  if (state.publicShare) { try { window.booth.galleryPush(state.lastOutput.dataUrl, 'photo'); } catch (_e) {} }
   return res;
 }
 
@@ -1534,7 +1534,49 @@ $('#btn-email-send').addEventListener('click', () => {
 
 // retake / home / start
 $('#btn-retake').addEventListener('click', () => { state._shareRes = null; state.sessionAnim = null; show('capture'); startCamera(); });
-$('#btn-home').addEventListener('click', () => { state._shareRes = null; state.sessionAnim = null; stopCamera(); show('home'); });
+function goHome() {
+  state._shareRes = null; state.sessionAnim = null;
+  try { stopPayPoll && stopPayPoll(); } catch (_e) {}
+  stopCamera();
+  resetConsent();
+  show('home');
+}
+$('#btn-home').addEventListener('click', goHome);
+
+// ---- Quyền công khai / riêng tư (consent) ----
+function resetConsent() {
+  const gal = CFG.gallery || {};
+  const def = gal.publicDefault !== false;
+  state.publicShare = def;
+  const cb = $('#consent-public'); if (cb) cb.checked = def;
+  try { window.booth.setPublic(def); } catch (_e) {}
+}
+(function setupConsent() {
+  const row = $('#consent-row'), cb = $('#consent-public'), txt = $('#consent-text');
+  const gal = CFG.gallery || {};
+  if (!row || !cb) return;
+  if (gal.enabled === false) { row.style.display = 'none'; return; }
+  if (txt && gal.consentNote) txt.textContent = gal.consentNote;
+  resetConsent();
+  cb.addEventListener('change', () => {
+    state.publicShare = cb.checked;
+    try { window.booth.setPublic(cb.checked); } catch (_e) {}
+  });
+})();
+
+// ---- Tự về màn chờ khi để trống quá lâu (booth tự phục vụ) ----
+(function setupIdleReset() {
+  const secs = ((CFG.kiosk || {}).idleResetSeconds) || 0;
+  if (!secs) return;
+  let last = Date.now();
+  const bump = () => { last = Date.now(); };
+  ['pointerdown', 'keydown', 'touchstart', 'click'].forEach((ev) => document.addEventListener(ev, bump, { passive: true }));
+  setInterval(() => {
+    if (state.busy) { last = Date.now(); return; }                 // đang chụp/xử lý → không reset
+    if (screens.home && screens.home.classList.contains('active')) { last = Date.now(); return; }
+    if (Date.now() - last > secs * 1000) { last = Date.now(); goHome(); }
+  }, 3000);
+})();
 $('#btn-start').addEventListener('click', () => { buildModeGrid(); buildSourceBar(); show('mode'); });
 
 // ---- init ----

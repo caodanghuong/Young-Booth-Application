@@ -23,6 +23,8 @@ contextBridge.exposeInMainWorld('booth', {
   readImage: (src) => ipcRenderer.invoke('booth:readImage', { src }),
   /** Push an image (e.g. on print) to the cloud gallery. Returns { ok, url }. */
   galleryPush: (dataUrl, kind) => ipcRenderer.invoke('booth:galleryPush', { dataUrl, kind }),
+  /** Set whether photos are shared publicly (listed in gallery) or private. */
+  setPublic: (v) => ipcRenderer.invoke('booth:setPublic', { v }),
 
   // ---- Canon EDSDK ----
   canon: {

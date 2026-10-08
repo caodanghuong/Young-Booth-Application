@@ -307,6 +307,10 @@ const BOOTH_CONFIG = {
     uploadUrl: '',            // POST JSON { filename, kind, dataBase64 } → trả { url }
     apiKey: '',               // (tuỳ chọn) header Authorization: Bearer <apiKey>
     publicBaseUrl: '',        // (tuỳ chọn) ghép publicBaseUrl + '/' + filename nếu endpoint không trả url
+
+    // Quyền riêng tư: khách chọn ĐĂNG CÔNG KHAI lên gallery hay chỉ tải riêng.
+    publicDefault: true,      // mặc định của ô tick ở màn kết quả (true = công khai)
+    consentNote: 'Đồng ý đăng ảnh lên gallery công khai (tự xoá sau 3 ngày).',
   },
 
   // ---- Chế độ vận hành booth trên mini PC ----
@@ -315,6 +319,7 @@ const BOOTH_CONFIG = {
     autoStart: true,         // true = tự chạy khi Windows khởi động (đăng ký ở login)
     preventSleep: true,      // giữ màn hình luôn thức khi app mở (chỉ tác dụng khi kiosk bật)
     exitShortcut: 'CommandOrControl+Shift+Q', // phím bí mật cho nhân viên thoát app
+    idleResetSeconds: 90,    // để trống không thao tác X giây → tự về màn chờ (0 = tắt)
   },
 };
 
