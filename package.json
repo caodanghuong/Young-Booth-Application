@@ -21,23 +21,28 @@
   "build": {
     "appId": "com.youngbooth.app",
     "productName": "YoungBooth",
+    "icon": "build/icon.ico",
     "files": [
       "*.js",
       "renderer/**/*",
-      "assets/**/*"
+      "assets/**/*",
+      "build/icon.ico"
     ],
     "asarUnpack": [
       "renderer/vendor/**",
       "node_modules/@brick-a-brack/napi-canon-cameras/**"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis"
       ]
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     }
   }
 }

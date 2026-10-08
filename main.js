@@ -150,6 +150,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 640,
+    icon: path.join(__dirname, 'build', 'icon.ico'),
     backgroundColor: '#0b0b12',
     autoHideMenuBar: true,
     kiosk: kioskOn,          // full screen, hides taskbar
