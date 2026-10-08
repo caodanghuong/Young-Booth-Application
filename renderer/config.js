@@ -264,15 +264,17 @@ const BOOTH_CONFIG = {
       frames: 12, frameDelay: 90 },
   ],
 
-  // QR TĨNH in ở góc ảnh → quét ra trang gallery (cố định, mọi ảnh giống nhau).
-  // Đổi link: tạo lại file gallery-qr.png rồi để nguyên src (xem HƯỚNG DẪN trong code dọn dẹp).
+  // QR in ở góc ảnh.
+  //  mode:'session' = QR RIÊNG từng lượt → khách quét ra ảnh + GIF + Boomerang của mình (lưu 3 ngày).
+  //  mode:'gallery' = QR TĨNH về trang gallery chung.
   galleryQR: {
     enabled: true,
-    src: 'file:///C:/YoungBooth-Frames/gallery-qr.png',
-    url: 'https://caodanghuong.github.io/Young-Booth-Gallery/#/', // chỉ để tham khảo
-    width: 168,     // bề rộng QR khi vẽ (px trên canvas ảnh)
+    mode: 'session',
+    galleryBase: 'https://caodanghuong.github.io/Young-Booth-Gallery/',
+    label: 'Quét lấy ảnh + GIF',
+    width: 168,     // cạnh ô QR (px trên canvas ảnh)
     margin: 34,     // cách mép ảnh
-    corner: 'br',   // góc: 'br' (dưới-phải) | 'bl' | 'tr' | 'tl'
+    corner: 'br',   // 'br' | 'bl' | 'tr' | 'tl'
   },
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,

@@ -634,6 +634,12 @@ async function recordVideo() {
 
 // Compose the selected frames and go to the result screen.
 async function finishToResult() {
+  // Mã LƯỢT chụp + link QR (động) — đặt trước khi ghép để vẽ đúng QR lên ảnh.
+  const q = CFG.galleryQR || {};
+  state.sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  state.qrUrl = (q.mode === 'session')
+    ? ((q.galleryBase || '') + '#/s/' + state.sessionId)
+    : ((q.galleryBase || '') + '#/');
   show('processing');
   $('#proc-text').textContent = state.mode.kind === 'photo' ? 'Đang ghép khung…' : 'Đang tạo ảnh động…';
   await wait(60); // let UI paint
@@ -1022,21 +1028,42 @@ async function composeTemplate(m) {
   return canvas;
 }
 
-// Vẽ QR tĩnh (trỏ gallery) ở 1 góc ảnh.
+// Vẽ QR ở 1 góc ảnh (động: QR riêng từng lượt state.qrUrl, hoặc tĩnh về gallery).
+const _qrCache = {};
+async function makeQRCached(url) {
+  if (_qrCache[url]) return _qrCache[url];
+  try { const r = await window.booth.makeQR(url); if (r && r.ok) { _qrCache[url] = r.dataUrl; return r.dataUrl; } } catch (_e) {}
+  return null;
+}
 async function drawGalleryQR(ctx, canvas) {
   const q = CFG.galleryQR || {};
-  if (!q.enabled || !q.src) return;
-  try {
-    const img = await loadImage(q.src);
-    const w = q.width || 168;
-    const ratio = (img.naturalHeight && img.naturalWidth) ? (img.naturalHeight / img.naturalWidth) : (274 / 246);
-    const h = w * ratio;
-    const m = q.margin != null ? q.margin : 34;
-    const corner = q.corner || 'br';
-    const x = corner.indexOf('l') >= 0 ? m : (canvas.width - m - w);
-    const y = corner.indexOf('t') >= 0 ? m : (canvas.height - m - h);
-    ctx.drawImage(img, x, y, w, h);
-  } catch (e) { console.warn('qr:', e.message); }
+  if (!q.enabled) return;
+  const url = state.qrUrl || ((q.galleryBase || '') + '#/');
+  if (!url) return;
+  const qrData = await makeQRCached(url);
+  if (!qrData) return;
+  let img; try { img = await loadImage(qrData); } catch (_e) { return; }
+  const qs = q.width || 168;
+  const pad = Math.round(qs * 0.10);
+  const labelH = q.label ? Math.round(qs * 0.22) : pad;
+  const tileW = qs + pad * 2;
+  const tileH = pad + qs + labelH;
+  const mg = q.margin != null ? q.margin : 34;
+  const corner = q.corner || 'br';
+  const x = corner.indexOf('l') >= 0 ? mg : (canvas.width - mg - tileW);
+  const y = corner.indexOf('t') >= 0 ? mg : (canvas.height - mg - tileH);
+  const r = 16;
+  const rr = (xx, yy, w, h, rad) => { ctx.beginPath(); ctx.moveTo(xx + rad, yy); ctx.arcTo(xx + w, yy, xx + w, yy + h, rad); ctx.arcTo(xx + w, yy + h, xx, yy + h, rad); ctx.arcTo(xx, yy + h, xx, yy, rad); ctx.arcTo(xx, yy, xx + w, yy, rad); ctx.closePath(); };
+  ctx.save();
+  rr(x, y, tileW, tileH, r); ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; rr(x, y, tileW, tileH, r); ctx.stroke();
+  ctx.drawImage(img, x + pad, y + pad, qs, qs);
+  if (q.label) {
+    ctx.fillStyle = '#28283c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '800 ' + Math.round(qs * 0.125) + 'px "Segoe UI", Arial, sans-serif';
+    ctx.fillText(q.label, x + tileW / 2, y + pad + qs + labelH / 2);
+  }
+  ctx.restore();
 }
 
 // ---- Chữ động trên khung (sửa trong Cài đặt) ----
@@ -1188,8 +1215,21 @@ async function doPrint() {
     paper,
   });
   if (res && res.success === false && res.reason) console.warn('Print:', res.reason);
-  // Đẩy ảnh lên gallery CÔNG KHAI chỉ khi khách đồng ý (ngầm, không chặn in).
-  if (state.publicShare) { try { window.booth.galleryPush(state.lastOutput.dataUrl, 'photo'); } catch (_e) {} }
+  // Đẩy TRỌN LƯỢT (ảnh + GIF + Boomerang) lên cloud theo mã lượt → QR trên ảnh
+  // truy cập được 3 ngày. Ảnh lên gallery chung chỉ khi khách đồng ý công khai.
+  (async () => {
+    try {
+      const files = [];
+      if (state.mode && state.mode.kind === 'photo') {
+        files.push({ role: 'photo', dataUrl: state.lastOutput.dataUrl });
+        const anim = await ensureSessionAnim().catch(() => null);
+        if (anim) { files.push({ role: 'gif', dataUrl: anim.gif }); files.push({ role: 'boomerang', dataUrl: anim.boomerang }); }
+      } else {
+        files.push({ role: state.lastOutput.kind === 'gif' ? 'gif' : 'photo', dataUrl: state.lastOutput.dataUrl });
+      }
+      window.booth.pushSession(state.sessionId, files, !!state.publicShare);
+    } catch (_e) {}
+  })();
   return res;
 }
 

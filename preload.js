@@ -25,6 +25,10 @@ contextBridge.exposeInMainWorld('booth', {
   galleryPush: (dataUrl, kind) => ipcRenderer.invoke('booth:galleryPush', { dataUrl, kind }),
   /** Set whether photos are shared publicly (listed in gallery) or private. */
   setPublic: (v) => ipcRenderer.invoke('booth:setPublic', { v }),
+  /** Make a QR code dataURL for a text/URL. */
+  makeQR: (text) => ipcRenderer.invoke('booth:makeQR', { text }),
+  /** Push a whole session (photo+gif+boomerang) tagged by session id. */
+  pushSession: (sessionId, files, isPublic) => ipcRenderer.invoke('booth:pushSession', { sessionId, files, isPublic }),
 
   // ---- Canon EDSDK ----
   canon: {

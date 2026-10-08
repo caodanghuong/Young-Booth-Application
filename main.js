@@ -17,7 +17,7 @@ const GALLERY = (CFG && CFG.gallery) || {};
 let SHARE_PUBLIC = GALLERY.publicDefault !== false;
 
 /** Upload a saved capture to the online gallery. Returns a public URL or null. */
-async function uploadToGallery(filePath, filename, kind) {
+async function uploadToGallery(filePath, filename, kind, tagsOverride) {
   if (!GALLERY.enabled) return null;
   const buf = fs.readFileSync(filePath);
   const isGif = kind === 'gif' || filename.toLowerCase().endsWith('.gif');
@@ -31,9 +31,10 @@ async function uploadToGallery(filePath, filename, kind) {
     form.append('upload_preset', c.uploadPreset);
     if (c.folder) form.append('folder', c.folder);
     // Gắn tag để trang gallery lọc + liệt kê được qua Cloudinary list API.
-    // Chỉ gắn tag (để gallery công khai liệt kê) khi khách ĐỒNG Ý công khai.
-    // Riêng tư: vẫn upload để QR tải được, nhưng KHÔNG hiện trên gallery chung.
-    if (SHARE_PUBLIC) form.append('tags', (c.tags || 'young-booth'));
+    // Tag: nếu truyền tagsOverride thì dùng; không thì theo quyền công khai.
+    let tags = tagsOverride;
+    if (tags == null) tags = SHARE_PUBLIC ? [(c.tags || 'young-booth')] : [];
+    if (tags && tags.length) form.append('tags', tags.join(','));
     const resp = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/image/upload`, {
       method: 'POST',
       body: form,
@@ -331,6 +332,37 @@ ipcMain.handle('booth:save', async (_evt, { dataUrl, kind }) => {
 
 // Khách chọn công khai / riêng tư ở màn kết quả.
 ipcMain.handle('booth:setPublic', async (_evt, { v }) => { SHARE_PUBLIC = !!v; return { ok: true, public: SHARE_PUBLIC }; });
+
+// Tạo QR dataURL (để vẽ lên ảnh in).
+ipcMain.handle('booth:makeQR', async (_evt, { text }) => {
+  try {
+    const dataUrl = await QRCode.toDataURL(String(text), { margin: 1, width: 420, color: { dark: '#1a1a2e', light: '#ffffff' } });
+    return { ok: true, dataUrl };
+  } catch (e) { return { ok: false, reason: e.message }; }
+});
+
+// Đẩy trọn 1 LƯỢT chụp (ảnh + GIF + Boomerang) lên Cloudinary, gắn tag theo mã lượt
+// (sess-<id>) để trang gallery #/s/<id> đọc lại được. Ảnh công khai thêm tag gallery.
+ipcMain.handle('booth:pushSession', async (_evt, { sessionId, files, isPublic }) => {
+  try {
+    if (!GALLERY.enabled) return { ok: false, reason: 'gallery disabled' };
+    ensureCapturesDir();
+    const sTag = 'sess-' + sessionId;
+    const pubTag = (GALLERY.cloudinary && GALLERY.cloudinary.tags) || 'young-booth';
+    for (const f of (files || [])) {
+      const isGif = /^data:image\/gif/.test(f.dataUrl);
+      const ext = isGif ? 'gif' : 'png';
+      const filename = `${sessionId}-${f.role}.${ext}`;
+      const fp = path.join(CAPTURES_DIR, filename);
+      fs.writeFileSync(fp, Buffer.from(f.dataUrl.replace(/^data:[^;]+;base64,/, ''), 'base64'));
+      const tags = [sTag];
+      if (f.role === 'photo' && isPublic) tags.push(pubTag); // chỉ ảnh mới lên gallery chung
+      try { await uploadToGallery(fp, filename, isGif ? 'gif' : 'photo', tags); }
+      catch (e) { console.warn('[session] upload fail', f.role, e.message); }
+    }
+    return { ok: true };
+  } catch (e) { return { ok: false, reason: e.message }; }
+});
 
 // Đẩy ảnh (vd khi bấm IN) lên gallery cloud. Chạy ngầm, không chặn in.
 ipcMain.handle('booth:galleryPush', async (_evt, { dataUrl, kind }) => {
