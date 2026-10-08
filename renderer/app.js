@@ -1069,6 +1069,8 @@ async function doPrint() {
     paper,
   });
   if (res && res.success === false && res.reason) console.warn('Print:', res.reason);
+  // Đẩy ảnh đã ghép (ảnh gốc, chưa xoay in) lên gallery cloud — chạy ngầm, không chặn in.
+  try { window.booth.galleryPush(state.lastOutput.dataUrl, 'photo'); } catch (_e) {}
   return res;
 }
 

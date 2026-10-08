@@ -28,6 +28,8 @@ async function uploadToGallery(filePath, filename, kind) {
     form.append('file', dataUri);
     form.append('upload_preset', c.uploadPreset);
     if (c.folder) form.append('folder', c.folder);
+    // Gắn tag để trang gallery lọc + liệt kê được qua Cloudinary list API.
+    form.append('tags', (c.tags || 'young-booth'));
     const resp = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/image/upload`, {
       method: 'POST',
       body: form,
@@ -321,6 +323,22 @@ ipcMain.handle('booth:save', async (_evt, { dataUrl, kind }) => {
   });
 
   return { id, filename, fileUrl, pageUrl, qrDataUrl, cloud };
+});
+
+// Đẩy ảnh (vd khi bấm IN) lên gallery cloud. Chạy ngầm, không chặn in.
+ipcMain.handle('booth:galleryPush', async (_evt, { dataUrl, kind }) => {
+  try {
+    if (!GALLERY.enabled) return { ok: false, reason: 'gallery disabled' };
+    const isGif = kind === 'gif';
+    ensureCapturesDir();
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const filename = `${id}.${isGif ? 'gif' : 'png'}`;
+    const filePath = path.join(CAPTURES_DIR, filename);
+    const b64 = String(dataUrl).replace(/^data:[^;]+;base64,/, '');
+    fs.writeFileSync(filePath, Buffer.from(b64, 'base64'));
+    const url = await uploadToGallery(filePath, filename, isGif ? 'gif' : 'photo');
+    return { ok: !!url, url: url || null };
+  } catch (e) { return { ok: false, reason: e.message }; }
 });
 
 /**

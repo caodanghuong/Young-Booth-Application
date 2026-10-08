@@ -21,6 +21,8 @@ contextBridge.exposeInMainWorld('booth', {
   openExternal: (url) => ipcRenderer.invoke('booth:openExternal', { url }),
   /** Read an external image file (file:// or absolute path) → { ok, dataUrl }. */
   readImage: (src) => ipcRenderer.invoke('booth:readImage', { src }),
+  /** Push an image (e.g. on print) to the cloud gallery. Returns { ok, url }. */
+  galleryPush: (dataUrl, kind) => ipcRenderer.invoke('booth:galleryPush', { dataUrl, kind }),
 
   // ---- Canon EDSDK ----
   canon: {
