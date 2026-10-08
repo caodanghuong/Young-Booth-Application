@@ -1675,23 +1675,6 @@ $('#btn-share').addEventListener('click', async () => {
 });
 $('#btn-close-share').addEventListener('click', () => $('#share-modal').classList.remove('show'));
 
-$('#btn-email').addEventListener('click', async () => {
-  if (!state.lastOutput) return;
-  const btn = $('#btn-email'); btn.disabled = true;
-  try { await ensureShare(); $('#email-modal').classList.add('show'); }
-  catch (e) { alert('Lỗi: ' + e.message); }
-  finally { btn.disabled = false; }
-});
-$('#btn-close-email').addEventListener('click', () => $('#email-modal').classList.remove('show'));
-$('#btn-email-send').addEventListener('click', () => {
-  const to = $('#email-input').value.trim();
-  const link = state._shareRes ? state._shareRes.pageUrl : '';
-  const subject = encodeURIComponent('Ảnh của bạn từ ' + CFG.brand.title);
-  const body = encodeURIComponent('Chào bạn,\n\nẢnh vừa chụp tại ' + CFG.brand.title + ':\n' + link + '\n\nCảm ơn bạn đã ghé booth! 🎉');
-  window.booth.openExternal(`mailto:${to}?subject=${subject}&body=${body}`);
-  $('#email-modal').classList.remove('show');
-});
-
 // retake / home / start
 $('#btn-retake').addEventListener('click', () => { state._shareRes = null; state.sessionAnim = null; show('capture'); startCamera(); });
 function goHome() {

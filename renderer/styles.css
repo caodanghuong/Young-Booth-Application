@@ -13,7 +13,7 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
+  background: #cfe7f7 url('sky.jpg') center / cover no-repeat fixed;
   color: var(--text);
   font-family: 'Segoe UI', -apple-system, Roboto, sans-serif;
   overflow: hidden;
@@ -45,11 +45,14 @@ html, body {
   justify-content: flex-start;
   padding-top: 6vh;
   overflow-y: auto;
-  background:
-    radial-gradient(60% 60% at 30% 20%, rgba(168, 85, 247, 0.25), transparent 60%),
-    radial-gradient(60% 60% at 80% 80%, rgba(236, 72, 153, 0.22), transparent 60%),
-    var(--bg);
+  background: transparent; /* để lộ nền trời ở body */
 }
+/* Chữ trên nền trời sáng → tông đậm + quầng trắng cho dễ đọc */
+#screen-home .brand-title { color: #1e2a55; text-shadow: 0 2px 16px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.12); }
+#screen-home .brand-sub { color: #233059; text-shadow: 0 1px 8px rgba(255,255,255,0.55); }
+.home-showcase .hs-title { color: #233059; text-shadow: 0 1px 8px rgba(255,255,255,0.55); }
+#screen-home .lan-hint { color: #33405f; text-shadow: 0 1px 6px rgba(255,255,255,0.5); }
+.screen-title { color: #1e2a55; text-shadow: 0 1px 10px rgba(255,255,255,0.5); }
 .home-inner { text-align: center; }
 .logo { font-size: 90px; line-height: 1; margin-bottom: 8px; }
 .brand-title { font-size: 68px; font-weight: 900; margin: 0; letter-spacing: 3px; }
