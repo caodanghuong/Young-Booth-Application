@@ -262,8 +262,6 @@ const BOOTH_CONFIG = {
       frames: 12, frameDelay: 120 },
     { id: 'BOOM', name: 'Boomerang',    icon: '🔁', desc: 'Tới–lui lặp vui nhộn',       kind: 'boomerang',
       frames: 12, frameDelay: 90 },
-    { id: 'VID',  name: 'Video',        icon: '🎥', desc: 'Quay clip ngắn ~6 giây',     kind: 'video',
-      seconds: 6, fps: 15 },
   ],
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,
