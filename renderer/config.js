@@ -264,6 +264,17 @@ const BOOTH_CONFIG = {
       frames: 12, frameDelay: 90 },
   ],
 
+  // QR TĨNH in ở góc ảnh → quét ra trang gallery (cố định, mọi ảnh giống nhau).
+  // Đổi link: tạo lại file gallery-qr.png rồi để nguyên src (xem HƯỚNG DẪN trong code dọn dẹp).
+  galleryQR: {
+    enabled: true,
+    src: 'file:///C:/YoungBooth-Frames/gallery-qr.png',
+    url: 'https://caodanghuong.github.io/Young-Booth-Gallery/#/', // chỉ để tham khảo
+    width: 168,     // bề rộng QR khi vẽ (px trên canvas ảnh)
+    margin: 34,     // cách mép ảnh
+    corner: 'br',   // góc: 'br' (dưới-phải) | 'bl' | 'tr' | 'tl'
+  },
+
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,
   // để khi quét QR khách nhận được cả ảnh tĩnh + GIF + Boomerang.
   session: {

@@ -976,6 +976,7 @@ async function composePhoto() {
     try { const img = await loadImage(m.overlay); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
     catch (e) { console.warn(e.message); }
   }
+  await drawGalleryQR(ctx, canvas); // QR tĩnh góc ảnh → gallery
   return canvas;
 }
 
@@ -1016,8 +1017,26 @@ async function composeTemplate(m) {
     } catch (e) { console.warn('logo:', e.message); }
   }
   drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
+  await drawGalleryQR(ctx, canvas); // QR tĩnh góc ảnh → gallery
   if (m.showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - 120, true);
   return canvas;
+}
+
+// Vẽ QR tĩnh (trỏ gallery) ở 1 góc ảnh.
+async function drawGalleryQR(ctx, canvas) {
+  const q = CFG.galleryQR || {};
+  if (!q.enabled || !q.src) return;
+  try {
+    const img = await loadImage(q.src);
+    const w = q.width || 168;
+    const ratio = (img.naturalHeight && img.naturalWidth) ? (img.naturalHeight / img.naturalWidth) : (274 / 246);
+    const h = w * ratio;
+    const m = q.margin != null ? q.margin : 34;
+    const corner = q.corner || 'br';
+    const x = corner.indexOf('l') >= 0 ? m : (canvas.width - m - w);
+    const y = corner.indexOf('t') >= 0 ? m : (canvas.height - m - h);
+    ctx.drawImage(img, x, y, w, h);
+  } catch (e) { console.warn('qr:', e.message); }
 }
 
 // ---- Chữ động trên khung (sửa trong Cài đặt) ----
