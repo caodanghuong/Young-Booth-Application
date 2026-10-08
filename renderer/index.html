@@ -73,6 +73,16 @@
       </div>
     </section>
 
+    <!-- ============ REVIEW SHOTS ============ -->
+    <section class="screen" id="screen-review">
+      <h2 class="screen-title">Xem lại ảnh — chạm 🔄 để chụp lại tấm chưa ưng</h2>
+      <div class="review-grid" id="review-grid"></div>
+      <div class="select-bar">
+        <button class="btn-ghost" id="btn-review-retakeall">🔄 Chụp lại tất cả</button>
+        <button class="btn-primary" id="btn-review-continue">Tiếp tục →</button>
+      </div>
+    </section>
+
     <!-- ============ PROCESSING ============ -->
     <section class="screen" id="screen-processing">
       <div class="spinner"></div>
@@ -84,6 +94,7 @@
       <div class="result-layout">
         <div class="result-preview">
           <img id="result-img" alt="Kết quả" />
+          <video id="result-video" style="display:none" autoplay loop muted playsinline></video>
         </div>
         <div class="result-side">
           <h2 class="screen-title small">Ảnh của bạn 🎉</h2>

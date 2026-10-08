@@ -359,15 +359,18 @@ ipcMain.handle('booth:saveSession', async (_evt, { files }) => {
   let cloudAny = false;
   for (const f of (files || [])) {
     const isGif = /^data:image\/gif/.test(f.dataUrl);
-    const ext = isGif ? 'gif' : 'png';
+    const isVideo = /^data:video\//.test(f.dataUrl);
+    const ext = isVideo ? 'webm' : isGif ? 'gif' : 'png';
     const filename = `${sid}-${f.role}.${ext}`;
     const filePath = path.join(CAPTURES_DIR, filename);
     fs.writeFileSync(filePath, Buffer.from(f.dataUrl.replace(/^data:[^;]+;base64,/, ''), 'base64'));
     let url = `${serverInfo.lanUrl}/captures/${filename}`;
-    try {
-      const cloud = await uploadToGallery(filePath, filename, isGif ? 'gif' : 'photo');
-      if (cloud) { url = cloud; cloudAny = true; }
-    } catch (e) { console.warn('[gallery] session upload failed:', e.message); }
+    if (!isVideo) { // video: chỉ tải qua LAN (Cloudinary preset dành cho ảnh)
+      try {
+        const cloud = await uploadToGallery(filePath, filename, isGif ? 'gif' : 'photo');
+        if (cloud) { url = cloud; cloudAny = true; }
+      } catch (e) { console.warn('[gallery] session upload failed:', e.message); }
+    }
     saved.push({ role: f.role, filename, url });
   }
   const pageUrl = `${serverInfo.lanUrl}/s/${sid}`;

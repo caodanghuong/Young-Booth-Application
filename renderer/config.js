@@ -89,6 +89,7 @@ const BOOTH_CONFIG = {
   countdownSeconds: 3,   // đếm ngược cho kiểu GIF/Boomerang
   prepSeconds: 10,       // thời gian chuẩn bị + đếm ngược trước MỖI ảnh (kiểu ảnh)
   showCaptureGuide: true, // khung nét đứt trên màn chụp = vùng sẽ được in (tránh cắt mất người)
+  reviewShots: true,      // sau khi chụp loạt ảnh → cho XEM LẠI + CHỤP LẠI từng tấm trước khi ghép
 
   // Làm đẹp: mịn da + làm nét. 0 = tắt, 1 = mạnh.
   beauty: {
@@ -255,6 +256,14 @@ const BOOTH_CONFIG = {
           x: 600, y: 1758, w: 1000, size: 22, color: '#8a7a70', ff: 'Arial, sans-serif', italic: true, lh: 30 },
       ],
     },
+
+    // ---- Kiểu ĐỘNG: GIF / Boomerang / Video (khách chọn ở màn "Chọn kiểu chụp") ----
+    { id: 'GIF',  name: 'Ảnh động GIF', icon: '🎞️', desc: 'Chụp loạt → GIF chuyển động', kind: 'gif',
+      frames: 12, frameDelay: 120 },
+    { id: 'BOOM', name: 'Boomerang',    icon: '🔁', desc: 'Tới–lui lặp vui nhộn',       kind: 'boomerang',
+      frames: 12, frameDelay: 90 },
+    { id: 'VID',  name: 'Video',        icon: '🎥', desc: 'Quay clip ngắn ~6 giây',     kind: 'video',
+      seconds: 6, fps: 15 },
   ],
 
   // Với các kiểu ẢNH: tự tạo thêm GIF + Boomerang từ loạt ảnh đã chụp,

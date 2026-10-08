@@ -57,6 +57,7 @@ const screens = {
   pay: $('#screen-pay'),
   capture: $('#screen-capture'),
   select: $('#screen-select'),
+  review: $('#screen-review'),
   processing: $('#screen-processing'),
   result: $('#screen-result'),
 };
@@ -499,40 +500,44 @@ async function captureBurst(nFrames, delay) {
   return frames;
 }
 
-// ---- main capture button ----
-$('#btn-capture').addEventListener('click', async () => {
+// ---- main capture flow (Ảnh / GIF / Boomerang / Video) ----
+async function captureOneShot() {
+  const canonFullRes = state.usingCanon && CFG.camera.canon && CFG.camera.canon.fullResPhoto;
+  if (canonFullRes) { const shot = await canonCapture(); return await dataUrlToCanvas(shot.dataUrl); }
+  return grabRawFrame();
+}
+async function runCaptureFlow() {
   if (state.busy || (!state.stream && !state.usingCanon)) return;
   state.busy = true;
   $('#btn-capture').disabled = true;
 
   try {
-    if (state.mode.kind === 'photo') {
-      const cap = state.mode.captureCount || state.mode.select || 1;
-      const canonFullRes = state.usingCanon && CFG.camera.canon && CFG.camera.canon.fullResPhoto;
+    const m = state.mode;
+    if (m.kind === 'photo') {
+      const cap = m.captureCount || m.select || 1;
       state.captured = [];
       const prep = CFG.prepSeconds || CFG.countdownSeconds || 3;
       for (let i = 0; i < cap; i++) {
         await runCountdown(prep);
-        if (canonFullRes) {
-          const shot = await canonCapture(); // full-res JPEG from the DSLR
-          state.captured.push(await dataUrlToCanvas(shot.dataUrl));
-        } else {
-          state.captured.push(grabRawFrame());
-        }
+        state.captured.push(await captureOneShot());
         renderShotDots(i + 1);
         if (i < cap - 1) await wait(600); // xem nhanh ảnh vừa chụp rồi qua tấm sau
       }
-      const need = state.mode.select || cap;
+      const need = m.select || cap;
       state.sessionAnim = null; // new session
-      if (need < state.captured.length) {
-        openSelectScreen(need);
-        return; // flow continues from the select screen
-      }
+      if (need < state.captured.length) { openSelectScreen(need); return; }
       state.rawFrames = state.captured.slice();
+      if (CFG.reviewShots) { openReviewScreen(); return; } // xem lại / chụp lại từng tấm
+    } else if (m.kind === 'video') {
+      await runCountdown(CFG.countdownSeconds || 3);
+      const dataUrl = await recordVideo();
+      state.rawFrames = null; state.captured = null; state.sessionAnim = null;
+      showResult({ dataUrl, kind: 'video' });
+      return;
     } else {
-      // gif / boomerang mode: single countdown then burst
+      // gif / boomerang: đếm ngược 1 lần rồi chụp loạt
       await runCountdown(CFG.countdownSeconds);
-      state.rawFrames = await captureBurst(state.mode.frames, state.mode.frameDelay);
+      state.rawFrames = await captureBurst(m.frames, m.frameDelay);
       state.captured = null;
       state.sessionAnim = null;
     }
@@ -546,7 +551,86 @@ $('#btn-capture').addEventListener('click', async () => {
     state.busy = false;
     $('#btn-capture').disabled = false;
   }
+}
+$('#btn-capture').addEventListener('click', runCaptureFlow);
+
+// ---- Xem lại / chụp lại từng tấm (photo) ----
+function openReviewScreen() {
+  const grid = $('#review-grid');
+  grid.innerHTML = '';
+  state.captured.forEach((cv, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'review-cell';
+    const num = document.createElement('span'); num.className = 'review-num'; num.textContent = idx + 1;
+    const img = document.createElement('img'); img.src = cv.toDataURL('image/jpeg', 0.7);
+    const btn = document.createElement('button'); btn.className = 'review-retake'; btn.textContent = '🔄 Chụp lại';
+    btn.addEventListener('click', () => retakeShot(idx));
+    cell.appendChild(num); cell.appendChild(img); cell.appendChild(btn);
+    grid.appendChild(cell);
+  });
+  show('review');
+}
+async function retakeShot(idx) {
+  if (state.busy) return;
+  state.busy = true;
+  show('capture');
+  try {
+    const prep = CFG.prepSeconds || CFG.countdownSeconds || 3;
+    await runCountdown(prep);
+    state.captured[idx] = await captureOneShot();
+    state.rawFrames = state.captured.slice();
+    state.sessionAnim = null;
+  } catch (e) { alert('Lỗi chụp lại: ' + e.message); }
+  finally { state.busy = false; openReviewScreen(); }
+}
+$('#btn-review-continue').addEventListener('click', () => {
+  state.rawFrames = state.captured.slice();
+  finishToResult();
 });
+$('#btn-review-retakeall').addEventListener('click', () => { show('capture'); runCaptureFlow(); });
+
+// ---- Quay video ngắn (webcam hoặc liveview Canon) → WebM ----
+async function recordVideo() {
+  const m = state.mode;
+  const secs = m.seconds || 6;
+  const fps = m.fps || 15;
+  const src = state.usingCanon ? liveImg : video;
+  const sw = src.naturalWidth || src.videoWidth || 1280;
+  const sh = src.naturalHeight || src.videoHeight || 720;
+  const c = document.createElement('canvas');
+  c.width = Math.min(sw, 1280);
+  c.height = Math.round(c.width * sh / sw) || 720;
+  const ctx = c.getContext('2d');
+  const stream = c.captureStream(fps);
+  let mime = 'video/webm;codecs=vp9'; if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+  const rec = new MediaRecorder(stream, { mimeType: mime });
+  const chunks = [];
+  rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise((res) => { rec.onstop = res; });
+  // chỉ báo đang quay
+  countdownEl.classList.add('show'); countdownEl.textContent = '● REC';
+  rec.start();
+  const t0 = Date.now();
+  const mirror = !state.usingCanon && CFG.camera.mirror;
+  await new Promise((resolve) => {
+    const draw = () => {
+      try {
+        if (mirror) { ctx.save(); ctx.translate(c.width, 0); ctx.scale(-1, 1); ctx.drawImage(src, 0, 0, c.width, c.height); ctx.restore(); }
+        else ctx.drawImage(src, 0, 0, c.width, c.height);
+      } catch (_e) {}
+      const left = Math.ceil((secs * 1000 - (Date.now() - t0)) / 1000);
+      countdownEl.textContent = '● ' + Math.max(0, left) + 's';
+      if (Date.now() - t0 >= secs * 1000) { resolve(); return; }
+      setTimeout(draw, 1000 / fps);
+    };
+    draw();
+  });
+  countdownEl.classList.remove('show');
+  rec.stop();
+  await stopped;
+  const blob = new Blob(chunks, { type: 'video/webm' });
+  return await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+}
 
 // Compose the selected frames and go to the result screen.
 async function finishToResult() {
@@ -554,10 +638,26 @@ async function finishToResult() {
   $('#proc-text').textContent = state.mode.kind === 'photo' ? 'Đang ghép khung…' : 'Đang tạo ảnh động…';
   await wait(60); // let UI paint
   const out = await composeOutput();
+  showResult(out);
+}
+
+// Hiện kết quả: ảnh/gif qua <img>, video qua <video>. Ẩn công cụ ảnh khi là video.
+function showResult(out) {
   state.lastOutput = out;
   state._shareRes = null;
-  $('#result-img').src = out.dataUrl;
-  buildFilterBar($('#filter-bar-result'), () => rerenderResult());
+  const img = $('#result-img'), vid = $('#result-video');
+  const isVideo = out.kind === 'video';
+  const show1 = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
+  const imgOnly = ['#btn-sticker', '#btn-print', '#filter-bar-result', '#consent-row'];
+  imgOnly.forEach((sel) => { const el = $(sel); if (el) el.style.display = isVideo ? 'none' : ''; });
+  if (isVideo) {
+    show1(img, false);
+    if (vid) { vid.src = out.dataUrl; show1(vid, true); vid.play().catch(() => {}); }
+  } else {
+    if (vid) { vid.pause(); vid.removeAttribute('src'); show1(vid, false); }
+    if (img) { img.src = out.dataUrl; show1(img, true); }
+    buildFilterBar($('#filter-bar-result'), () => rerenderResult());
+  }
   show('result');
 }
 
@@ -1481,7 +1581,8 @@ $('#se-done').addEventListener('click', async () => {
 async function ensureShare() {
   if (state._shareRes) return state._shareRes;
   const files = [];
-  const mainRole = state.lastOutput.kind === 'gif' ? 'animation' : 'photo';
+  const k = state.lastOutput.kind;
+  const mainRole = k === 'video' ? 'video' : k === 'gif' ? 'animation' : 'photo';
   files.push({ role: mainRole, dataUrl: state.lastOutput.dataUrl });
   if (state.mode && state.mode.kind === 'photo') {
     const anim = await ensureSessionAnim().catch(() => null);
