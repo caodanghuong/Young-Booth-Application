@@ -52,7 +52,7 @@ html, body {
 .screen-title { text-shadow: 0 2px 14px rgba(0,0,0,0.55); }
 .home-inner { text-align: center; }
 .logo { font-size: 90px; line-height: 1; margin-bottom: 8px; }
-.brand-title { font-size: 68px; font-weight: 900; margin: 0; letter-spacing: 3px; }
+.brand-title { font-family: 'Segoe Script', 'Brush Script MT', cursive; font-size: 128px; font-weight: 700; margin: 0; letter-spacing: 1px; line-height: 1.05; }
 .brand-title span {
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   -webkit-background-clip: text; background-clip: text; color: transparent;
