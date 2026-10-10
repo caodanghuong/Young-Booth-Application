@@ -427,8 +427,8 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   const printWin = new BrowserWindow({ show: false, webPreferences: { offscreen: false } });
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
     @page { margin: 0; }
-    html,body{margin:0;padding:0;height:100%;}
-    body{display:flex;align-items:center;justify-content:center;}
+    html,body{margin:0;padding:0;height:100%;background:#fff;}
+    body{display:flex;align-items:center;justify-content:center;background:#fff;}
     img{max-width:100%;max-height:100%;}
   </style></head><body><img src="${dataUrl}"></body></html>`;
   // Write to a temp file (data: URLs are too short for a full-res image → ERR_INVALID_URL).

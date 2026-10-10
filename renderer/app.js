@@ -27,7 +27,7 @@ const state = {
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
 // Print settings: config defaults, overridden by what the user saved in the UI.
-const PRINT_CFG_VERSION = 6; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
+const PRINT_CFG_VERSION = 7; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
 function loadPrintCfg() {
   const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: false, __v: PRINT_CFG_VERSION }, CFG.print || {});
   try {
@@ -1204,14 +1204,14 @@ async function doPrint() {
       if (toLandscape[paper]) paper = toLandscape[paper];
     }
   } else {
-    // AUTO (mặc định): luôn in dọc 4×6; thiết kế ngang thì xoay 90° thành dọc.
-    const landscapeDesign = !!(state.mode && (
-      state.mode.paper === '6x4' ||
-      state.mode.layout === 'single-wide' ||
-      (state.mode.canvas && state.mode.canvas.w > state.mode.canvas.h)
-    ));
-    if (landscapeDesign) dataUrl = await rotate90(dataUrl);
-    paper = (isStrip && !doubled) ? '2x6' : '4x6';
+    // AUTO (mặc định): máy DNP in đẹp nhất khi giấy NẰM NGANG (6×4) — ảnh dọc bị cắt.
+    // Nên in MỌI kiểu theo khổ NGANG 6×4: kiểu thiết kế DỌC (canvas cao>rộng:
+    // Khoảnh Khắc, Nhật Ký, Dịu Dàng) được xoay 90° thành ngang cho khớp giấy →
+    // không bị cắt. Kiểu vốn ngang (Ngọt Ngào, Chia Đôi) giữ nguyên.
+    const portraitDesign = !!(state.mode && state.mode.canvas &&
+      state.mode.canvas.h > state.mode.canvas.w);
+    if (portraitDesign) dataUrl = await rotate90(dataUrl);
+    paper = '6x4';
   }
 
   // Dải dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
