@@ -27,9 +27,9 @@ const state = {
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
 // Print settings: config defaults, overridden by what the user saved in the UI.
-const PRINT_CFG_VERSION = 4; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
+const PRINT_CFG_VERSION = 5; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
 function loadPrintCfg() {
-  const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: true, __v: PRINT_CFG_VERSION }, CFG.print || {});
+  const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: false, __v: PRINT_CFG_VERSION }, CFG.print || {});
   try {
     const saved = JSON.parse(localStorage.getItem('booth.print') || '{}');
     if (saved.__v !== PRINT_CFG_VERSION) {

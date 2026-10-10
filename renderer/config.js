@@ -304,7 +304,7 @@ const BOOTH_CONFIG = {
     silent: true,             // in thẳng, KHÔNG hiện hộp thoại chọn máy in (booth)
     stripDoubleOn4x6: true,   // DẢI: app ghép 2 dải trên 1 tờ 4×6 để DNP 2inch-cut cắt đôi
     paper: 'auto',            // 'auto': dải = 4×6 (2 dải, máy cắt); ảnh/lưới = 4×6
-    rotate: true,             // DNP media (6x4) nằm ngang → app xoay ảnh dọc 90° cho khớp
+    rotate: false,            // IN DỌC đúng thiết kế khung 4×6 (KHÔNG xoay) → driver DNP để Portrait, hết cắt ảnh
   },
 
   // ---- Upload gallery online ----
