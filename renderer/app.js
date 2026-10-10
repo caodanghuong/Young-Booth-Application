@@ -27,7 +27,7 @@ const state = {
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
 // Print settings: config defaults, overridden by what the user saved in the UI.
-const PRINT_CFG_VERSION = 5; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
+const PRINT_CFG_VERSION = 6; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
 function loadPrintCfg() {
   const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: false, __v: PRINT_CFG_VERSION }, CFG.print || {});
   try {
@@ -1186,21 +1186,32 @@ async function doPrint() {
   // Strip: optionally lay 2 copies side by side on a 4×6 sheet.
   if (doubled) dataUrl = await makeDoubleStrip(dataUrl);
 
-  // Decide paper size.
-  let paper = state.printCfg.paper || 'auto';
-  if (paper === 'auto') {
-    if (doubled) paper = '4x6';
-    else if (state.mode && state.mode.paper) paper = state.mode.paper; // khổ riêng của kiểu (vd 5.5×15.5)
-    else if (isStrip) paper = '2x6';
-    else if (state.mode && state.mode.layout === 'single-wide') paper = '6x4'; // 4R ngang
-    else paper = '4x6';
-  }
-
-  // Xoay 90° cho TẤT CẢ ảnh (in NGANG để khớp giấy DNP nằm ngang) + đổi khổ sang khổ NGANG.
-  if (state.printCfg.rotate && !(state.mode && state.mode.noRotate)) {
-    dataUrl = await rotate90(dataUrl);
-    const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
-    if (toLandscape[paper]) paper = toLandscape[paper];
+  // ================= IN ĐỒNG NHẤT MỘT CHIỀU GIẤY =================
+  // Máy DNP chỉ nhớ 1 khổ mặc định trong driver. Nếu app lúc gửi ảnh DỌC, lúc gửi
+  // ảnh NGANG thì luôn có kiểu bị lệch khổ → DNP phóng ảnh cho đầy giấy → CẮT NGANG.
+  // Vì vậy mặc định ta LUÔN in theo khổ DỌC 4×6 (PR (4x6)): thiết kế ngang (Ngọt Ngào,
+  // Chia Đôi…) được xoay 90° thành dọc trước khi in. Giấy DNP 4×6 và 6×4 là CÙNG một
+  // loại giấy, chỉ khác chiều ảnh → khách chỉ cần xoay tấm ảnh 90° để xem.
+  // Nhờ vậy driver chỉ cần để đúng 1 khổ "PR (4x6)" là không bao giờ cắt nữa.
+  let paper;
+  const manual = state.printCfg.paper && state.printCfg.paper !== 'auto';
+  if (manual) {
+    // Chế độ nâng cao: người dùng tự chọn khổ trong Cài đặt → giữ hành vi cũ (xoay tay).
+    paper = state.printCfg.paper;
+    if (state.printCfg.rotate && !(state.mode && state.mode.noRotate)) {
+      dataUrl = await rotate90(dataUrl);
+      const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
+      if (toLandscape[paper]) paper = toLandscape[paper];
+    }
+  } else {
+    // AUTO (mặc định): luôn in dọc 4×6; thiết kế ngang thì xoay 90° thành dọc.
+    const landscapeDesign = !!(state.mode && (
+      state.mode.paper === '6x4' ||
+      state.mode.layout === 'single-wide' ||
+      (state.mode.canvas && state.mode.canvas.w > state.mode.canvas.h)
+    ));
+    if (landscapeDesign) dataUrl = await rotate90(dataUrl);
+    paper = (isStrip && !doubled) ? '2x6' : '4x6';
   }
 
   // Dải dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
