@@ -187,34 +187,37 @@ const BOOTH_CONFIG = {
       ],
     },
 
-    // Layout C — Nhật Ký: DẢI ĐÔI (4 ảnh, in thành 2 dải giống nhau cạnh nhau).
-    // 8 slots = 4 trái + 4 phải; chụp 4 ảnh → cột phải lặp lại (i % 4). Viền vàng gold.
-    // stripCut: in qua máy in DẢI (2inch cut) để máy tự cắt đôi thành 2 dải.
-    { id: 'C', name: 'Nhật Ký', icon: '🎞️', desc: '4×6" · 4 ảnh (2 dải)', kind: 'photo',
+    // Layout C — Nhật Ký: dải 2×6 phong cách chocolate. DẢI ĐÔI trên tờ 4×6 dọc, cắt đôi ở x=600.
+    // 8 slots = 4 trái + 4 phải; chụp 6 → khách chọn 4; cột phải lặp lại (i % 4).
+    // Toạ độ PHẢI khớp SLOTS['YB'] trong scripts/make-frames.py. Mỗi dải 1 QR riêng ở footer.
+    // Khung cũ (nền trắng viền navy) vẫn còn file grid6-navy.png nếu cần quay lại.
+    { id: 'C', name: 'Nhật Ký', icon: '🍫', desc: '2×6" · 4 ảnh (2 dải)', kind: 'photo',
+      captureCount: 6, select: 4,
       stripCut: true,
-      captureCount: 4, select: 4,
       canvas: { w: 1200, h: 1800 },
-      background: '#ffffff',
+      background: '#F3EBDD',
       slots: [
-        { x: 42, y: 124, w: 516, h: 340, radius: 0 },
-        { x: 42, y: 478, w: 516, h: 340, radius: 0 },
-        { x: 42, y: 832, w: 516, h: 340, radius: 0 },
-        { x: 42, y: 1186, w: 516, h: 340, radius: 0 },
-        { x: 642, y: 124, w: 516, h: 340, radius: 0 },
-        { x: 642, y: 478, w: 516, h: 340, radius: 0 },
-        { x: 642, y: 832, w: 516, h: 340, radius: 0 },
-        { x: 642, y: 1186, w: 516, h: 340, radius: 0 },
+        { x: 50, y: 112, w: 500, h: 330, radius: 14 },
+        { x: 50, y: 468, w: 500, h: 330, radius: 14 },
+        { x: 50, y: 824, w: 500, h: 330, radius: 14 },
+        { x: 50, y: 1180, w: 500, h: 330, radius: 14 },
+        { x: 650, y: 112, w: 500, h: 330, radius: 14 },
+        { x: 650, y: 468, w: 500, h: 330, radius: 14 },
+        { x: 650, y: 824, w: 500, h: 330, radius: 14 },
+        { x: 650, y: 1180, w: 500, h: 330, radius: 14 },
       ],
-      overlay: 'file:///C:/YoungBooth-Frames/grid6-navy.png',
+      overlay: 'file:///C:/YoungBooth-Frames/youngbooth-strip.png',
       showBrand: false,
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [300, 900], y: 38, h: 64 },
+      qr: { xs: [378, 978], y: 1536, width: 150, label: '' },
       texts: [
-        { id: 'names', label: 'Tên / tiêu đề (2 cột)', value: 'Young Booth',
-          xs: [300, 900], y: 1592, size: 54, color: '#2b2b2b', ff: '"Segoe Script", "Brush Script MT", cursive' },
-        { id: 'date', label: 'Ngày (2 cột)', value: '',
-          xs: [300, 900], y: 1655, size: 24, color: '#555555', ff: 'Georgia, serif', ls: 3 },
-        { id: 'loc', label: 'Địa điểm (2 cột)', value: '',
-          xs: [300, 900], y: 1695, size: 22, color: '#777777', ff: 'Georgia, serif' },
+        { id: 'brand', label: 'Chữ đầu dải (2 dải)', value: 'YoungBooth',
+          xs: [300, 900], y: 70, size: 30, color: '#F3EBDD', ff: '"Segoe Script", cursive', weight: '700' },
+        { id: 'title', label: 'Chữ lớn cuối dải (2 dải)', value: 'YoungBooth',
+          xs: [196, 796], y: 1620, size: 48, color: '#5A3A2E', color2: '#F2C230',
+          stroke: '#5A3A2E', strokeWidth: 6, rotate: -5,
+          ff: '"Segoe Print", "Comic Sans MS", cursive', weight: '700' },
+        { id: 'date', label: 'Ngày (2 dải)', value: '',
+          xs: [196, 796], y: 1686, size: 22, color: '#7A5A48', ff: 'Arial, sans-serif', weight: '600', ls: 3 },
       ],
     },
 

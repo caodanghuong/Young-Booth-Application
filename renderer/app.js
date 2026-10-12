@@ -1073,7 +1073,9 @@ async function makeQRCached(url) {
   return null;
 }
 async function drawGalleryQR(ctx, canvas) {
-  const q = CFG.galleryQR || {};
+  const mq = state.mode && state.mode.qr; // ghi đè theo khung: false = không vẽ QR
+  if (mq === false) return;
+  const q = Object.assign({}, CFG.galleryQR || {}, mq || {});
   if (!q.enabled) return;
   const url = state.qrUrl || ((q.galleryBase || '') + '#/');
   if (!url) return;
@@ -1087,20 +1089,23 @@ async function drawGalleryQR(ctx, canvas) {
   const tileH = pad + qs + labelH;
   const mg = q.margin != null ? q.margin : 34;
   const corner = q.corner || 'br';
-  const x = corner.indexOf('l') >= 0 ? mg : (canvas.width - mg - tileW);
-  const y = corner.indexOf('t') >= 0 ? mg : (canvas.height - mg - tileH);
+  // Khung có thể đặt QR riêng (m.qr.xs = mép trái từng ô QR, m.qr.y = mép trên) — vd dải đôi: mỗi dải 1 QR.
+  const xs = Array.isArray(q.xs) ? q.xs : [corner.indexOf('l') >= 0 ? mg : (canvas.width - mg - tileW)];
+  const y = q.y != null ? q.y : (corner.indexOf('t') >= 0 ? mg : (canvas.height - mg - tileH));
   const r = 16;
   const rr = (xx, yy, w, h, rad) => { ctx.beginPath(); ctx.moveTo(xx + rad, yy); ctx.arcTo(xx + w, yy, xx + w, yy + h, rad); ctx.arcTo(xx + w, yy + h, xx, yy + h, rad); ctx.arcTo(xx, yy + h, xx, yy, rad); ctx.arcTo(xx, yy, xx + w, yy, rad); ctx.closePath(); };
-  ctx.save();
-  rr(x, y, tileW, tileH, r); ctx.fillStyle = '#ffffff'; ctx.fill();
-  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; rr(x, y, tileW, tileH, r); ctx.stroke();
-  ctx.drawImage(img, x + pad, y + pad, qs, qs);
-  if (q.label) {
-    ctx.fillStyle = '#28283c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = '800 ' + Math.round(qs * 0.125) + 'px "Segoe UI", Arial, sans-serif';
-    ctx.fillText(q.label, x + tileW / 2, y + pad + qs + labelH / 2);
+  for (const x of xs) {
+    ctx.save();
+    rr(x, y, tileW, tileH, r); ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; rr(x, y, tileW, tileH, r); ctx.stroke();
+    ctx.drawImage(img, x + pad, y + pad, qs, qs);
+    if (q.label) {
+      ctx.fillStyle = '#28283c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '800 ' + Math.round(qs * 0.125) + 'px "Segoe UI", Arial, sans-serif';
+      ctx.fillText(q.label, x + tileW / 2, y + pad + qs + labelH / 2);
+    }
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 // ---- Chữ động trên khung (sửa trong Cài đặt) ----
@@ -1133,6 +1138,13 @@ function frameTextValue(modeId, t) {
   if (!val && t.id === 'date') return frameDateToday();
   return val;
 }
+// Vị trí bắt đầu phần chữ màu 2: sau dấu cách đầu tiên, nếu không có thì chữ HOA thứ 2.
+function splitIndexFor(chars) {
+  const sp = chars.indexOf(' ');
+  if (sp >= 0) return sp + 1;
+  for (let i = 1; i < chars.length; i++) if (/\p{Lu}/u.test(chars[i])) return i;
+  return -1;
+}
 function drawFrameTexts(ctx, m) {
   if (!m.texts || !m.texts.length) return;
   for (const t of m.texts) {
@@ -1145,12 +1157,28 @@ function drawFrameTexts(ctx, m) {
     const align = t.align || 'center'; // 'left' | 'center' | 'right'
     const xs = Array.isArray(t.xs) ? t.xs : [t.x]; // vẽ ở nhiều cột nếu có xs
     for (const X of xs) {
+      // Tuỳ chọn thêm (không bắt buộc): color2 = màu nửa sau chữ (tách ở dấu cách hoặc
+      // chữ HOA thứ 2, vd "Young|Booth"); stroke/strokeWidth = viền chữ; rotate = độ nghiêng.
       const drawLine = (str, cy) => {
         const chars = [...str];
         const widths = chars.map((c) => ctx.measureText(c).width);
         const tot = widths.reduce((a, b) => a + b, 0) + ls * Math.max(0, chars.length - 1);
-        let cx = align === 'left' ? X : align === 'right' ? (X - tot) : (X - tot / 2);
-        for (let i = 0; i < chars.length; i++) { ctx.fillText(chars[i], cx, cy); cx += widths[i] + ls; }
+        const x0 = align === 'left' ? 0 : align === 'right' ? -tot : -tot / 2;
+        const split = t.color2 ? splitIndexFor(chars) : -1;
+        ctx.save();
+        ctx.translate(X, cy);
+        if (t.rotate) ctx.rotate(t.rotate * Math.PI / 180);
+        if (t.stroke) {
+          ctx.strokeStyle = t.stroke; ctx.lineWidth = t.strokeWidth || 4; ctx.lineJoin = 'round';
+          let sx = x0;
+          for (let i = 0; i < chars.length; i++) { ctx.strokeText(chars[i], sx, 0); sx += widths[i] + ls; }
+        }
+        let cx = x0;
+        for (let i = 0; i < chars.length; i++) {
+          ctx.fillStyle = (split >= 0 && i >= split) ? t.color2 : (t.color || '#000');
+          ctx.fillText(chars[i], cx, 0); cx += widths[i] + ls;
+        }
+        ctx.restore();
       };
       if (t.w) { // tự xuống dòng theo bề rộng
         const words = String(text).split(/\s+/);
