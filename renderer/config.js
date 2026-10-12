@@ -1,5 +1,7 @@
 // ================== Young Booth configuration ==================
-// Sửa file này để đổi thương hiệu, màu, filter, kiểu chụp, chế độ kiosk. Không cần build lại.
+// Sửa file này để đổi thương hiệu, màu, filter, kiểu chụp, chế độ kiosk.
+// LƯU Ý: file nằm trong app.asar → sửa xong phải đóng gói lại (build/cài lại) mới có hiệu lực.
+// Ô chữ id 'date' để trống ('') = tự in ngày hôm nay.
 
 const BOOTH_CONFIG = {
   brand: {
@@ -70,12 +72,13 @@ const BOOTH_CONFIG = {
     // Thẻ "Sự kiện khung fanclub" (Khung 3) — phong cách poster giấy.
     event: {
       enabled: true,
-      month: 'Tháng 9',
+      month: 'Tháng 10',
       brandLeft: 'FANCLUB\nFRAME EVENT',
       brandRight: 'YOUNG BOOTH\nVIỆT NAM',
+      // TODO: thay danh sách khung fanclub tháng 10 (đang giữ tạm danh sách tháng 9).
       periods: [
-        { range: '01.09 ~ 15.09', items: ['Jungkook', 'NCT Haechan', 'StrayKids Han', 'Jimmy & Sea', 'Sungho'] },
-        { range: '16.09 ~ 30.09', items: ['Faker & Peanut', 'Keria', 'BLG Bin', 'Thiều Bảo Trâm', 'Doran'] },
+        { range: '01.10 ~ 15.10', items: ['Jungkook', 'NCT Haechan', 'StrayKids Han', 'Jimmy & Sea', 'Sungho'] },
+        { range: '16.10 ~ 31.10', items: ['Faker & Peanut', 'Keria', 'BLG Bin', 'Thiều Bảo Trâm', 'Doran'] },
       ],
       note: '(*) Áp dụng tại các cửa hàng YOUNG BOOTH Việt Nam',
     },
@@ -153,7 +156,7 @@ const BOOTH_CONFIG = {
       // Logo màu góc trên (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 36, h: 90 },
       texts: [
-        { id: 'date', label: 'Ngày / dòng dưới', value: '06 . 10 . 2026',
+        { id: 'date', label: 'Ngày / dòng dưới', value: '',
           x: 600, y: 1716, size: 28, color: '#5c6672', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
           x: 600, y: 1758, w: 1000, size: 24, color: '#7a828c', ff: 'Arial, sans-serif', italic: true, lh: 32 },
@@ -179,14 +182,16 @@ const BOOTH_CONFIG = {
       texts: [
         { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'Young Booth',
           xs: [450, 1350], y: 1110, size: 46, color: '#4b4030', ff: '"Segoe Script", "Brush Script MT", cursive' },
-        { id: 'date', label: 'Ngày (2 bên)', value: '07 . 10 . 2026',
+        { id: 'date', label: 'Ngày (2 bên)', value: '',
           xs: [450, 1350], y: 1158, size: 24, color: '#8a7a60', ff: 'Georgia, serif', ls: 5 },
       ],
     },
 
     // Layout C — Nhật Ký: DẢI ĐÔI (4 ảnh, in thành 2 dải giống nhau cạnh nhau).
     // 8 slots = 4 trái + 4 phải; chụp 4 ảnh → cột phải lặp lại (i % 4). Viền vàng gold.
+    // stripCut: in qua máy in DẢI (2inch cut) để máy tự cắt đôi thành 2 dải.
     { id: 'C', name: 'Nhật Ký', icon: '🎞️', desc: '4×6" · 4 ảnh (2 dải)', kind: 'photo',
+      stripCut: true,
       captureCount: 4, select: 4,
       canvas: { w: 1200, h: 1800 },
       background: '#ffffff',
@@ -204,11 +209,11 @@ const BOOTH_CONFIG = {
       showBrand: false,
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [300, 900], y: 38, h: 64 },
       texts: [
-        { id: 'names', label: 'Tên / tiêu đề (2 cột)', value: 'Thu & Raph',
+        { id: 'names', label: 'Tên / tiêu đề (2 cột)', value: 'Young Booth',
           xs: [300, 900], y: 1592, size: 54, color: '#2b2b2b', ff: '"Segoe Script", "Brush Script MT", cursive' },
-        { id: 'date', label: 'Ngày (2 cột)', value: '17 . 03 . 2024',
+        { id: 'date', label: 'Ngày (2 cột)', value: '',
           xs: [300, 900], y: 1655, size: 24, color: '#555555', ff: 'Georgia, serif', ls: 3 },
-        { id: 'loc', label: 'Địa điểm (2 cột)', value: 'Saigon, Vietnam',
+        { id: 'loc', label: 'Địa điểm (2 cột)', value: '',
           xs: [300, 900], y: 1695, size: 22, color: '#777777', ff: 'Georgia, serif' },
       ],
     },
@@ -230,7 +235,7 @@ const BOOTH_CONFIG = {
       texts: [
         { id: 'title', label: 'Tiêu đề (2 tấm)', value: 'Young Booth',
           xs: [450, 1350], y: 1110, size: 46, color: '#4a3f38', ff: '"Segoe Script", "Brush Script MT", cursive' },
-        { id: 'date', label: 'Ngày (2 tấm)', value: '07 . 10 . 2026',
+        { id: 'date', label: 'Ngày (2 tấm)', value: '',
           xs: [450, 1350], y: 1160, size: 22, color: '#7a6d63', ff: 'Georgia, serif', ls: 4 },
       ],
     },
@@ -250,7 +255,7 @@ const BOOTH_CONFIG = {
       showBrand: false,
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 40, y: 36, h: 70 },
       texts: [
-        { id: 'date', label: 'Ngày', value: '06 . 10 . 2026',
+        { id: 'date', label: 'Ngày', value: '',
           x: 600, y: 1720, size: 26, color: '#6e5f57', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
         { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
           x: 600, y: 1758, w: 1000, size: 22, color: '#8a7a70', ff: 'Arial, sans-serif', italic: true, lh: 30 },

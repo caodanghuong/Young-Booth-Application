@@ -198,14 +198,21 @@ async function canonCapture() {
   return window.booth.canon.capture();
 }
 
-/** Turn a data URL into a canvas (used for full-res Canon photos). */
-function dataUrlToCanvas(dataUrl) {
+// Cạnh dài tối đa của khung ảnh thô. Ô ảnh lớn nhất trên khung ~1120×1540 nên 2400px
+// vẫn dư nét để in, nhưng làm đẹp/ghép nhanh hơn nhiều so với ảnh gốc 24MP của DSLR.
+const FRAME_MAX_DIM = 2400;
+
+/** Turn a data URL into a canvas (used for full-res Canon photos), downscaled to maxDim. */
+function dataUrlToCanvas(dataUrl, maxDim) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
+      const s = maxDim ? Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight)) : 1;
       const c = document.createElement('canvas');
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
-      c.getContext('2d').drawImage(img, 0, 0);
+      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, c.width, c.height);
       resolve(c);
     };
     img.onerror = reject;
@@ -278,7 +285,9 @@ async function buildSourceBar(allowPrompt = true) {
     chip.className = 'source-chip' + (state.source === src ? ' active' : '');
     if (!enabled) {
       chip.setAttribute('disabled', '');
-      chip.title = 'Chưa kết nối Canon. Mở digiCamControl + bật Webserver + cắm máy ảnh (đừng mở EOS Utility).';
+      chip.title = canonProvider === 'dcc'
+        ? 'Chưa kết nối Canon. Mở digiCamControl + bật Webserver + cắm máy ảnh (đừng mở EOS Utility).'
+        : 'Chưa có module Canon EDSDK trong bản cài này.';
     }
     chip.innerHTML = `<span class="dot${connected ? ' ok' : ''}"></span>${icon} ${text}`;
     chip.addEventListener('click', () => {
@@ -322,9 +331,15 @@ async function buildSourceBar(allowPrompt = true) {
   const status = document.createElement('div');
   status.className = 'source-status';
   if (state.source === 'canon') {
-    status.textContent = canonAvailable
-      ? '✅ Sẵn sàng dùng máy ảnh Canon (digiCamControl). Giữ digiCamControl mở + máy bật.'
-      : '⚠️ Chưa kết nối Canon — sẽ tự dùng webcam. Mở digiCamControl + bật Webserver + cắm máy.';
+    if (canonProvider === 'dcc') {
+      status.textContent = canonAvailable
+        ? '✅ Sẵn sàng dùng máy ảnh Canon (digiCamControl). Giữ digiCamControl mở + máy bật.'
+        : '⚠️ Chưa kết nối Canon — sẽ tự dùng webcam. Mở digiCamControl + bật Webserver + cắm máy.';
+    } else {
+      status.textContent = canonAvailable
+        ? '✅ Máy ảnh Canon (EDSDK). Cắm cáp USB + bật máy, TẮT EOS Utility / digiCamControl trước khi chụp.'
+        : '⚠️ Bản cài thiếu module Canon EDSDK — sẽ tự dùng webcam.';
+    }
   } else {
     status.textContent = cams.length
       ? `Đang dùng webcam${cams.length > 1 ? ' (chọn thiết bị bên trên)' : ''}.`
@@ -414,9 +429,11 @@ function stopPayPoll() { if (state.payTimer) { clearInterval(state.payTimer); st
 async function openPayScreen(m) {
   stopPayPoll();
   show('pay');
+  state.paidHandled = false;
   $('#pay-status').textContent = '';
   $('#pay-qr').style.display = 'none';
-  $('#pay-confirm').style.display = 'none';
+  $('#pay-staff').style.display = 'none';
+  $('#pay-pin').value = '';
   $('#pay-amount').textContent = 'Đang tạo đơn…';
   $('#pay-info').textContent = '';
   let order;
@@ -431,7 +448,7 @@ async function openPayScreen(m) {
   } else {
     $('#pay-info').textContent = 'Chưa cấu hình VietQR (điền tài khoản trên webadmin).';
   }
-  if (order.allowStaffOverride) $('#pay-confirm').style.display = 'inline-block';
+  if (order.allowStaffOverride) $('#pay-staff').style.display = 'flex';
   if (order.method === 'sepay') {
     $('#pay-status').textContent = 'Đang chờ xác nhận chuyển khoản…';
     state.payTimer = setInterval(async () => {
@@ -440,8 +457,18 @@ async function openPayScreen(m) {
     }, 3000);
   }
 }
-async function onPaid(m) { stopPayPoll(); await beginCapture(m); }
-$('#pay-confirm').addEventListener('click', () => onPaid(state.mode));
+async function onPaid(m) {
+  if (state.paidHandled) return; // các lần poll SePay chồng nhau → chỉ vào chụp 1 lần
+  state.paidHandled = true;
+  stopPayPoll();
+  await beginCapture(m);
+}
+$('#pay-confirm').addEventListener('click', async () => {
+  const r = await window.booth.pay.verifyPin($('#pay-pin').value).catch(() => ({ ok: false }));
+  $('#pay-pin').value = '';
+  if (!r.ok) { $('#pay-status').textContent = '❌ Sai PIN nhân viên.'; return; }
+  onPaid(state.mode);
+});
 
 function renderShotDots(done) {
   const total = state.mode.kind === 'photo' ? (state.mode.captureCount || state.mode.select || 1) : 1;
@@ -491,12 +518,12 @@ async function runCountdown(seconds) {
 
 async function captureBurst(nFrames, delay) {
   // Canon qua dcc KHÔNG có live view → chụp full-res từng khung (chậm hơn, ít khung hơn).
-  const canonFull = state.usingCanon && CFG.camera.canon && CFG.camera.canon.fullResPhoto;
-  if (canonFull) {
+  // EDSDK có live view → lấy khung từ live view như webcam (nhanh, không tốn màn trập).
+  if (state.usingDcc) {
     const n = Math.min(nFrames, 5); // giới hạn cho đỡ lâu (mỗi khung ~1.5-2s)
     const frames = [];
     for (let i = 0; i < n; i++) {
-      try { const shot = await canonCapture(); frames.push(await dataUrlToCanvas(shot.dataUrl)); }
+      try { const shot = await canonCapture(); frames.push(await dataUrlToCanvas(shot.dataUrl, FRAME_MAX_DIM)); }
       catch (_e) { /* bỏ khung lỗi */ }
     }
     return frames;
@@ -512,7 +539,7 @@ async function captureBurst(nFrames, delay) {
 // ---- main capture flow (Ảnh / GIF / Boomerang / Video) ----
 async function captureOneShot() {
   const canonFullRes = state.usingCanon && CFG.camera.canon && CFG.camera.canon.fullResPhoto;
-  if (canonFullRes) { const shot = await canonCapture(); return await dataUrlToCanvas(shot.dataUrl); }
+  if (canonFullRes) { const shot = await canonCapture(); return await dataUrlToCanvas(shot.dataUrl, FRAME_MAX_DIM); }
   return grabRawFrame();
 }
 async function runCaptureFlow() {
@@ -727,6 +754,7 @@ async function rerenderResult() {
   const out = await composeOutput();
   state.lastOutput = out;
   state.sessionAnim = null; // filter changed → rebuild animations on next share
+  state._shareRes = null;   // …và QR/upload mới cho ảnh đã đổi bộ lọc
   $('#result-img').src = out.dataUrl;
   show('result');
 }
@@ -1076,12 +1104,34 @@ async function drawGalleryQR(ctx, canvas) {
 }
 
 // ---- Chữ động trên khung (sửa trong Cài đặt) ----
+// Chạy 1 lần: xoá các giá trị MẪU cũ (ngày cố định, tên mẫu) đã bị lưu vào máy,
+// để ngày tự cập nhật theo hôm nay. Giá trị nhân viên tự gõ khác mẫu được giữ nguyên.
+(function migrateFrameText() {
+  const VER = 2;
+  try {
+    if (Number(localStorage.getItem('booth.frameTextV')) >= VER) return;
+    const OLD = ['06 . 10 . 2026', '07 . 10 . 2026', '17 . 03 . 2024', 'Thu & Raph', 'Saigon, Vietnam'];
+    const store = JSON.parse(localStorage.getItem('booth.frameText') || '{}');
+    Object.keys(store).forEach((k) => { if (OLD.includes(store[k])) delete store[k]; });
+    localStorage.setItem('booth.frameText', JSON.stringify(store));
+    localStorage.setItem('booth.frameTextV', String(VER));
+  } catch (_e) {}
+})();
 function getFrameTextStore() {
   try { return JSON.parse(localStorage.getItem('booth.frameText') || '{}'); } catch (_e) { return {}; }
 }
+// Ngày hôm nay theo kiểu khung: "12 . 10 . 2026".
+function frameDateToday() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getDate())} . ${p(d.getMonth() + 1)} . ${d.getFullYear()}`;
+}
 function frameTextValue(modeId, t) {
   const v = getFrameTextStore()[modeId + '.' + t.id];
-  return (v != null && v !== '') ? v : (t.value || '');
+  const val = (v != null && v !== '') ? v : (t.value || '');
+  // Ô ngày để trống → tự điền ngày hôm nay (không in ngày cũ cố định).
+  if (!val && t.id === 'date') return frameDateToday();
+  return val;
 }
 function drawFrameTexts(ctx, m) {
   if (!m.texts || !m.texts.length) return;
@@ -1222,8 +1272,9 @@ async function doPrint() {
     paper = '4x6';
   }
 
-  // Dải dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
-  const printerName = isStrip
+  // Dải (và khung đã có sẵn 2 dải, vd Nhật Ký C) dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
+  const useStripPrinter = isStrip || !!(state.mode && state.mode.stripCut);
+  const printerName = useStripPrinter
     ? (state.printCfg.stripPrinterName || state.printCfg.printerName)
     : state.printCfg.printerName;
 
@@ -1233,23 +1284,43 @@ async function doPrint() {
     silent: state.printCfg.silent,
     paper,
   });
-  if (res && res.success === false && res.reason) console.warn('Print:', res.reason);
+  if (res && res.success === false) {
+    // Người dùng tự bấm Huỷ trong hộp thoại in → không phải lỗi.
+    if (res.reason && res.reason !== 'cancelled') {
+      throw new Error(res.reason + '\nKiểm tra máy in: đã bật, còn giấy/ribbon, đúng máy in trong ⚙️ Cài đặt.');
+    }
+    return res;
+  }
   // Đẩy TRỌN LƯỢT (ảnh + GIF + Boomerang) lên cloud theo mã lượt → QR trên ảnh
-  // truy cập được 3 ngày. Ảnh lên gallery chung chỉ khi khách đồng ý công khai.
-  (async () => {
-    try {
-      const files = [];
-      if (state.mode && state.mode.kind === 'photo') {
-        files.push({ role: 'photo', dataUrl: state.lastOutput.dataUrl });
-        const anim = await ensureSessionAnim().catch(() => null);
-        if (anim) { files.push({ role: 'gif', dataUrl: anim.gif }); files.push({ role: 'boomerang', dataUrl: anim.boomerang }); }
-      } else {
-        files.push({ role: state.lastOutput.kind === 'gif' ? 'gif' : 'photo', dataUrl: state.lastOutput.dataUrl });
-      }
-      window.booth.pushSession(state.sessionId, files, !!state.publicShare);
-    } catch (_e) {}
-  })();
+  // truy cập được 3 ngày. Chạy ngầm, không chặn in.
+  pushSessionOnce();
   return res;
+}
+
+// Upload lượt chụp lên cloud đúng 1 lần cho mỗi kết quả (in nhiều lần / bấm Chia sẻ
+// không upload trùng). Kết quả đổi (bộ lọc, sticker…) → upload bản mới.
+// Ảnh lên gallery chung chỉ khi khách đồng ý công khai.
+function pushSessionOnce() {
+  const out = state.lastOutput;
+  if (!(CFG.gallery && CFG.gallery.enabled) || !out || out.kind === 'video') {
+    return Promise.resolve({ ok: false });
+  }
+  if (state.pushedOutput === out && state.pushPromise) return state.pushPromise;
+  state.pushedOutput = out;
+  state.pushPromise = (async () => {
+    const files = [];
+    if (state.mode && state.mode.kind === 'photo') {
+      files.push({ role: 'photo', dataUrl: out.dataUrl });
+      const anim = await ensureSessionAnim().catch(() => null);
+      if (anim) { files.push({ role: 'gif', dataUrl: anim.gif }); files.push({ role: 'boomerang', dataUrl: anim.boomerang }); }
+    } else {
+      files.push({ role: out.kind === 'gif' ? 'gif' : 'photo', dataUrl: out.dataUrl });
+    }
+    const r = await window.booth.pushSession(state.sessionId, files, !!state.publicShare);
+    if (!r || !r.ok) state.pushedOutput = null; // lỗi mạng → lần sau thử lại
+    return Object.assign({ files }, r);
+  })().catch((e) => { state.pushedOutput = null; return { ok: false, reason: e.message }; });
+  return state.pushPromise;
 }
 
 $('#btn-print').addEventListener('click', async () => {
@@ -1381,7 +1452,8 @@ function buildFrameTextFields() {
       row.style.cssText = 'flex-direction:column;align-items:stretch;gap:6px;';
       const inpId = 'ft-' + m.id + '-' + t.id;
       row.innerHTML = `<label>${t.label || t.id}</label>` +
-        `<input type="text" id="${inpId}" class="set-text" value="${String(val).replace(/"/g, '&quot;')}" />`;
+        `<input type="text" id="${inpId}" class="set-text" value="${String(val).replace(/"/g, '&quot;')}"` +
+        (t.id === 'date' ? ' placeholder="Để trống = ngày hôm nay"' : '') + ' />';
       grp.appendChild(row);
     });
     box.appendChild(grp);
@@ -1658,6 +1730,19 @@ $('#se-done').addEventListener('click', async () => {
 // Build the shareable session (photo + GIF + Boomerang for photo modes) once.
 async function ensureShare() {
   if (state._shareRes) return state._shareRes;
+  // Ưu tiên QR cloud — CÙNG link với QR in trên ảnh, quét được ở mọi nơi.
+  const q = CFG.galleryQR || {};
+  if (q.enabled && q.mode === 'session' && state.qrUrl && state.lastOutput.kind !== 'video') {
+    const r = await pushSessionOnce();
+    if (r && r.ok) {
+      const qrDataUrl = await makeQRCached(state.qrUrl);
+      if (qrDataUrl) {
+        state._shareRes = { pageUrl: state.qrUrl, qrDataUrl, files: r.files, cloud: true };
+        return state._shareRes;
+      }
+    }
+  }
+  // Không có mạng / cloud lỗi → link LAN (điện thoại cần chung Wi-Fi).
   const files = [];
   const k = state.lastOutput.kind;
   const mainRole = k === 'video' ? 'video' : k === 'gif' ? 'animation' : 'photo';
@@ -1697,7 +1782,12 @@ $('#btn-close-share').addEventListener('click', () => $('#share-modal').classLis
 // retake / home / start
 $('#btn-retake').addEventListener('click', () => { state._shareRes = null; state.sessionAnim = null; show('capture'); startCamera(); });
 function goHome() {
-  state._shareRes = null; state.sessionAnim = null;
+  state._shareRes = null; state.sessionAnim = null; state.pushedOutput = null;
+  // Đóng mọi lớp phủ (sticker / QR / cài đặt) — nếu không, khách sau sẽ thấy ảnh khách trước.
+  ['#sticker-editor', '#share-modal', '#settings-modal'].forEach((sel) => { const el = $(sel); if (el) el.classList.remove('show'); });
+  SE.stickers.forEach((s) => s.el.remove()); SE.stickers = []; SE.selected = null;
+  state.lastOutput = null;
+  $('#result-img').removeAttribute('src');
   try { stopPayPoll && stopPayPoll(); } catch (_e) {}
   stopCamera();
   resetConsent();

@@ -278,6 +278,8 @@ html, body {
 .pay-qr { width: 280px; height: 280px; border-radius: 14px; background: #fff; padding: 10px; display: none; }
 .pay-info { font-size: 15px; color: var(--muted); }
 .pay-status { font-size: 15px; color: var(--accent2); font-weight: 700; min-height: 20px; }
+.pay-staff { display: none; align-items: center; gap: 10px; }
+.pay-staff .set-text { width: 160px; }
 
 /* ---------- select photos ---------- */
 .select-grid {

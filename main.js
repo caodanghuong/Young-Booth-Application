@@ -350,6 +350,7 @@ ipcMain.handle('booth:pushSession', async (_evt, { sessionId, files, isPublic })
     ensureCapturesDir();
     const sTag = 'sess-' + sessionId;
     const pubTag = (GALLERY.cloudinary && GALLERY.cloudinary.tags) || 'young-booth';
+    let uploaded = 0;
     for (const f of (files || [])) {
       const isGif = /^data:image\/gif/.test(f.dataUrl);
       const ext = isGif ? 'gif' : 'png';
@@ -358,10 +359,11 @@ ipcMain.handle('booth:pushSession', async (_evt, { sessionId, files, isPublic })
       fs.writeFileSync(fp, Buffer.from(f.dataUrl.replace(/^data:[^;]+;base64,/, ''), 'base64'));
       const tags = [sTag];
       if (f.role === 'photo' && isPublic) tags.push(pubTag); // chỉ ảnh mới lên gallery chung
-      try { await uploadToGallery(fp, filename, isGif ? 'gif' : 'photo', tags); }
+      try { if (await uploadToGallery(fp, filename, isGif ? 'gif' : 'photo', tags)) uploaded++; }
       catch (e) { console.warn('[session] upload fail', f.role, e.message); }
     }
-    return { ok: true };
+    // ok = ít nhất 1 file lên cloud (để renderer biết QR cloud có dùng được không).
+    return { ok: uploaded > 0, uploaded, total: (files || []).length };
   } catch (e) { return { ok: false, reason: e.message }; }
 });
 
@@ -561,4 +563,10 @@ ipcMain.handle('pay:check', async (_evt, { amount, code }) => {
     return { paid };
   }
   return { paid: false }; // manual → staff confirms in the app
+});
+
+// Nhân viên xác nhận "Đã thanh toán" bằng PIN quản trị (khách không tự bấm được).
+ipcMain.handle('pay:verifyPin', async (_evt, { pin }) => {
+  const s = getSettings();
+  return { ok: String(pin || '') !== '' && String(pin) === String(s.adminPin || '') };
 });

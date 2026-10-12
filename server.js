@@ -17,24 +17,67 @@ function startServer(lanIp, capturesDir, preferredPort = 3737, settingsApi = nul
 
   // ---------- Webadmin (pricing + payment) ----------
   if (settingsApi) {
-    const checkPin = (pin) => {
-      try { return String(pin || '') === String(settingsApi.read().adminPin || ''); }
-      catch { return false; }
+    const DEFAULT_PIN = '1234';
+    const isLocal = (req) => /^(::1|127\.|::ffff:127\.)/.test(req.socket.remoteAddress || '');
+    // Chống dò PIN: sai 5 lần → khoá IP đó 5 phút.
+    const fails = new Map(); // ip -> { n, until }
+    const locked = (ip) => { const f = fails.get(ip); return !!(f && f.until > Date.now()); };
+    const checkPin = (req, pin) => {
+      const ip = req.socket.remoteAddress || '';
+      if (locked(ip)) return false;
+      let ok = false;
+      try { ok = String(pin || '') === String(settingsApi.read().adminPin || ''); } catch { ok = false; }
+      if (ok) { fails.delete(ip); return true; }
+      const f = fails.get(ip) || { n: 0, until: 0 };
+      f.n += 1;
+      if (f.n >= 5) { f.n = 0; f.until = Date.now() + 5 * 60 * 1000; }
+      fails.set(ip, f);
+      return false;
+    };
+    // Khi PIN vẫn là mặc định → chỉ cho vào admin từ chính máy booth (khách chung Wi-Fi không vào được).
+    const adminGuard = (req, res, next) => {
+      let pinIsDefault = true;
+      try { pinIsDefault = String(settingsApi.read().adminPin || '') === DEFAULT_PIN; } catch (_e) {}
+      if (pinIsDefault && !isLocal(req)) {
+        return res.status(403).send('Webadmin đang dùng PIN mặc định — hãy mở http://127.0.0.1:' + preferredPort + '/admin trên máy booth và đổi PIN trước.');
+      }
+      if (locked(req.socket.remoteAddress || '')) return res.status(429).json({ error: 'Sai PIN quá nhiều lần, thử lại sau 5 phút.' });
+      next();
+    };
+    // Không bao giờ gửi token SePay ra trình duyệt; chỉ báo đã có hay chưa.
+    const maskSecrets = (s) => {
+      const c = JSON.parse(JSON.stringify(s));
+      if (c.payment && c.payment.sepay) {
+        c.payment.sepay.hasToken = !!c.payment.sepay.apiToken;
+        c.payment.sepay.apiToken = '';
+      }
+      return c;
     };
 
-    server.get('/admin/data', (req, res) => {
-      if (!checkPin(req.query.pin)) return res.status(401).json({ error: 'Sai PIN' });
-      res.json(settingsApi.read());
+    server.get('/admin/data', adminGuard, (req, res) => {
+      if (!checkPin(req, req.query.pin)) return res.status(401).json({ error: 'Sai PIN' });
+      res.json(maskSecrets(settingsApi.read()));
     });
 
-    server.post('/admin/save', (req, res) => {
+    server.post('/admin/save', adminGuard, (req, res) => {
       const { pin, settings } = req.body || {};
-      if (!checkPin(pin)) return res.status(401).json({ error: 'Sai PIN' });
-      try { const saved = settingsApi.save(settings); res.json({ ok: true, settings: saved }); }
+      if (!checkPin(req, pin)) return res.status(401).json({ error: 'Sai PIN' });
+      try {
+        // Ô token để trống = giữ nguyên token đã lưu.
+        const cur = settingsApi.read();
+        const next = JSON.parse(JSON.stringify(settings || {}));
+        if (next.payment && next.payment.sepay) {
+          if (!next.payment.sepay.apiToken) next.payment.sepay.apiToken = (cur.payment && cur.payment.sepay && cur.payment.sepay.apiToken) || '';
+          delete next.payment.sepay.hasToken;
+        }
+        if (!String(next.adminPin || '').trim()) next.adminPin = cur.adminPin;
+        const saved = settingsApi.save(next);
+        res.json({ ok: true, settings: maskSecrets(saved) });
+      }
       catch (e) { res.status(500).json({ error: e.message }); }
     });
 
-    server.get('/admin', (_req, res) => res.send(adminPageHtml()));
+    server.get('/admin', adminGuard, (_req, res) => res.send(adminPageHtml()));
   }
   // --------------------------------------------------
 
@@ -184,12 +227,13 @@ function render(s){
     <p class="hint">Điền để tạo mã QR chuyển khoản cho khách quét.</p>
   </fieldset>
   <fieldset><legend>SePay (tự xác nhận — tuỳ chọn)</legend>
-    <label>API Token <input id="sepayToken" value="\${(p.sepay&&p.sepay.apiToken)||''}"></label>
+    <label>API Token <input id="sepayToken" type="password" value="" placeholder="\${(p.sepay&&p.sepay.hasToken)?'(đã lưu — để trống = giữ nguyên)':''}"></label>
     <label>STK theo dõi <input id="sepayAcc" value="\${(p.sepay&&p.sepay.accountNumber)||''}"></label>
     <p class="hint">Có token thì app tự phát hiện khách đã chuyển khoản.</p>
   </fieldset>
   <fieldset><legend>Bảo mật</legend>
     <label>Đổi PIN quản trị <input id="adminPin" value="\${s.adminPin||''}"></label>
+    <p class="hint">\${s.adminPin==='1234'?'⚠️ Đang dùng PIN mặc định 1234 — hãy đổi để vào được webadmin từ điện thoại.':''}</p>
   </fieldset>
   <button onclick="save()">💾 Lưu cài đặt</button>
   <div class="msg" id="msg"></div>\`;

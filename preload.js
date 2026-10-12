@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('booth', {
   pay: {
     createOrder: (modeId) => ipcRenderer.invoke('pay:createOrder', { modeId }),
     check: (amount, code) => ipcRenderer.invoke('pay:check', { amount, code }),
+    verifyPin: (pin) => ipcRenderer.invoke('pay:verifyPin', { pin }),
   },
   /** Open a URL / mailto link in the OS default handler. */
   openExternal: (url) => ipcRenderer.invoke('booth:openExternal', { url }),
