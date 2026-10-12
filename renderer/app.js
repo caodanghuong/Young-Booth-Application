@@ -27,7 +27,7 @@ const state = {
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
 // Print settings: config defaults, overridden by what the user saved in the UI.
-const PRINT_CFG_VERSION = 7; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
+const PRINT_CFG_VERSION = 8; // tăng số này khi đổi mặc định in → xoá cài cũ của máy
 function loadPrintCfg() {
   const def = Object.assign({ printerName: '', stripPrinterName: '', copies: 1, silent: true, stripDoubleOn4x6: true, paper: 'auto', rotate: false, __v: PRINT_CFG_VERSION }, CFG.print || {});
   try {
@@ -138,17 +138,14 @@ async function startDcc() {
     }
     state.usingCanon = true; state.usingDcc = true;
     videoWrap.classList.remove('mirror');
-    try { await window.booth.dcc.startLiveView(); } catch (_e) {}
-    if (state.dccTimer) clearInterval(state.dccTimer);
-    const fps = (CFG.camera.canon && CFG.camera.canon.liveViewFps) || 12;
-    let busy = false;
-    state.dccTimer = setInterval(async () => {
-      if (busy) return; busy = true;
-      try { const f = await window.booth.dcc.liveFrame(); if (f) liveImg.src = f; } catch (_e) {}
-      busy = false;
-    }, Math.max(Math.round(1000 / fps), 60));
+    // ⚠ R50 + digiCamControl 2.1.7.0: bật Live View làm HỎNG lệnh chụp ("Invalid Handle")
+    // cho tới khi khởi động lại dcc. Vì vậy KHÔNG bật live view — thay xem-trước trực tiếp
+    // bằng màn hướng dẫn "Nhìn vào máy ảnh" + đếm ngược. Ảnh chụp full-res luôn chạy ổn.
+    if (state.dccTimer) { clearInterval(state.dccTimer); state.dccTimer = null; }
     video.style.display = 'none';
-    liveImg.style.display = 'block';
+    liveImg.style.display = 'none';
+    const guide = document.getElementById('canon-guide');
+    if (guide) guide.classList.add('show');
     return true;
   } catch (err) { console.error('[dcc] start error', err); return false; }
 }
@@ -186,6 +183,7 @@ async function stopCamera() {
     video.srcObject = null;
   }
   if (state.dccTimer) { clearInterval(state.dccTimer); state.dccTimer = null; }
+  { const guide = document.getElementById('canon-guide'); if (guide) guide.classList.remove('show'); }
   if (state.usingDcc) { state.usingDcc = false; state.usingCanon = false; return; }
   if (state.usingCanon) {
     try { await window.booth.canon.stopLiveView(); } catch (_e) {}
@@ -492,6 +490,17 @@ async function runCountdown(seconds) {
 }
 
 async function captureBurst(nFrames, delay) {
+  // Canon qua dcc KHÔNG có live view → chụp full-res từng khung (chậm hơn, ít khung hơn).
+  const canonFull = state.usingCanon && CFG.camera.canon && CFG.camera.canon.fullResPhoto;
+  if (canonFull) {
+    const n = Math.min(nFrames, 5); // giới hạn cho đỡ lâu (mỗi khung ~1.5-2s)
+    const frames = [];
+    for (let i = 0; i < n; i++) {
+      try { const shot = await canonCapture(); frames.push(await dataUrlToCanvas(shot.dataUrl)); }
+      catch (_e) { /* bỏ khung lỗi */ }
+    }
+    return frames;
+  }
   const frames = [];
   for (let i = 0; i < nFrames; i++) {
     frames.push(grabRawFrame());
@@ -1204,14 +1213,13 @@ async function doPrint() {
       if (toLandscape[paper]) paper = toLandscape[paper];
     }
   } else {
-    // AUTO (mặc định): máy DNP in đẹp nhất khi giấy NẰM NGANG (6×4) — ảnh dọc bị cắt.
-    // Nên in MỌI kiểu theo khổ NGANG 6×4: kiểu thiết kế DỌC (canvas cao>rộng:
-    // Khoảnh Khắc, Nhật Ký, Dịu Dàng) được xoay 90° thành ngang cho khớp giấy →
-    // không bị cắt. Kiểu vốn ngang (Ngọt Ngào, Chia Đôi) giữ nguyên.
-    const portraitDesign = !!(state.mode && state.mode.canvas &&
-      state.mode.canvas.h > state.mode.canvas.w);
-    if (portraitDesign) dataUrl = await rotate90(dataUrl);
-    paper = '6x4';
+    // AUTO (mặc định): in DỌC 4×6 đúng khổ giấy DNP (driver đặt khổ PR (4x6)).
+    // Thiết kế dọc (Khoảnh Khắc A, Nhật Ký C, Dịu Dàng F) in thẳng — không xoay.
+    // Thiết kế ngang (Ngọt Ngào B, Chia Đôi D) xoay 90° về dọc cho vừa khổ giấy.
+    const landscapeDesign = !!(state.mode && state.mode.canvas &&
+      state.mode.canvas.w > state.mode.canvas.h);
+    if (landscapeDesign) dataUrl = await rotate90(dataUrl);
+    paper = '4x6';
   }
 
   // Dải dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.

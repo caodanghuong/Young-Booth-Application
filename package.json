@@ -10,6 +10,7 @@
     "dist": "electron-builder --win --x64"
   },
   "dependencies": {
+    "@brick-a-brack/napi-canon-cameras": "^0.1.5",
     "express": "^4.19.2",
     "gif.js": "^0.2.0",
     "qrcode": "^1.5.4"

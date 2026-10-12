@@ -470,12 +470,14 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
     'letter': 'Letter',
   };
   const paper = (opts.paper || '').toLowerCase();
-  if (PAPER[paper]) {
+  if (paper === '4x6') {
+    // Driver DNP đã đặt khổ PR (4x6) DỌC. Dùng THẲNG khổ mặc định của driver —
+    // KHÔNG ép custom pageSize (ép microns làm driver hiểu nhầm → ra tờ NGANG + mảng đen).
+    printOpts.landscape = false;
+  } else if (PAPER[paper]) {
     printOpts.pageSize = PAPER[paper];
     // Trang ngang (width>height) → in landscape.
-    if (typeof printOpts.pageSize === 'object' && printOpts.pageSize.width > printOpts.pageSize.height) {
-      printOpts.landscape = true;
-    }
+    printOpts.landscape = (typeof printOpts.pageSize === 'object' && printOpts.pageSize.width > printOpts.pageSize.height);
   }
 
   return new Promise((resolve) => {

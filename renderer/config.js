@@ -24,7 +24,7 @@ const BOOTH_CONFIG = {
     width: 1920,
     height: 1080,
     canon: {
-      provider: 'dcc',          // 'dcc' = digiCamControl (khuyên) | 'edsdk' = native EDSDK
+      provider: 'edsdk',        // 'dcc' = digiCamControl | 'edsdk' = native EDSDK (khuyên cho R50)
       dccUrl: 'http://127.0.0.1:5513', // webserver digiCamControl (IPv4)
       liveViewFps: 12,          // số khung liveview/giây
       fullResPhoto: true,       // ảnh (A/B/C/D/F) chụp FULL-RES bằng màn trập; GIF/Boom lấy liveview

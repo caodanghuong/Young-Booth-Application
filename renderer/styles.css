@@ -215,6 +215,19 @@ html, body {
 #live-img { display: none; }
 .video-wrap.mirror #video { transform: scaleX(-1); }
 
+/* Canon (dcc) không có xem-trước trực tiếp → hiện hướng dẫn nhìn vào máy ảnh */
+.canon-guide {
+  position: absolute; inset: 0; display: none; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; gap: 14px;
+  background: radial-gradient(circle at 50% 42%, #2a2f45 0%, #15182a 70%, #0d0f1c 100%);
+  color: #fff; padding: 24px;
+}
+.canon-guide.show { display: flex; }
+.canon-guide .cg-icon { font-size: 92px; line-height: 1; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.5)); animation: cgpulse 1.8s ease-in-out infinite; }
+.canon-guide .cg-title { font-size: 46px; font-weight: 800; letter-spacing: 0.5px; }
+.canon-guide .cg-sub { font-size: 22px; opacity: 0.85; max-width: 560px; }
+@keyframes cgpulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
 .countdown {
   position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
   font-size: 200px; font-weight: 900; color: #fff; text-shadow: 0 8px 40px rgba(0,0,0,0.6);

@@ -96,9 +96,17 @@ async function capture(timeoutMs = 20000) {
 
   await slc('capture');
 
+  const start = Date.now();
+  let didFallback = false;
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await sleep(400);
+    // Nếu lấy nét tự động (AF) thất bại → máy không nhả ảnh. Sau ~2.5s chưa có ảnh
+    // thì chụp lại KHÔNG lấy nét (capturenoaf) để luôn ra ảnh (booth lấy nét sẵn).
+    if (!didFallback && Date.now() - start > 2500) {
+      didFallback = true;
+      try { await slc('capturenoaf'); } catch (_e) {}
+    }
     let name = '';
     try { name = await slc('get', 'lastcaptured'); } catch (_e) {}
     if (name && name !== '?' && name !== before) {

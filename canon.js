@@ -114,12 +114,13 @@ function grabLiveViewDataUrl() {
 /** Start live view; calls onFrame(dataUrl) at ~fps. */
 function startLiveView(onFrame, fps = 15) {
   if (!camera) return { ok: false, reason: 'no-camera' };
+  // Chỉ dọn timer cũ — KHÔNG gọi stopLiveView() (nó tắt EVF của máy → màn đen).
+  if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
   try {
     if (typeof camera.startLiveView === 'function') camera.startLiveView();
   } catch (e) {
     return { ok: false, reason: e.message };
   }
-  stopLiveView();
   const interval = Math.max(Math.round(1000 / fps), 40);
   liveTimer = setInterval(() => {
     const d = grabLiveViewDataUrl();
@@ -137,6 +138,7 @@ function stopLiveView() {
 function capture(timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     if (!camera) return reject(new Error('no-camera'));
+    const mod = tryLoad();
     const to = setTimeout(() => {
       if (pendingCapture) { pendingCapture = null; reject(new Error('Hết thời gian chờ ảnh từ máy Canon')); }
     }, timeoutMs);
@@ -144,10 +146,22 @@ function capture(timeoutMs = 15000) {
       resolve: (v) => { clearTimeout(to); resolve(v); },
       reject: (e) => { clearTimeout(to); reject(e); },
     };
+    // Chụp KHÔNG lấy nét (dùng nét hiện tại) — cứu khi AF thất bại (TAKE_PICTURE_AF_NG).
+    const shutterNonAf = () => {
+      try {
+        const CMD = (mod.Camera.Command && mod.Camera.Command.PressShutterButton); // 4
+        const P = mod.Camera.PressShutterButton; // { CompletelyNonAF, OFF, ... }
+        if (CMD == null || !P) return false;
+        camera.sendCommand(CMD, P.CompletelyNonAF);
+        camera.sendCommand(CMD, P.OFF);
+        return true;
+      } catch (_e2) { return false; }
+    };
     try {
-      camera.takePicture();
+      camera.takePicture(); // thử lấy nét tự động trước (ảnh nét nhất)
     } catch (e) {
-      clearTimeout(to); pendingCapture = null; reject(e);
+      // AF fail → chụp không lấy nét để vẫn ra ảnh (booth nên chỉnh nét sẵn vào chỗ khách đứng)
+      if (!shutterNonAf()) { clearTimeout(to); pendingCapture = null; reject(e); }
     }
   });
 }
