@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('booth', {
   saveSession: (files) => ipcRenderer.invoke('booth:saveSession', { files }),
   /** Print a dataUrl. opts: { printerName, copies, silent }. */
   print: (dataUrl, opts) => ipcRenderer.invoke('booth:print', { dataUrl, opts }),
+  /** Trang mặc định của máy in đang dọc hay ngang → { ok, width, height, landscape }. */
+  pageShape: (printerName) => ipcRenderer.invoke('booth:pageShape', { printerName }),
   /** List installed printers. */
   listPrinters: () => ipcRenderer.invoke('booth:listPrinters'),
   /** { lanUrl } of the sharing server. */

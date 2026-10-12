@@ -423,6 +423,34 @@ ipcMain.handle('booth:listPrinters', async () => {
   return [];
 });
 
+/**
+ * Hỏi driver: trang mặc định của máy in này DỌC hay NGANG (đọc qua System.Drawing).
+ * DNP DS-RX1: hàng in thường = PR (4x6) dọc; hàng in bật 2inch cut = (6x4) ngang.
+ * Kết quả lưu đệm 60s/máy in để không gọi PowerShell mỗi lần in.
+ */
+const _pageShapeCache = {};
+ipcMain.handle('booth:pageShape', async (_evt, { printerName }) => {
+  const key = printerName || '';
+  const hit = _pageShapeCache[key];
+  if (hit && Date.now() - hit.at < 60000) return hit.res;
+  const { execFile } = require('child_process');
+  const safe = key.replace(/'/g, "''");
+  const ps = 'Add-Type -AssemblyName System.Drawing; $s = New-Object Drawing.Printing.PrinterSettings; ' +
+    (safe ? `$s.PrinterName = '${safe}'; ` : '') +
+    'if (-not $s.IsValid) { exit 2 }; $b = $s.DefaultPageSettings.Bounds; Write-Output ("{0} {1}" -f $b.Width, $b.Height)';
+  const res = await new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', ps],
+      { timeout: 10000, windowsHide: true }, (err, stdout) => {
+        const m = /(\d+)\s+(\d+)/.exec(String(stdout || ''));
+        if (err || !m) return resolve({ ok: false, reason: err ? err.message : 'no-output' });
+        const w = +m[1], h = +m[2];
+        resolve({ ok: true, width: w, height: h, landscape: w > h });
+      });
+  });
+  if (res.ok) _pageShapeCache[key] = { at: Date.now(), res };
+  return res;
+});
+
 /** Print a data URL by rendering it full-page in a hidden window. */
 ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   opts = opts || {};
@@ -431,7 +459,8 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
     @page { margin: 0; }
     html,body{margin:0;padding:0;height:100%;background:#fff;}
     body{display:flex;align-items:center;justify-content:center;background:#fff;}
-    img{max-width:100%;max-height:100%;}
+    body{height:100vh;}
+    img{display:block;max-width:100vw;max-height:100vh;width:auto;height:auto;}  /* vừa khít CẢ 2 chiều trang, không bị cắt */
   </style></head><body><img src="${dataUrl}"></body></html>`;
   // Write to a temp file (data: URLs are too short for a full-res image → ERR_INVALID_URL).
   const tmpHtml = path.join(app.getPath('temp'), `yb-print-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.html`);

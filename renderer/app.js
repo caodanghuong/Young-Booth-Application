@@ -1273,13 +1273,10 @@ async function doPrint() {
   // Strip: optionally lay 2 copies side by side on a 4×6 sheet.
   if (doubled) dataUrl = await makeDoubleStrip(dataUrl);
 
-  // ================= IN ĐỒNG NHẤT MỘT CHIỀU GIẤY =================
-  // Máy DNP chỉ nhớ 1 khổ mặc định trong driver. Nếu app lúc gửi ảnh DỌC, lúc gửi
-  // ảnh NGANG thì luôn có kiểu bị lệch khổ → DNP phóng ảnh cho đầy giấy → CẮT NGANG.
-  // Vì vậy mặc định ta LUÔN in theo khổ DỌC 4×6 (PR (4x6)): thiết kế ngang (Ngọt Ngào,
-  // Chia Đôi…) được xoay 90° thành dọc trước khi in. Giấy DNP 4×6 và 6×4 là CÙNG một
-  // loại giấy, chỉ khác chiều ảnh → khách chỉ cần xoay tấm ảnh 90° để xem.
-  // Nhờ vậy driver chỉ cần để đúng 1 khổ "PR (4x6)" là không bao giờ cắt nữa.
+  // ================= IN THEO KHỔ CỦA DRIVER =================
+  // Máy DNP chỉ in đúng khổ mặc định đặt trong driver. Nếu ảnh gửi sang khác hướng với trang
+  // (dọc ↔ ngang) thì ảnh bị phóng/cắt và có mảng đen. Vì vậy app KHÔNG ép khổ giấy mà hỏi
+  // driver trang đang dọc hay ngang rồi xoay ảnh cho khớp (giấy 4×6 và 6×4 là cùng một loại).
   let paper;
   const manual = state.printCfg.paper && state.printCfg.paper !== 'auto';
   if (manual) {
@@ -1290,14 +1287,6 @@ async function doPrint() {
       const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
       if (toLandscape[paper]) paper = toLandscape[paper];
     }
-  } else {
-    // AUTO (mặc định): in DỌC 4×6 đúng khổ giấy DNP (driver đặt khổ PR (4x6)).
-    // Thiết kế dọc (Khoảnh Khắc A, Nhật Ký C, Dịu Dàng F) in thẳng — không xoay.
-    // Thiết kế ngang (Ngọt Ngào B, Chia Đôi D) xoay 90° về dọc cho vừa khổ giấy.
-    const landscapeDesign = !!(state.mode && state.mode.canvas &&
-      state.mode.canvas.w > state.mode.canvas.h);
-    if (landscapeDesign) dataUrl = await rotate90(dataUrl);
-    paper = '4x6';
   }
 
   // Dải (và khung đã có sẵn 2 dải, vd Nhật Ký C) dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
@@ -1305,6 +1294,19 @@ async function doPrint() {
   const printerName = useStripPrinter
     ? (state.printCfg.stripPrinterName || state.printCfg.printerName)
     : state.printCfg.printerName;
+
+  if (!manual) {
+    // AUTO (mặc định): in theo đúng khổ mặc định của hàng in, xoay ảnh cho CÙNG HƯỚNG với trang
+    // mà driver cấp. DNP: hàng in thường = PR (4x6) DỌC → thiết kế ngang (B, D) xoay về dọc;
+    // hàng in bật 2inch cut = (6x4) NGANG (driver bắt buộc) → thiết kế dọc 2 dải (C) xoay ngang,
+    // dao cắt ngang giữa tờ = đúng vạch giữa 2 dải.
+    const shape = await window.booth.pageShape(printerName).catch(() => null);
+    const pageLandscape = !!(shape && shape.ok && shape.landscape);   // không đọc được → coi như dọc
+    const designLandscape = !!(state.mode && state.mode.canvas &&
+      state.mode.canvas.w > state.mode.canvas.h);
+    if (designLandscape !== pageLandscape) dataUrl = await rotate90(dataUrl);
+    paper = '4x6';   // = dùng khổ mặc định của driver, không ép kích thước
+  }
 
   const res = await window.booth.print(dataUrl, {
     printerName,
