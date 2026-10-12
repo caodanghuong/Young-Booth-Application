@@ -23,6 +23,7 @@
     "appId": "com.youngbooth.app",
     "productName": "YoungBooth",
     "icon": "build/icon.ico",
+    "npmRebuild": false,
     "files": [
       "*.js",
       "renderer/**/*",
