@@ -1278,6 +1278,7 @@ async function doPrint() {
   // (dọc ↔ ngang) thì ảnh bị phóng/cắt và có mảng đen. Vì vậy app KHÔNG ép khổ giấy mà hỏi
   // driver trang đang dọc hay ngang rồi xoay ảnh cho khớp (giấy 4×6 và 6×4 là cùng một loại).
   let paper;
+  let pageIn = null;   // kích thước trang driver cấp (inch) → ảnh được đặt đúng khung trang
   const manual = state.printCfg.paper && state.printCfg.paper !== 'auto';
   if (manual) {
     // Chế độ nâng cao: người dùng tự chọn khổ trong Cài đặt → giữ hành vi cũ (xoay tay).
@@ -1305,6 +1306,7 @@ async function doPrint() {
     const designLandscape = !!(state.mode && state.mode.canvas &&
       state.mode.canvas.w > state.mode.canvas.h);
     if (designLandscape !== pageLandscape) dataUrl = await rotate90(dataUrl);
+    if (shape && shape.ok) pageIn = { w: shape.width / 100, h: shape.height / 100 };  // 1/100 inch → inch
     paper = '4x6';   // = dùng khổ mặc định của driver, không ép kích thước
   }
 
@@ -1313,6 +1315,7 @@ async function doPrint() {
     copies: state.printCfg.copies,
     silent: state.printCfg.silent,
     paper,
+    pageIn,
   });
   if (res && res.success === false) {
     // Người dùng tự bấm Huỷ trong hộp thoại in → không phải lỗi.

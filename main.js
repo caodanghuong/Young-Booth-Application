@@ -455,13 +455,18 @@ ipcMain.handle('booth:pageShape', async (_evt, { printerName }) => {
 ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   opts = opts || {};
   const printWin = new BrowserWindow({ show: false, webPreferences: { offscreen: false } });
+  // Khung ảnh = ĐÚNG kích thước trang driver cấp (inch), đặt ở góc trên-trái; ảnh vừa khít trong khung.
+  // Không dùng %/vw/vh: khi in, Chromium tính chúng theo cửa sổ ẩn (800×600) → ảnh to/lệch khỏi trang.
+  // Trừ 0.02in để không tràn sang trang thứ 2 do làm tròn. Không có kích thước → khung theo trang mặc định cũ.
+  const pg = opts.pageIn && opts.pageIn.w > 0 && opts.pageIn.h > 0
+    ? `width:${(opts.pageIn.w - 0.02).toFixed(3)}in;height:${(opts.pageIn.h - 0.02).toFixed(3)}in;`
+    : 'width:100%;height:100%;';
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
     @page { margin: 0; }
-    html,body{margin:0;padding:0;height:100%;background:#fff;}
-    body{display:flex;align-items:center;justify-content:center;background:#fff;}
-    body{height:100vh;}
-    img{display:block;max-width:100vw;max-height:100vh;width:auto;height:auto;}  /* vừa khít CẢ 2 chiều trang, không bị cắt */
-  </style></head><body><img src="${dataUrl}"></body></html>`;
+    html,body{margin:0;padding:0;background:#fff;overflow:hidden;}
+    .pg{position:absolute;left:0;top:0;${pg}}
+    .pg img{display:block;width:100%;height:100%;object-fit:contain;}
+  </style></head><body><div class="pg"><img src="${dataUrl}"></div></body></html>`;
   // Write to a temp file (data: URLs are too short for a full-res image → ERR_INVALID_URL).
   const tmpHtml = path.join(app.getPath('temp'), `yb-print-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.html`);
   try { fs.writeFileSync(tmpHtml, html, 'utf8'); } catch (e) { printWin.close(); return { success: false, reason: e.message }; }
