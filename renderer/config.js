@@ -162,6 +162,8 @@ const BOOTH_CONFIG = {
           x: 600, y: 1648, size: 62, color: '#C9A961', ff: '"Segoe Script", cursive', weight: '700' },
         { id: 'date', label: 'Ngày', value: '',
           x: 600, y: 1712, size: 22, color: '#E8E1D3', ff: 'Arial, sans-serif', weight: '600', ls: 10 },
+        { id: 'qrhint', label: 'Dòng hướng dẫn QR', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
+          x: 600, y: 1746, size: 17, color: 'rgba(232,225,211,0.75)', ff: 'Arial, sans-serif', weight: '600', ls: 1 },
       ],
     },
 
@@ -186,7 +188,9 @@ const BOOTH_CONFIG = {
         { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'YoungBooth',
           xs: [450, 1350], y: 1046, size: 46, color: '#8C4A5A', ff: '"Segoe Script", "Brush Script MT", cursive', weight: '700' },
         { id: 'date', label: 'Ngày (2 bên)', value: '',
-          xs: [450, 1350], y: 1096, size: 22, color: '#8C4A5A', ff: 'Georgia, serif', ls: 5 },
+          xs: [450, 1350], y: 1096, size: 22, color: '#8C4A5A', ff: '"Palatino Linotype", Cambria, serif', ls: 5 },
+        { id: 'qrhint', label: 'Dòng hướng dẫn QR (2 bên)', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
+          xs: [450, 1350], y: 1130, size: 17, color: 'rgba(140,74,90,0.8)', ff: '"Palatino Linotype", Cambria, serif', italic: true },
       ],
     },
 
@@ -221,6 +225,8 @@ const BOOTH_CONFIG = {
           ff: '"Segoe Print", "Comic Sans MS", cursive', weight: '700' },
         { id: 'date', label: 'Ngày (2 dải)', value: '',
           xs: [196, 796], y: 1686, size: 22, color: '#7A5A48', ff: 'Arial, sans-serif', weight: '600', ls: 3 },
+        { id: 'qrhint', label: 'Dòng hướng dẫn QR (2 dải)', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
+          xs: [196, 796], y: 1714, size: 15, color: '#7A5A48', ff: 'Arial, sans-serif', weight: '600' },
       ],
     },
 
@@ -245,6 +251,8 @@ const BOOTH_CONFIG = {
           xs: [450, 1350], y: 1056, size: 56, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
         { id: 'date', label: 'Ngày (2 tấm)', value: '',
           xs: [450, 1350], y: 1108, size: 22, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive', ls: 4 },
+        { id: 'qrhint', label: 'Dòng hướng dẫn QR (2 tấm)', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
+          xs: [450, 1350], y: 1140, size: 17, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
       ],
     },
 
@@ -269,6 +277,8 @@ const BOOTH_CONFIG = {
           x: 600, y: 1648, size: 58, color: '#D86A8A', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '900' },
         { id: 'date', label: 'Ngày', value: '',
           x: 600, y: 1702, size: 24, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600', ls: 4 },
+        { id: 'qrhint', label: 'Dòng hướng dẫn QR', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
+          x: 600, y: 1736, size: 18, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600' },
       ],
     },
 
