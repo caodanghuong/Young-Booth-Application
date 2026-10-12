@@ -143,47 +143,50 @@ const BOOTH_CONFIG = {
   // Mỗi Layout = 1 KHUNG ĐẸP thiết kế sẵn (PNG ngoài ở C:\YoungBooth-Frames).
   // PNG phải 1200×1800, CHỪA TRONG SUỐT đúng các ô ảnh (slots); đổi khung = thay PNG, không build lại.
   modes: [
-    // Layout A — 1 ảnh (nền tối, YOUNG BOOTH)
+    // Layout A — Khoảnh Khắc: GALLERY sang trọng (nền navy nhung, 2 lớp viền vàng đồng, góc art-deco).
+    // Khung: make_a() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['A'].
     { id: 'A', name: 'Khoảnh Khắc', icon: '🖼️', desc: '4×6" · 1 ảnh', kind: 'photo',
       captureCount: 1, select: 1,
       canvas: { w: 1200, h: 1800 },
-      background: '#dde5ec',
+      background: '#1C2541',
       slots: [
-        { x: 40, y: 140, w: 1120, h: 1540, radius: 0 },
+        { x: 60, y: 150, w: 1080, h: 1390, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
       showBrand: false,
-      // Logo màu góc trên (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 36, h: 90 },
+      qr: { xs: [994], y: 1586, width: 136, label: '' },   // QR trong footer, thẳng viền ngoài bên phải
+      // Logo giữa header (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 44, h: 74 },
       texts: [
-        { id: 'date', label: 'Ngày / dòng dưới', value: '',
-          x: 600, y: 1716, size: 28, color: '#5c6672', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
-        { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
-          x: 600, y: 1758, w: 1000, size: 24, color: '#7a828c', ff: 'Arial, sans-serif', italic: true, lh: 32 },
+        { id: 'brand', label: 'Chữ thương hiệu (footer)', value: 'YoungBooth',
+          x: 600, y: 1648, size: 62, color: '#C9A961', ff: '"Segoe Script", cursive', weight: '700' },
+        { id: 'date', label: 'Ngày', value: '',
+          x: 600, y: 1712, size: 22, color: '#E8E1D3', ff: 'Arial, sans-serif', weight: '600', ls: 10 },
       ],
     },
 
-    // Layout B — 2 ảnh (khung Cưới). Chữ VẼ ĐỘNG (sửa trong Cài đặt ⚙️ → "Chữ khung cưới").
-    // Layout B — Ngọt Ngào: khung NGANG giấy kem, 2 ảnh cạnh nhau, đường cắt nét đứt giữa.
-    // Mỗi bên: logo + 1 ảnh + "Young Booth" (script) + ngày. Khổ 6×4 ngang → noRotate.
+    // Layout B — Ngọt Ngào: giấy 6×4 NGANG, 2 tấm cắt đôi ở x=900 (mỗi tấm hoàn chỉnh: viền ren riêng).
+    // Mỗi tấm: logo + 1 ảnh bo góc + hoa hồng + "YoungBooth" (script) + ngày + QR. Khổ 6×4 ngang → noRotate.
+    // Khung: make_b() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['B'].
     { id: 'B', name: 'Ngọt Ngào', icon: '💞', desc: '6×4" · 2 ảnh (ngang)', kind: 'photo',
       captureCount: 2, select: 2,
       canvas: { w: 1800, h: 1200 },
-      background: '#f3ede1',
+      background: '#FBF1EE',
       paper: '6x4',
       noRotate: true,
       slots: [
-        { x: 46, y: 122, w: 808, h: 928, radius: 0 },
-        { x: 946, y: 122, w: 808, h: 928, radius: 0 },
+        { x: 110, y: 160, w: 680, h: 810, radius: 24 },
+        { x: 1010, y: 160, w: 680, h: 810, radius: 24 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       showBrand: false,
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 36, h: 66 },
+      qr: { xs: [640, 1540], y: 990, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 60, h: 66 },
       texts: [
-        { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'Young Booth',
-          xs: [450, 1350], y: 1110, size: 46, color: '#4b4030', ff: '"Segoe Script", "Brush Script MT", cursive' },
+        { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'YoungBooth',
+          xs: [450, 1350], y: 1046, size: 46, color: '#8C4A5A', ff: '"Segoe Script", "Brush Script MT", cursive', weight: '700' },
         { id: 'date', label: 'Ngày (2 bên)', value: '',
-          xs: [450, 1350], y: 1158, size: 24, color: '#8a7a60', ff: 'Georgia, serif', ls: 5 },
+          xs: [450, 1350], y: 1096, size: 22, color: '#8C4A5A', ff: 'Georgia, serif', ls: 5 },
       ],
     },
 
@@ -221,47 +224,51 @@ const BOOTH_CONFIG = {
       ],
     },
 
-    // Layout D — Chia Đôi: giấy 6×4 NGANG, 2 ảnh khác nhau, cắt đôi giữa → 2 tấm 3×4" dọc.
-    // Canvas đã ngang nên KHÔNG xoay khi in (noRotate). Vạch cắt nét đứt ở x=900; mỗi tấm lề đều 36px (viền ảnh 36→864), giữa 2 viền 72px. PNG sinh bằng scripts/make-frames.py.
+    // Layout D — Chia Đôi: SCRAPBOOK. Giấy 6×4 NGANG, 2 ảnh khác nhau, cắt đôi ở x=900 → 2 tấm 3×4" dọc
+    // (mỗi tấm lề trái = lề phải 110px). Canvas đã ngang nên KHÔNG xoay khi in (noRotate).
+    // Khung: make_d() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['D'].
     { id: 'D', name: 'Chia Đôi', icon: '✂️', desc: '6×4" · 2 ảnh → cắt 2 tấm 3×4', kind: 'photo',
       captureCount: 2, select: 2,
       canvas: { w: 1800, h: 1200 },
       paper: '6x4', noRotate: true,
-      background: '#f7f1ea',
+      background: '#FAF6EF',
       slots: [
-        { x: 48, y: 122, w: 804, h: 928, radius: 0 },
-        { x: 948, y: 122, w: 804, h: 928, radius: 0 },
+        { x: 110, y: 150, w: 680, h: 810, radius: 0 },
+        { x: 1010, y: 150, w: 680, h: 810, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/split2-ivory.png',
       showBrand: false,
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 36, h: 64 },
+      qr: { xs: [640, 1540], y: 1000, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 44, h: 56 },
       texts: [
-        { id: 'title', label: 'Tiêu đề (2 tấm)', value: 'Young Booth',
-          xs: [450, 1350], y: 1110, size: 46, color: '#4a3f38', ff: '"Segoe Script", "Brush Script MT", cursive' },
+        { id: 'title', label: 'Tiêu đề (2 tấm)', value: 'YoungBooth',
+          xs: [450, 1350], y: 1056, size: 56, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
         { id: 'date', label: 'Ngày (2 tấm)', value: '',
-          xs: [450, 1350], y: 1160, size: 22, color: '#7a6d63', ff: 'Georgia, serif', ls: 4 },
+          xs: [450, 1350], y: 1108, size: 22, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive', ls: 4 },
       ],
     },
 
-    // Layout F — 4 ảnh (khung Charcoal 2×2)
-    { id: 'F', name: 'Dịu Dàng', icon: '🖼️', desc: '4×6" · 4 ảnh', kind: 'photo',
+    // Layout F — Dịu Dàng: PASTEL HÀN QUỐC (Life4Cuts). Lưới 2×2 ảnh bo góc 28, viền trắng 8px,
+    // sticker bế ở góc mỗi ảnh. Khung: make_f() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['F'].
+    { id: 'F', name: 'Dịu Dàng', icon: '🎀', desc: '4×6" · 4 ảnh', kind: 'photo',
       captureCount: 4, select: 4,
       canvas: { w: 1200, h: 1800 },
-      background: '#f1e4de',
+      background: '#FBF3E9',
       slots: [
-        { x: 40, y: 118, w: 550, h: 771, radius: 0 },
-        { x: 610, y: 118, w: 550, h: 771, radius: 0 },
-        { x: 40, y: 909, w: 550, h: 771, radius: 0 },
-        { x: 610, y: 909, w: 550, h: 771, radius: 0 },
+        { x: 92, y: 168, w: 490, h: 650, radius: 28 },
+        { x: 618, y: 168, w: 490, h: 650, radius: 28 },
+        { x: 92, y: 854, w: 490, h: 650, radius: 28 },
+        { x: 618, y: 854, w: 490, h: 650, radius: 28 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
       showBrand: false,
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', x: 40, y: 36, h: 70 },
+      qr: { xs: [960], y: 1588, width: 130, label: '' },   // QR footer, thẳng mép phải lưới ảnh
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 50, h: 74 },
       texts: [
+        { id: 'brand', label: 'Chữ thương hiệu (footer)', value: 'YoungBooth',
+          x: 600, y: 1648, size: 58, color: '#D86A8A', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '900' },
         { id: 'date', label: 'Ngày', value: '',
-          x: 600, y: 1720, size: 26, color: '#6e5f57', ff: 'Arial, sans-serif', weight: '600', ls: 5 },
-        { id: 'sub', label: 'Dòng chữ dưới ngày', value: 'Chụp ảnh theo phong cách của bạn',
-          x: 600, y: 1758, w: 1000, size: 22, color: '#8a7a70', ff: 'Arial, sans-serif', italic: true, lh: 30 },
+          x: 600, y: 1702, size: 24, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600', ls: 4 },
       ],
     },
 
