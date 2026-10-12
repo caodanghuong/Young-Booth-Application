@@ -508,9 +508,9 @@ async function runCountdown(seconds) {
     countdownEl.classList.remove('show'); void countdownEl.offsetWidth; countdownEl.classList.add('show');
     await wait(1000);
   }
-  countdownEl.textContent = '😊';
-  await wait(500);
+  // Đếm xong là chụp luôn — không hiện icon giữa khung (che mặt khách lúc tạo dáng).
   countdownEl.classList.remove('show');
+  countdownEl.textContent = '';
   // flash
   flashEl.classList.add('fire');
   setTimeout(() => flashEl.classList.remove('fire'), 400);
