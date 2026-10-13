@@ -26,6 +26,26 @@ function setLbl(btn, text) {
 }
 
 // ---- state ----
+// Máy mới: nạp cài đặt riêng (máy in, khổ in, nguồn ảnh, chữ trên khung…) mang theo trong booth-settings.json.
+// Chỉ nạp 1 lần cho mỗi bản cài đặt (id); sau đó chỉnh trên máy này được giữ nguyên.
+const LOCAL_KEYS = ['booth.print', 'booth.source', 'booth.brand', 'booth.frameText', 'booth.frameTextV', 'booth.frameGroups', 'booth.frameHidden'];
+(function seedLocalSettings() {
+  try {
+    const seed = window.booth.localSeed && window.booth.localSeed();
+    if (!seed || !seed.id || !seed.data || localStorage.getItem('booth.localSeedId') === seed.id) return;
+    for (const k of LOCAL_KEYS) if (typeof seed.data[k] === 'string') localStorage.setItem(k, seed.data[k]);
+    localStorage.setItem('booth.localSeedId', seed.id);
+  } catch (_e) {}
+})();
+// Sao cài đặt riêng của máy vào booth-settings.json (lúc mở app + mỗi lần Lưu Cài đặt).
+function snapshotLocalSettings() {
+  try {
+    if (!window.booth.saveLocal) return;
+    const data = {};
+    for (const k of LOCAL_KEYS) { const v = localStorage.getItem(k); if (v != null) data[k] = v; }
+    window.booth.saveLocal(data).then((r) => { if (r && r.id) localStorage.setItem('booth.localSeedId', r.id); }).catch(() => {});
+  } catch (_e) {}
+}
 function loadSource() {
   try { return localStorage.getItem('booth.source') || (CFG.camera && CFG.camera.source) || 'webcam'; }
   catch { return (CFG.camera && CFG.camera.source) || 'webcam'; }
@@ -335,6 +355,7 @@ async function buildSourceBar(allowPrompt = true) {
       if (!enabled) return;
       state.source = src;
       try { localStorage.setItem('booth.source', src); } catch {}
+      snapshotLocalSettings();
       buildSourceBar();
     });
     return chip;
@@ -1951,6 +1972,7 @@ function saveSettings() {
   saveFrameTextFields();
   saveFrameGroupFields();
   saveEventModeFields();
+  snapshotLocalSettings();
 
   $('#settings-modal').classList.remove('show');
 
@@ -2496,7 +2518,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   ensureFrameFonts();
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
   await loadExternalEventFrames();
-  applyFlow(true);   // luồng thường hoặc sự kiện đang bật (dựng luôn ảnh mẫu khung)
+  applyFlow(true);
+  snapshotLocalSettings();   // luồng thường hoặc sự kiện đang bật (dựng luôn ảnh mẫu khung)
 });
 
 // Dải "mẫu khung" ở màn hình chờ (thẻ ưu đãi + ảnh mẫu khung).

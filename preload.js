@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('booth', {
   },
   /** Khung sự kiện khai báo ngoài app (C:\\YoungBooth-Frames\\events\\<bộ>\\frames.json). */
   eventFrames: () => ipcRenderer.invoke('booth:eventFrames'),
+  /** Cài đặt riêng của máy (máy in, nguồn ảnh…) lưu trong booth-settings.json — đọc ĐỒNG BỘ lúc khởi động. */
+  localSeed: () => ipcRenderer.sendSync('booth:localSeed'),
+  /** Sao cài đặt riêng của máy (localStorage) vào booth-settings.json để mang sang máy mới. */
+  saveLocal: (data) => ipcRenderer.invoke('booth:saveLocal', { data }),
   /** Bật/tắt luồng sự kiện + chọn sự kiện (Cài đặt trong app, đã qua PIN). */
   setEventMode: (enabled, activeEventId) => ipcRenderer.invoke('booth:setEventMode', { enabled, activeEventId }),
   pay: {

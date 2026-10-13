@@ -752,6 +752,19 @@ ipcMain.handle('pay:check', async (_evt, { amount, code }) => {
   return { paid: false }; // manual → staff confirms in the app
 });
 
+// Cài đặt RIÊNG từng máy của giao diện (localStorage: máy in, khổ in, nguồn ảnh, chữ trên khung…) được sao vào
+// booth-settings.json → chép file này sang máy mới là app tự nạp lại (xem renderer seedLocalSettings).
+const LOCAL_KEYS = ['booth.print', 'booth.source', 'booth.brand', 'booth.frameText', 'booth.frameTextV', 'booth.frameGroups', 'booth.frameHidden'];
+ipcMain.on('booth:localSeed', (e) => { try { e.returnValue = getSettings().local || null; } catch (_e) { e.returnValue = null; } });
+ipcMain.handle('booth:saveLocal', async (_evt, { data }) => {
+  const clean = {};
+  for (const k of LOCAL_KEYS) if (data && typeof data[k] === 'string') clean[k] = data[k];
+  const id = require('crypto').createHash('sha1').update(JSON.stringify(clean)).digest('hex').slice(0, 12);
+  const s = getSettings();
+  if (!s.local || s.local.id !== id) { s.local = { id, savedAt: new Date().toISOString(), data: clean }; settingsStore.write(SETTINGS_PATH, s); }
+  return { ok: true, id };
+});
+
 // Cài đặt trong app (đã qua PIN): bật/tắt luồng sự kiện + chọn sự kiện đang chạy.
 ipcMain.handle('booth:setEventMode', async (_evt, { enabled, activeEventId }) => {
   const s = getSettings();
