@@ -449,10 +449,10 @@ def fake_qr(img, x, y, s, seed):
 
 
 # ---------------------------------------------------------------- ô ảnh
-def strip_slots(top, bottom, side, gap, radius=0):
-    """Nhật Ký: canvas 1200×1800 = 2 dải 600 giống nhau (cắt x=600), 4 ảnh/dải — cùng công thức config.js stripSlots()."""
-    w, h = 600 - 2 * side, (1800 - top - bottom - 3 * gap) // 4
-    return [dict(x=ox + side, y=top + i * (h + gap), w=w, h=h, radius=radius) for ox in (0, 600) for i in range(4)]
+def strip_slots(top, bottom, side, gap, radius=0, n=4):
+    """Nhật Ký: canvas 1200×1800 = 2 dải 600 giống nhau (cắt x=600), n ảnh/dải (mặc định 4) — cùng công thức config.js stripSlots()."""
+    w, h = 600 - 2 * side, (1800 - top - bottom - (n - 1) * gap) // n
+    return [dict(x=ox + side, y=top + i * (h + gap), w=w, h=h, radius=radius) for ox in (0, 600) for i in range(n)]
 
 
 def grid2x2_slots(top, bottom, side, gap, radius=0):

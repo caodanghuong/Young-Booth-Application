@@ -131,6 +131,7 @@ function frameCatalog() {
   const out = [];
   const add = (f, mode, lib) => out.push({
     id: f.id, mode, name: f.name, lib, hidden: !!f.hidden, holiday: f.holiday || '',
+    photos: Number(f.photos) || ((CFG.modes || []).find((m) => m.id === mode) || {}).select || 1,
     thumb: f.thumb || f.overlay || '',
     texts: (f.texts || []).map((t) => ({ id: t.id, label: t.label || t.id, value: t.value || '' })),
   });

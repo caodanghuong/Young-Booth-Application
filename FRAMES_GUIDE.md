@@ -88,6 +88,9 @@ Mỗi sự kiện có giao diện riêng + danh sách khung riêng. Khung sự k
 ]
 ```
    - `id` nên đặt `EV-<kiểu>-<tên>`, không trùng khung khác. `mode`: A / B / C / D / F.
+   - `"photos": 3` = số ảnh khác nhau của khung (khung dải 3 ảnh, tờ 2 ảnh…). Trong luồng sự kiện, khách chụp/chọn **theo số ảnh
+     của khung mặc định** (vd Nhật Ký + khung 3 ảnh → chụp 5 chọn 3); khung khác số ảnh không hiện cùng lượt trong "Chọn khung".
+     Không ghi → bằng số ảnh mặc định của kiểu chụp. Dải 2 bản (Nhật Ký) thì `slots` gồm cả dải phải (3 ảnh × 2 = 6 ô).
    - Không ghi `canvas` / `slots` / `qr` → dùng giống khung mặc định của kiểu chụp đó.
    - JSON không có chú thích; sai cú pháp thì cả file bị bỏ qua (xem log app).
 4. Mở webadmin → sự kiện → **Sửa** → tick khung mới ở kiểu chụp tương ứng (chọn 1 khung làm mặc định) → điền chữ trên khung →

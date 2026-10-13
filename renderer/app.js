@@ -1103,7 +1103,11 @@ function isFrameHidden(f) {
 }
 // Khung đang hiện cho khách (khung mặc định luôn hiện). Luồng sự kiện → CHỈ khung sự kiện gán cho kiểu đó.
 function modeFrames(m, includeHidden) {
-  if (state.flow && m) return eventFramesFor(state.flow, m);
+  if (state.flow && m) {   // chỉ khung CÙNG SỐ ẢNH với lượt chụp (ảnh đã chụp xong trước khi chọn khung)
+    const n = m.select || m.captureCount || 1, all = eventFramesFor(state.flow, m);
+    const same = all.filter((f) => framePhotos(CFG.modes.find((x) => x.id === m.id) || m, f) === n);
+    return same.length ? same : all;
+  }
   const list = Array.isArray(m && m.frames) ? m.frames : [];
   return includeHidden ? list : list.filter((f, i) => i === 0 || !isFrameHidden(f));
 }
@@ -1175,12 +1179,26 @@ function eventProblem(settings = state.settings) {
   if (!activeEvent(settings)) return 'Sự kiện "' + ev.name + '" chưa có kiểu chụp hợp lệ → đang chạy luồng thường.';
   return '';
 }
+// Số ảnh khác nhau của 1 khung (frames[].photos; không ghi → số ảnh mặc định của kiểu chụp).
+function framePhotos(m, f) { return (f && Number(f.photos)) || m.select || m.captureCount || 1; }
+// Luồng sự kiện: số tấm chụp/chọn THEO KHUNG MẶC ĐỊNH của sự kiện (vd khung dải 3 ảnh → Nhật Ký chụp 5 chọn 3).
+// Trả về bản sao kiểu chụp (không sửa config); khung khác số ảnh không hiện trong bảng "Chọn khung" của lượt đó.
+function eventMode(m) {
+  const ev = state.flow;
+  if (!ev || !m || m.kind !== 'photo') return m;
+  const list = eventFramesFor(ev, m), id = ev.defaultFrame && ev.defaultFrame[m.id];
+  const n = framePhotos(m, list.find((f) => f.id === id) || list[0]);
+  const sel = m.select || m.captureCount || 1, cap = m.captureCount || sel;
+  if (n === sel) return m;
+  return Object.assign({}, m, { select: n, captureCount: n + Math.max(0, cap - sel),
+    desc: String(m.desc || '').replace(/\d+\s*ảnh/, n + ' ảnh') });
+}
 // Kiểu chụp khách thấy: luồng thường = tất cả; sự kiện = event.modes (+ GIF/Boomerang nếu cho phép).
 function flowModes() {
   const ev = state.flow;
   if (!ev) return CFG.modes;
-  const list = ev._modes.slice();
-  if (ev.allowAnimated !== false) CFG.modes.forEach((m) => { if (m.kind !== 'photo' && !list.includes(m)) list.push(m); });
+  const list = ev._modes.map(eventMode);
+  if (ev.allowAnimated !== false) CFG.modes.forEach((m) => { if (m.kind !== 'photo' && !list.some((x) => x.id === m.id)) list.push(m); });
   return list;
 }
 // Nạp khung sự kiện khai báo ngoài app (frames.json trong C:\YoungBooth-Frames\events\<bộ>\) vào CFG.eventFrames.

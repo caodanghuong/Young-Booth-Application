@@ -138,11 +138,13 @@ function renderEditor(){
       '<button class="sm ghost" onclick="mv(\\''+id+'\\',-1)">↑</button><button class="sm ghost" onclick="mv(\\''+id+'\\',1)">↓</button></div>';
     if(on){const sel=(e.frames&&e.frames[id])||[];const def=(e.defaultFrame&&e.defaultFrame[id])||sel[0]||'';
       h+='<div class="fgrid">'+framesOf(id).map((f)=>{const s=sel.includes(f.id);
-        return '<div class="ft '+(s?'sel':'')+'"><img src="'+esc(img(f.thumbUrl))+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div class="nm">'+esc(f.name)+
+        return '<div class="ft '+(s?'sel':'')+'"><img src="'+esc(img(f.thumbUrl))+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div class="nm">'+esc(f.name)+'<div class="tag">'+(f.photos||'?')+' ảnh</div>'+
           (f.lib==='event'?'<div class="tag">khung sự kiện</div>':f.holiday?'<div class="tag">dịp lễ</div>':f.lib==='default'?'<div class="tag">mặc định của kiểu</div>':'')+'</div>'+
           '<div class="ctl"><label><input type="checkbox" class="fsel" data-mode="'+id+'" value="'+esc(f.id)+'" '+(s?'checked':'')+' onchange="syncEditor();render()">chọn</label>'+
           '<label><input type="radio" name="def_'+id+'" value="'+esc(f.id)+'" '+(s&&f.id===def?'checked':'')+' '+(s?'':'disabled')+' onchange="syncEditor()">mặc định</label></div></div>';}).join('')+'</div>';
-      if(!sel.length) h+='<p class="hint">⚠️ Chưa chọn khung → dùng khung mặc định của kiểu '+esc(modeName(id))+'.</p>';}
+      if(!sel.length) h+='<p class="hint">⚠️ Chưa chọn khung → dùng khung mặc định của kiểu '+esc(modeName(id))+'.</p>';
+      const ns=[...new Set(sel.map((x)=>(frameById(x)||{}).photos))];const dn=(frameById(def)||{}).photos;
+      if(sel.length)h+='<p class="hint">Khách chụp theo khung mặc định: <b>'+(dn||'?')+' ảnh</b>.'+(ns.length>1?' ⚠️ Khung khác số ảnh ('+ns.filter((x)=>x!==dn).join(', ')+' ảnh) sẽ không hiện trong "Chọn khung".':'')+'</p>';}
   });
   h+='</div><label>Cho chụp GIF / Boomerang <input type="checkbox" id="e_anim" '+(e.allowAnimated!==false?'checked':'')+'></label>';
   // chữ động: các ô chữ của khung đã chọn

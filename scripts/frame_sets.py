@@ -185,11 +185,11 @@ ORI_BRAND = dict(text='YOUNG BOOTH', color='#ffffff', ls=4, **BRAND_SERIF)
 # Khung SỰ KIỆN → thư viện eventFrames (chỉ dùng trong Luồng sự kiện, không bao giờ hiện ở luồng thường).
 # file = đường dẫn trong C:\YoungBooth-Frames (không có đuôi .png).
 add(id='EV-C-orientation', mode='C', set='06', name='Orientation Day', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    lib='event', file='events/orientation/C-orientation', cut2inch=True, band=1420, slots=strip_slots(130, 380, 36, 18),
+    lib='event', file='events/orientation/C-orientation', cut2inch=True, band=1420, photos=3, slots=strip_slots(130, 380, 36, 18, n=3),
     texts=ori_texts(dict(xs=[330, 930], y=1500, size=52), dict(xs=[470, 1070], y=1515, size=36), dict(xs=[320, 920], y=1548, size=22)),
     fixed=[dict(xs=[300, 900], y=1780, size=14, **ORI_BRAND)], qr=QR_C)
 add(id='EV-B-orientation', mode='B', set='06', name='Orientation Day (dọc)', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    lib='event', file='events/orientation/B-orientation', paper='4x6', noRotate=False, band=1380, slots=[S(50, 150, 1100, 600), S(50, 780, 1100, 600)],
+    lib='event', file='events/orientation/B-orientation', photos=2, paper='4x6', noRotate=False, band=1380, slots=[S(50, 150, 1100, 600), S(50, 780, 1100, 600)],
     texts=ori_texts(dict(x=600, y=1540, size=84), dict(x=830, y=1560, size=56), dict(x=590, y=1600, size=34)),
     fixed=[dict(x=600, y=1778, size=16, **ORI_BRAND)], qr=QR_F)
 
@@ -1083,7 +1083,7 @@ def _js(v):
 def frame_js(f):
     W, H = f['canvas']
     o = dict(id=f['id'], **({'mode': f['mode']} if f.get('lib') == 'event' else {}), name=f['name'])
-    for k in ('hidden', 'holiday', 'event', 'textGroup'):
+    for k in ('photos', 'hidden', 'holiday', 'event', 'textGroup'):
         if f.get(k) is not None: o[k] = f[k]
     o['overlay'] = f"file:///C:/YoungBooth-Frames/{f.get('file', f['id'])}.png"
     o['thumb'] = f"file:///C:/YoungBooth-Frames/{f.get('file', f['id'])}-thumb.png"
