@@ -55,6 +55,8 @@
         <div class="home-fan" id="home-fan" aria-hidden="true"></div>
       </div>
       <div class="home-showcase" id="home-showcase"></div>
+      <!-- Màn chờ LUỒNG SỰ KIỆN (chỉ hiện khi body.event-mode) — app.js renderEventHome() -->
+      <div class="home-event" id="home-event"></div>
     </section>
 
     <!-- ============ MODE SELECT ============ -->
@@ -296,6 +298,22 @@
         <div class="set-row col">
           <label for="set-subfooter">Ngày / dòng dưới (để trống = ngày hôm nay)</label>
           <input type="text" id="set-subfooter" class="set-text" placeholder="vd: Sinh nhật Minh Anh · 28/09/2026" />
+        </div>
+
+        <div id="event-mode-wrap">
+          <hr class="set-sep" />
+          <div class="set-cam-head"><span>Luồng sự kiện</span></div>
+          <p class="ev-status" id="ev-status"></p>
+          <p class="ev-warn" id="ev-warn" style="display:none"></p>
+          <div class="set-row">
+            <label for="set-ev-on">Bật luồng sự kiện</label>
+            <input type="checkbox" id="set-ev-on" />
+          </div>
+          <div class="set-row">
+            <label for="set-ev-id">Sự kiện chạy</label>
+            <select id="set-ev-id" class="webcam-select"></select>
+          </div>
+          <p class="cam-note" id="ev-admin-link"></p>
         </div>
 
         <div id="frame-group-wrap" style="display:none;">

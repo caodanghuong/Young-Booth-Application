@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld('booth', {
   /** Save a capture (dataUrl) → returns { fileUrl, pageUrl, qrDataUrl, filename }. */
   save: (dataUrl, kind) => ipcRenderer.invoke('booth:save', { dataUrl, kind }),
   /** Save a session of files [{role,dataUrl}] → returns { pageUrl, qrDataUrl, files, cloud }. */
-  saveSession: (files) => ipcRenderer.invoke('booth:saveSession', { files }),
+  saveSession: (files, eventId) => ipcRenderer.invoke('booth:saveSession', { files, eventId }),
   /** Print a dataUrl. opts: { printerName, copies, silent }. */
   print: (dataUrl, opts) => ipcRenderer.invoke('booth:print', { dataUrl, opts }),
   /** Trang mặc định của máy in đang dọc hay ngang → { ok, width, height, landscape }. */
@@ -15,8 +15,18 @@ contextBridge.exposeInMainWorld('booth', {
   info: () => ipcRenderer.invoke('booth:info'),
   /** Public settings (pricing + payment, no secrets). */
   getSettings: () => ipcRenderer.invoke('booth:getSettings'),
+  /** Webadmin / Cài đặt vừa lưu → cb(publicSettings). Trả về hàm huỷ đăng ký. */
+  onSettingsChanged: (cb) => {
+    const h = (_e, s) => cb(s);
+    ipcRenderer.on('settings:changed', h);
+    return () => ipcRenderer.removeListener('settings:changed', h);
+  },
+  /** Khung sự kiện khai báo ngoài app (C:\\YoungBooth-Frames\\events\\<bộ>\\frames.json). */
+  eventFrames: () => ipcRenderer.invoke('booth:eventFrames'),
+  /** Bật/tắt luồng sự kiện + chọn sự kiện (Cài đặt trong app, đã qua PIN). */
+  setEventMode: (enabled, activeEventId) => ipcRenderer.invoke('booth:setEventMode', { enabled, activeEventId }),
   pay: {
-    createOrder: (modeId) => ipcRenderer.invoke('pay:createOrder', { modeId }),
+    createOrder: (modeId, eventId) => ipcRenderer.invoke('pay:createOrder', { modeId, eventId }),
     check: (amount, code) => ipcRenderer.invoke('pay:check', { amount, code }),
     verifyPin: (pin) => ipcRenderer.invoke('pay:verifyPin', { pin }),
   },
@@ -31,7 +41,7 @@ contextBridge.exposeInMainWorld('booth', {
   /** Make a QR code dataURL for a text/URL. */
   makeQR: (text) => ipcRenderer.invoke('booth:makeQR', { text }),
   /** Push a whole session (photo+gif+boomerang) tagged by session id. */
-  pushSession: (sessionId, files, isPublic) => ipcRenderer.invoke('booth:pushSession', { sessionId, files, isPublic }),
+  pushSession: (sessionId, files, isPublic, eventId) => ipcRenderer.invoke('booth:pushSession', { sessionId, files, isPublic, eventId }),
 
   // ---- Canon EDSDK ----
   canon: {

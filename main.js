@@ -17,7 +17,7 @@ const GALLERY = (CFG && CFG.gallery) || {};
 let SHARE_PUBLIC = GALLERY.publicDefault !== false;
 
 /** Upload a saved capture to the online gallery. Returns a public URL or null. */
-async function uploadToGallery(filePath, filename, kind, tagsOverride) {
+async function uploadToGallery(filePath, filename, kind, tagsOverride, folderOverride) {
   if (!GALLERY.enabled) return null;
   const buf = fs.readFileSync(filePath);
   const isGif = kind === 'gif' || filename.toLowerCase().endsWith('.gif');
@@ -29,7 +29,8 @@ async function uploadToGallery(filePath, filename, kind, tagsOverride) {
     const form = new FormData();
     form.append('file', dataUri);
     form.append('upload_preset', c.uploadPreset);
-    if (c.folder) form.append('folder', c.folder);
+    const folder = folderOverride || c.folder;
+    if (folder) form.append('folder', folder);
     // Gắn tag để trang gallery lọc + liệt kê được qua Cloudinary list API.
     // Tag: nếu truyền tagsOverride thì dùng; không thì theo quyền công khai.
     let tags = tagsOverride;
@@ -80,7 +81,67 @@ const SETTINGS_PATH = app.isPackaged
   ? path.join(app.getPath('userData'), 'booth-settings.json')
   : path.join(__dirname, 'booth-settings.json');
 const getSettings = () => settingsStore.read(SETTINGS_PATH);
-const saveSettings = (o) => settingsStore.write(SETTINGS_PATH, o);
+// Lưu xong → báo giao diện (luồng sự kiện / giá áp dụng ngay, không cần mở lại app).
+const saveSettings = (o) => {
+  const saved = settingsStore.write(SETTINGS_PATH, o);
+  try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('settings:changed', settingsStore.publicView(saved)); } catch (_e) {}
+  return saved;
+};
+// Hồ sơ sự kiện theo id (renderer chỉ gửi id; thư mục / quyền công khai lấy từ cài đặt, không tin dữ liệu từ giao diện).
+const eventById = (id) => (id && (getSettings().events || []).find((e) => e.id === id)) || null;
+const safeId = (id) => String(id || '').replace(/[^a-z0-9-]/g, '');
+// Ảnh của lượt chụp sự kiện → captures/events/<id>/<id>_<tên file>; luồng thường → captures/<tên file>.
+function captureTarget(eventId, filename) {
+  const ev = safeId(eventId);
+  if (!ev) return { dir: CAPTURES_DIR, name: filename, rel: filename };
+  const dir = path.join(CAPTURES_DIR, 'events', ev);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const name = ev + '_' + filename;
+  return { dir, name, rel: 'events/' + ev + '/' + name };
+}
+// Khung sự kiện khai báo NGOÀI app: C:\YoungBooth-Frames\events\<bộ>\frames.json (mảng khung, mỗi khung có id + mode).
+// overlay/thumb ghi tên file tương đối → tính từ thư mục bộ đó. Thêm khung kiểu này KHÔNG cần đóng gói lại app.
+const FRAMES_ROOT = 'C:\\YoungBooth-Frames';
+function externalEventFrames() {
+  const out = [];
+  const dir = path.join(FRAMES_ROOT, 'events');
+  let subs = [];
+  try { subs = fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()); } catch (_e) { return out; }
+  const known = new Set((CFG.eventFrames || []).map((f) => f.id));
+  for (const d of subs) {
+    const fp = path.join(dir, d.name, 'frames.json');
+    if (!fs.existsSync(fp)) continue;
+    try {
+      let arr = JSON.parse(fs.readFileSync(fp, 'utf8'));
+      if (!Array.isArray(arr)) arr = (arr && arr.frames) || [];
+      const abs = (v) => !v ? v : (/^(file:|[a-zA-Z]:[\\/])/.test(v) ? v : 'file:///C:/YoungBooth-Frames/events/' + d.name + '/' + String(v).replace(/^[\\/]+/, ''));
+      for (const f of arr) {
+        if (!f || !f.id || !f.mode || known.has(f.id)) continue;
+        known.add(f.id);
+        out.push(Object.assign({}, f, { overlay: abs(f.overlay), thumb: abs(f.thumb) || abs(f.overlay), source: 'events/' + d.name + '/frames.json' }));
+      }
+    } catch (e) { console.warn('[frames.json]', fp, e.message); }
+  }
+  return out;
+}
+ipcMain.handle('booth:eventFrames', async () => externalEventFrames());
+
+// Danh sách mọi khung (thường + sự kiện) cho webadmin.
+function frameCatalog() {
+  const out = [];
+  const add = (f, mode, lib) => out.push({
+    id: f.id, mode, name: f.name, lib, hidden: !!f.hidden, holiday: f.holiday || '',
+    thumb: f.thumb || f.overlay || '',
+    texts: (f.texts || []).map((t) => ({ id: t.id, label: t.label || t.id, value: t.value || '' })),
+  });
+  for (const m of (CFG.modes || [])) {
+    if (m.kind !== 'photo') continue;
+    (Array.isArray(m.frames) ? m.frames : []).forEach((f, i) =>
+      add(i === 0 ? Object.assign({ thumb: m.thumb || m.overlay, texts: m.texts }, f) : f, m.id, i === 0 ? 'default' : 'normal'));
+  }
+  for (const f of (CFG.eventFrames || []).concat(externalEventFrames())) add(f, f.mode, 'event');
+  return out;
+}
 
 function priceForMode(pay, modeId) {
   if (pay.priceMode === 'perMode') {
@@ -245,6 +306,11 @@ app.whenReady().then(async () => {
     read: getSettings,
     save: saveSettings,
     publicView: settingsStore.publicView,
+    merge: settingsStore.deepMerge,
+    eventTemplate: settingsStore.EVENT_TEMPLATE,
+    frames: frameCatalog,
+    modes: () => (CFG.modes || []).map((m) => ({ id: m.id, name: m.name, kind: m.kind })),
+    framesDir: 'C:\\YoungBooth-Frames',
   });
 
   // Auto-start on Windows login (registers the installed executable).
@@ -344,22 +410,25 @@ ipcMain.handle('booth:makeQR', async (_evt, { text }) => {
 
 // Đẩy trọn 1 LƯỢT chụp (ảnh + GIF + Boomerang) lên Cloudinary, gắn tag theo mã lượt
 // (sess-<id>) để trang gallery #/s/<id> đọc lại được. Ảnh công khai thêm tag gallery.
-ipcMain.handle('booth:pushSession', async (_evt, { sessionId, files, isPublic }) => {
+ipcMain.handle('booth:pushSession', async (_evt, { sessionId, files, isPublic, eventId }) => {
   try {
     if (!GALLERY.enabled) return { ok: false, reason: 'gallery disabled' };
     ensureCapturesDir();
+    const ev = eventById(eventId);
+    if (ev && !(ev.gallery && ev.gallery.public)) isPublic = false;   // sự kiện riêng tư → không lên gallery chung
     const sTag = 'sess-' + sessionId;
     const pubTag = (GALLERY.cloudinary && GALLERY.cloudinary.tags) || 'young-booth';
     let uploaded = 0;
     for (const f of (files || [])) {
       const isGif = /^data:image\/gif/.test(f.dataUrl);
       const ext = isGif ? 'gif' : 'png';
-      const filename = `${sessionId}-${f.role}.${ext}`;
-      const fp = path.join(CAPTURES_DIR, filename);
+      const tgt = captureTarget(ev && ev.id, `${sessionId}-${f.role}.${ext}`);
+      const fp = path.join(tgt.dir, tgt.name);
       fs.writeFileSync(fp, Buffer.from(f.dataUrl.replace(/^data:[^;]+;base64,/, ''), 'base64'));
       const tags = [sTag];
+      if (ev) tags.push('event:' + ev.id);
       if (f.role === 'photo' && isPublic) tags.push(pubTag); // chỉ ảnh mới lên gallery chung
-      try { if (await uploadToGallery(fp, filename, isGif ? 'gif' : 'photo', tags)) uploaded++; }
+      try { if (await uploadToGallery(fp, tgt.name, isGif ? 'gif' : 'photo', tags, ev && ev.gallery && ev.gallery.folder)) uploaded++; }
       catch (e) { console.warn('[session] upload fail', f.role, e.message); }
     }
     // ok = ít nhất 1 file lên cloud (để renderer biết QR cloud có dùng được không).
@@ -387,8 +456,9 @@ ipcMain.handle('booth:galleryPush', async (_evt, { dataUrl, kind }) => {
  * Save a whole session (photo + gif + boomerang) under one id, and return a
  * QR pointing to a session page that lists all of them for download.
  */
-ipcMain.handle('booth:saveSession', async (_evt, { files }) => {
+ipcMain.handle('booth:saveSession', async (_evt, { files, eventId }) => {
   ensureCapturesDir();
+  const ev = eventById(eventId);
   const sid = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const saved = [];
   let cloudAny = false;
@@ -396,13 +466,15 @@ ipcMain.handle('booth:saveSession', async (_evt, { files }) => {
     const isGif = /^data:image\/gif/.test(f.dataUrl);
     const isVideo = /^data:video\//.test(f.dataUrl);
     const ext = isVideo ? 'webm' : isGif ? 'gif' : 'png';
-    const filename = `${sid}-${f.role}.${ext}`;
-    const filePath = path.join(CAPTURES_DIR, filename);
+    const tgt = captureTarget(ev && ev.id, `${sid}-${f.role}.${ext}`);
+    const filename = tgt.name;
+    const filePath = path.join(tgt.dir, filename);
     fs.writeFileSync(filePath, Buffer.from(f.dataUrl.replace(/^data:[^;]+;base64,/, ''), 'base64'));
-    let url = `${serverInfo.lanUrl}/captures/${filename}`;
+    let url = `${serverInfo.lanUrl}/captures/${tgt.rel}`;
     if (!isVideo) { // video: chỉ tải qua LAN (Cloudinary preset dành cho ảnh)
       try {
-        const cloud = await uploadToGallery(filePath, filename, isGif ? 'gif' : 'photo');
+        const evTags = ev ? ['event:' + ev.id] : undefined;
+        const cloud = await uploadToGallery(filePath, filename, isGif ? 'gif' : 'photo', evTags, ev && ev.gallery && ev.gallery.folder);
         if (cloud) { url = cloud; cloudAny = true; }
       } catch (e) { console.warn('[gallery] session upload failed:', e.message); }
     }
@@ -576,9 +648,11 @@ ipcMain.handle('dcc:capture', async () => dcc.capture());
 // ---- Payment ----
 ipcMain.handle('booth:getSettings', async () => settingsStore.publicView(getSettings()));
 
-ipcMain.handle('pay:createOrder', async (_evt, { modeId }) => {
+ipcMain.handle('pay:createOrder', async (_evt, { modeId, eventId }) => {
   const pay = getSettings().payment;
-  if (!pay.enabled) return { enabled: false };
+  const ev = eventById(eventId);
+  const on = ev ? !!(ev.payment && ev.payment.enabled) : pay.enabled;
+  if (!on) return { enabled: false };
   const amount = priceForMode(pay, modeId);
   const code = 'YB' + Date.now().toString().slice(-7);
   const orderId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -597,6 +671,14 @@ ipcMain.handle('pay:check', async (_evt, { amount, code }) => {
     return { paid };
   }
   return { paid: false }; // manual → staff confirms in the app
+});
+
+// Cài đặt trong app (đã qua PIN): bật/tắt luồng sự kiện + chọn sự kiện đang chạy.
+ipcMain.handle('booth:setEventMode', async (_evt, { enabled, activeEventId }) => {
+  const s = getSettings();
+  s.eventMode = { enabled: !!enabled, activeEventId: safeId(activeEventId) };
+  const saved = saveSettings(s);
+  return { ok: true, settings: settingsStore.publicView(saved) };
 });
 
 // Nhân viên xác nhận "Đã thanh toán" bằng PIN quản trị (khách không tự bấm được).

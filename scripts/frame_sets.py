@@ -182,12 +182,14 @@ def ori_texts(t, t2, g):
 
 
 ORI_BRAND = dict(text='YOUNG BOOTH', color='#ffffff', ls=4, **BRAND_SERIF)
-add(id='C-event-orientation', mode='C', set='06', name='Orientation Day', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    hidden=True, event='orientation', cut2inch=True, band=1420, slots=strip_slots(130, 380, 36, 18),
+# Khung SỰ KIỆN → thư viện eventFrames (chỉ dùng trong Luồng sự kiện, không bao giờ hiện ở luồng thường).
+# file = đường dẫn trong C:\YoungBooth-Frames (không có đuôi .png).
+add(id='EV-C-orientation', mode='C', set='06', name='Orientation Day', style='orient', background='#3fb6e8', textGroup='event-orientation',
+    lib='event', file='events/orientation/C-orientation', cut2inch=True, band=1420, slots=strip_slots(130, 380, 36, 18),
     texts=ori_texts(dict(xs=[330, 930], y=1500, size=52), dict(xs=[470, 1070], y=1515, size=36), dict(xs=[320, 920], y=1548, size=22)),
     fixed=[dict(xs=[300, 900], y=1780, size=14, **ORI_BRAND)], qr=QR_C)
-add(id='B-event-orientation', mode='B', set='06', name='Orientation Day (dọc)', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    hidden=True, event='orientation', paper='4x6', noRotate=False, band=1380, slots=[S(50, 150, 1100, 600), S(50, 780, 1100, 600)],
+add(id='EV-B-orientation', mode='B', set='06', name='Orientation Day (dọc)', style='orient', background='#3fb6e8', textGroup='event-orientation',
+    lib='event', file='events/orientation/B-orientation', paper='4x6', noRotate=False, band=1380, slots=[S(50, 150, 1100, 600), S(50, 780, 1100, 600)],
     texts=ori_texts(dict(x=600, y=1540, size=84), dict(x=830, y=1560, size=56), dict(x=590, y=1600, size=34)),
     fixed=[dict(x=600, y=1778, size=16, **ORI_BRAND)], qr=QR_F)
 
@@ -1046,8 +1048,10 @@ def build(frames, out_dir, asset_dir=None, log=print):
     asset_dir = asset_dir or os.path.join(out_dir, 'assets')
     for f in frames:
         png, c = render(f, fonts, asset_dir)
-        png.save(os.path.join(out_dir, f['id'] + '.png'), optimize=True)
-        make_thumb(f, png, c).save(os.path.join(out_dir, f['id'] + '-thumb.png'), optimize=True)
+        base = os.path.join(out_dir, *f.get('file', f['id']).split('/'))
+        os.makedirs(os.path.dirname(base), exist_ok=True)
+        png.save(base + '.png', optimize=True)
+        make_thumb(f, png, c).save(base + '-thumb.png', optimize=True)
         w = check(f, c)
         miss = sorted({l.splitlines()[0] for _, l in c.ph})
         vec = sorted(set(c.missing))
@@ -1078,11 +1082,11 @@ def _js(v):
 
 def frame_js(f):
     W, H = f['canvas']
-    o = dict(id=f['id'], name=f['name'])
+    o = dict(id=f['id'], **({'mode': f['mode']} if f.get('lib') == 'event' else {}), name=f['name'])
     for k in ('hidden', 'holiday', 'event', 'textGroup'):
         if f.get(k) is not None: o[k] = f[k]
-    o['overlay'] = f"file:///C:/YoungBooth-Frames/{f['id']}.png"
-    o['thumb'] = f"file:///C:/YoungBooth-Frames/{f['id']}-thumb.png"
+    o['overlay'] = f"file:///C:/YoungBooth-Frames/{f.get('file', f['id'])}.png"
+    o['thumb'] = f"file:///C:/YoungBooth-Frames/{f.get('file', f['id'])}-thumb.png"
     o['background'] = f['background']; o['logo'] = None; o['showBrand'] = False
     o['canvas'] = dict(w=W, h=H)
     for k in ('paper', 'noRotate', 'cut2inch'):
@@ -1108,14 +1112,19 @@ def emit_config(path):
            '// "py scripts/make-frames.py sets config" (sinh lại PNG + khối này). Thứ tự trong mảng = thứ tự trong bảng "Chọn khung".',
            'const FRAME_SETS = {']
     for m in ('A', 'B', 'C', 'D', 'F'):
-        lst = [f for f in FR if f['mode'] == m]
+        lst = [f for f in FR if f['mode'] == m and f.get('lib') != 'event']
         out.append(f'  {m}: [')
         for f in lst: out += frame_js(f)
         out.append('  ],')
     out.append('};')
+    out.append('// Thư viện khung SỰ KIỆN (có thêm trường mode). Chỉ hiện trong Luồng sự kiện khi sự kiện đang chạy chọn khung đó.')
+    out.append('const EVENT_FRAMES = [')
+    for f in [f for f in FR if f.get('lib') == 'event']: out += frame_js(f)
+    out.append('];')
     out.append('const FRAME_TEXT_GROUPS = {')
     for g, (name, _) in GROUPS.items():
         modes = sorted({f['mode'] for f in FR if f.get('textGroup') == g}, key='ACDBF'.index)
+        if g == 'event-orientation': out.append(f"  {_js(g)}: {_js(name + ' (khung sự kiện)')},"); continue
         names = {'A': 'Khoảnh Khắc', 'B': 'Ngọt Ngào', 'C': 'Nhật Ký', 'D': 'Chia Đôi', 'F': 'Dịu Dàng'}
         out.append(f"  {_js(g)}: {_js(name + ' (' + ' · '.join(names[x] for x in modes) + ')')},")
     out.append('};')

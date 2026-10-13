@@ -48,13 +48,6 @@ const FRAME_SETS = {
           { id: 'date', label: 'Ngày', value: '09.07.2026', x: 600, y: 1680, size: 32, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
           { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 600, y: 1728, size: 30, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 5 },
         ] },
-      { id: 'B-event-orientation', name: 'Orientation Day (dọc)', hidden: true, event: 'orientation', textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/B-event-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/B-event-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 50, y: 150, w: 1100, h: 600 }, { x: 50, y: 780, w: 1100, h: 600 }],
-        texts: [
-          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', x: 600, y: 1540, size: 84, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
-          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', x: 830, y: 1560, size: 56, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
-          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', x: 590, y: 1600, size: 34, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
-        ] },
   ],
   C: [
       { id: 'C-std-white', name: 'Save The Date – Trắng', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/C-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/C-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
@@ -91,13 +84,6 @@ const FRAME_SETS = {
       { id: 'C-gold-stars-wide', name: 'Sao Kim Tuyến – Ngang', overlay: 'file:///C:/YoungBooth-Frames/C-gold-stars-wide.png', thumb: 'file:///C:/YoungBooth-Frames/C-gold-stars-wide-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 1640, y: 448 }, { x: 1640, y: 1048 }] },
         slots: [{ x: 30, y: 100, w: 424, h: 476 }, { x: 468, y: 100, w: 424, h: 476 }, { x: 906, y: 100, w: 424, h: 476 }, { x: 1344, y: 100, w: 424, h: 476 }, { x: 30, y: 700, w: 424, h: 476 }, { x: 468, y: 700, w: 424, h: 476 }, { x: 906, y: 700, w: 424, h: 476 }, { x: 1344, y: 700, w: 424, h: 476 }],
         texts: [] },
-      { id: 'C-event-orientation', name: 'Orientation Day', hidden: true, event: 'orientation', textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/C-event-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/C-event-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
-        slots: [{ x: 36, y: 130, w: 528, h: 309 }, { x: 36, y: 457, w: 528, h: 309 }, { x: 36, y: 784, w: 528, h: 309 }, { x: 36, y: 1111, w: 528, h: 309 }, { x: 636, y: 130, w: 528, h: 309 }, { x: 636, y: 457, w: 528, h: 309 }, { x: 636, y: 784, w: 528, h: 309 }, { x: 636, y: 1111, w: 528, h: 309 }],
-        texts: [
-          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', xs: [330, 930], y: 1500, size: 52, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
-          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', xs: [470, 1070], y: 1515, size: 36, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
-          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', xs: [320, 920], y: 1548, size: 22, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
-        ] },
       { id: 'C-night-sky', name: 'Bầu Trời Sao', overlay: 'file:///C:/YoungBooth-Frames/C-night-sky.png', thumb: 'file:///C:/YoungBooth-Frames/C-night-sky-thumb.png', background: '#0b0b0d', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 36, y: 1648 }, { x: 636, y: 1648 }] },
         slots: [{ x: 30, y: 30, w: 540, h: 380 }, { x: 30, y: 422, w: 540, h: 380 }, { x: 30, y: 814, w: 540, h: 380 }, { x: 30, y: 1206, w: 540, h: 380 }, { x: 630, y: 30, w: 540, h: 380 }, { x: 630, y: 422, w: 540, h: 380 }, { x: 630, y: 814, w: 540, h: 380 }, { x: 630, y: 1206, w: 540, h: 380 }],
         texts: [] },
@@ -256,10 +242,27 @@ const FRAME_SETS = {
         ] },
   ],
 };
+// Thư viện khung SỰ KIỆN (có thêm trường mode). Chỉ hiện trong Luồng sự kiện khi sự kiện đang chạy chọn khung đó.
+const EVENT_FRAMES = [
+      { id: 'EV-C-orientation', mode: 'C', name: 'Orientation Day', textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/events/orientation/C-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/events/orientation/C-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
+        slots: [{ x: 36, y: 130, w: 528, h: 309 }, { x: 36, y: 457, w: 528, h: 309 }, { x: 36, y: 784, w: 528, h: 309 }, { x: 36, y: 1111, w: 528, h: 309 }, { x: 636, y: 130, w: 528, h: 309 }, { x: 636, y: 457, w: 528, h: 309 }, { x: 636, y: 784, w: 528, h: 309 }, { x: 636, y: 1111, w: 528, h: 309 }],
+        texts: [
+          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', xs: [330, 930], y: 1500, size: 52, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
+          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', xs: [470, 1070], y: 1515, size: 36, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
+          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', xs: [320, 920], y: 1548, size: 22, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
+        ] },
+      { id: 'EV-B-orientation', mode: 'B', name: 'Orientation Day (dọc)', textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
+        slots: [{ x: 50, y: 150, w: 1100, h: 600 }, { x: 50, y: 780, w: 1100, h: 600 }],
+        texts: [
+          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', x: 600, y: 1540, size: 84, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
+          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', x: 830, y: 1560, size: 56, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
+          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', x: 590, y: 1600, size: 34, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
+        ] },
+];
 const FRAME_TEXT_GROUPS = {
   'std-white': 'Khung Save The Date (Nhật Ký · Chia Đôi · Ngọt Ngào)',
   'clover-sage': 'Khung Cỏ Bốn Lá (Khoảnh Khắc · Nhật Ký)',
-  'event-orientation': 'Khung Orientation Day (Nhật Ký · Ngọt Ngào)',
+  'event-orientation': 'Khung Orientation Day (khung sự kiện)',
   'quockhanh': 'Khung Quốc Khánh 02.09 (Nhật Ký · Dịu Dàng)',
   'qk-motto': 'Khung Độc Lập (Xanh Nhạt · Đỏ Bóng) (Nhật Ký · Dịu Dàng)',
   'qk-29': 'Khung Quốc Khánh 2.9 – Đỏ Trắng (Nhật Ký · Dịu Dàng)',
@@ -611,10 +614,12 @@ const BOOTH_CONFIG = {
   frameGroups: {
     quockhanh: 'Khung Quốc Khánh 2/9',
     trungthu: 'Khung Trung Thu',
-    'event:orientation': 'Khung sự kiện Orientation Day',
   },
   // Tên nhóm chữ (frames[].textGroup) trong Cài đặt → admin nhập 1 lần cho cả bộ khung.
   textGroups: FRAME_TEXT_GROUPS,
+  // Thư viện khung SỰ KIỆN (Luồng sự kiện — bật/tắt + hồ sơ sự kiện trong webadmin). Mỗi phần tử = 1 khung + trường mode.
+  // Thêm khung sự kiện mới: PNG vào C:\YoungBooth-Frames\events\<bộ>\ + 1 dòng ở đây (id 'EV-<mode>-<tên>'), xem FRAMES_GUIDE.md.
+  eventFrames: EVENT_FRAMES,
 
   // Kích thước xuất ảnh (px). 300dpi: 4×6 = 1200×1800.
   output: {

@@ -328,3 +328,35 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
 .fg-items { display: grid; gap: calc(var(--u) * .3); padding-left: calc(var(--u) * 1.4); }
 .fg-item { display: flex; align-items: center; gap: calc(var(--u) * .6); font-size: calc(var(--u) * 1.05); color: var(--muted); }
 .fg-item input { width: calc(var(--u) * 1.5); height: calc(var(--u) * 1.5); accent-color: var(--lav); }
+
+/* ================= LUỒNG SỰ KIỆN: giao diện theo sự kiện (biến --ev-* gán từ app.js) ================= */
+.home-event { display: none; }
+body.event-mode { background: var(--ev-bg); }
+body.event-mode #app { background: var(--ev-img, none) center / cover no-repeat; }
+body.event-mode .bg-grain { opacity: .12; }
+body.event-mode .home, body.event-mode .home-showcase { display: none; }
+body.event-mode .home-event { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--u) * 1.4); padding: calc(var(--u) * 3) calc(var(--u) * 5) calc(var(--u) * 4); text-align: center; color: var(--ev-text); }
+.home-event .ev-logo { max-height: calc(var(--u) * 9); max-width: calc(var(--u) * 40); object-fit: contain; }
+.home-event .ev-title { margin: 0; font-family: var(--ev-font, var(--font)); font-size: calc(var(--u) * 6.2); font-weight: 800; line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
+.home-event .ev-sub { margin: 0; font-size: calc(var(--u) * 2.2); font-weight: 600; opacity: .9; }
+.home-event .ev-welcome { margin: 0; font-size: calc(var(--u) * 1.5); opacity: .8; }
+.home-event .btn-cta { margin-top: calc(var(--u) * 1.2); }
+body.event-mode .btn-cta::after { border-color: var(--ev-accent); opacity: .45; }
+.home-event .ev-strip { width: min(100%, calc(var(--u) * 92)); overflow: hidden; margin-top: calc(var(--u) * 1.6);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.home-event .ev-track { display: flex; gap: calc(var(--u) * 1.4); justify-content: center; width: max-content; margin: 0 auto; }
+.home-event .ev-track.run { justify-content: flex-start; animation: ev-scroll 40s linear infinite; }
+.home-event .ev-track img { height: calc(var(--u) * 17); border-radius: calc(var(--u) * .6); background: #fff; box-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 1.8) rgba(0, 0, 0, .18); }
+@keyframes ev-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.home-event .ev-powered { position: absolute; bottom: calc(var(--u) * 2); left: 0; right: 0; font-size: calc(var(--u) * 1.05); letter-spacing: .12em; opacity: .75; }
+body.event-mode .btn-primary { background: var(--ev-accent); box-shadow: 0 calc(var(--u) * 1) calc(var(--u) * 2.4) rgba(0, 0, 0, .22); }
+body.event-mode .stepbar .step.now b, body.event-mode .stepbar .step.done b { background: var(--ev-accent); border-color: var(--ev-accent); color: #fff; }
+body.event-mode .stepbar .step, body.event-mode .stepbar .step.now,
+body.event-mode #screen-mode .screen-title, body.event-mode #screen-select .screen-title, body.event-mode #screen-review .screen-title,
+body.event-mode #screen-result .screen-title, body.event-mode #screen-result .result-sub, body.event-mode .proc-text { color: var(--ev-text); }
+body.event-mode #screen-mode .screen-title span, body.event-mode #screen-review .screen-title span { color: var(--ev-text); opacity: .75; }
+/* Cài đặt: trạng thái luồng */
+.ev-status { margin: 0 0 calc(var(--u) * .6); font-weight: 800; color: var(--ok); }
+.ev-status.on { color: var(--lav-deep); }
+.ev-warn { margin: 0 0 calc(var(--u) * .6); padding: calc(var(--u) * .6) calc(var(--u) * .9); border-radius: calc(var(--u) * .6); background: #FCE8EE; color: var(--danger); font-weight: 600; }

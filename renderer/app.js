@@ -393,7 +393,7 @@ function buildModeGrid() {
   const grid = $('#mode-grid'), motion = $('#mode-motion');
   grid.innerHTML = '';
   if (motion) motion.innerHTML = '';
-  CFG.modes.forEach((m) => {
+  flowModes().forEach((m) => {
     if (m.kind !== 'photo' && motion) {   // GIF / Boomerang / Video → hàng thẻ ngang phía dưới
       const c = document.createElement('div');
       c.className = 'mcard';
@@ -461,11 +461,14 @@ async function chooseMode(m) {
   state.mode = m;
   state.rawFrames = []; state.captured = null; state.sessionAnim = null; state._shareRes = null;
   state.frameId = null; state.framePreviews = {}; state.stickered = false;
+  state.printCount = 0;
   clearBeautyCache();
   // refresh settings (price may have changed on the webadmin)
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
   const pay = state.settings && state.settings.payment;
-  if (pay && pay.enabled) { await openPayScreen(m); }
+  // Luồng sự kiện: thu tiền CHỈ khi sự kiện bật payment (mặc định tắt). Luồng thường: theo cài đặt chung.
+  const needPay = state.flow ? !!(state.flow.payment && state.flow.payment.enabled) : !!(pay && pay.enabled);
+  if (needPay) { await openPayScreen(m); }
   else { await beginCapture(m); }
 }
 
@@ -528,7 +531,7 @@ async function openPayScreen(m) {
   $('#pay-amount').textContent = 'Đang tạo đơn…';
   $('#pay-info').textContent = '';
   let order;
-  try { order = await window.booth.pay.createOrder(m.id); } catch (_e) { order = { enabled: false }; }
+  try { order = await window.booth.pay.createOrder(m.id, state.flow ? state.flow.id : undefined); } catch (_e) { order = { enabled: false }; }
   if (!order || !order.enabled) { await beginCapture(m); return; }
   state.payOrder = order;
   const cur = order.currency || 'đ';
@@ -801,6 +804,8 @@ function showResult(out) {
   imgOnly.forEach((sel) => { const el = $(sel); if (el) el.style.display = isVideo ? 'none' : ''; });
   const fb = $('#btn-frame');
   if (fb) fb.style.display = (!isVideo && out.kind !== 'gif' && state.mode && state.mode.kind === 'photo' && modeFrames(state.mode).length > 1) ? '' : 'none';
+  if (state.flow && !(state.flow.gallery && state.flow.gallery.public)) { const cr = $('#consent-row'); if (cr) cr.style.display = 'none'; }   // sự kiện riêng tư
+  updatePrintBtn();
   if (isVideo) {
     show1(img, false);
     if (vid) { vid.src = out.dataUrl; show1(vid, true); vid.play().catch(() => {}); }
@@ -1073,18 +1078,23 @@ function isFrameHidden(f) {
   if (g) return !getFrameGroupsOn()[g];   // khung dịp lễ / sự kiện: theo công tắc nhóm (mặc định tắt)
   return !!f.hidden;
 }
-// Khung đang hiện cho khách (khung mặc định luôn hiện).
+// Khung đang hiện cho khách (khung mặc định luôn hiện). Luồng sự kiện → CHỈ khung sự kiện gán cho kiểu đó.
 function modeFrames(m, includeHidden) {
+  if (state.flow && m) return eventFramesFor(state.flow, m);
   const list = Array.isArray(m && m.frames) ? m.frames : [];
   return includeHidden ? list : list.filter((f, i) => i === 0 || !isFrameHidden(f));
 }
 // Khung mặc định: frames[0], hoặc khung sự kiện đang bật có defaultForEvent.
 function defaultFrame(m) {
+  if (state.flow && m) {   // luồng sự kiện: khung mặc định của sự kiện cho kiểu này
+    const list = eventFramesFor(state.flow, m), id = state.flow.defaultFrame && state.flow.defaultFrame[m.id];
+    return list.find((f) => f.id === id) || list[0] || null;
+  }
   const vis = modeFrames(m);
   return vis.find((f, i) => i > 0 && f.defaultForEvent) || vis[0] || null;
 }
 function currentFrame(m = state.mode) {
-  const list = Array.isArray(m && m.frames) ? m.frames : [];
+  const list = state.flow ? modeFrames(m) : (Array.isArray(m && m.frames) ? m.frames : []);
   return list.find((f) => f.id === state.frameId) || defaultFrame(m);
 }
 // Mode đã áp 1 khung (không sửa object gốc trong config). Giữ nguyên m.id.
@@ -1096,6 +1106,155 @@ function applyFrame(m, fr) {
   return out;
 }
 function effectiveMode(m = state.mode) { return m ? applyFrame(m, currentFrame(m)) : m; }
+
+/* ================= LUỒNG SỰ KIỆN (SPEC-LUONG-SU-KIEN.md) =================
+   Cài đặt (booth-settings.json, sửa ở webadmin / Cài đặt): eventMode { enabled, activeEventId } + events[].
+   state.flow = sự kiện ĐANG ÁP DỤNG (null = luồng thường). Chỉ đổi khi ở màn chờ — không đổi giữa lượt chụp. */
+state.flow = null; state.flowPending = false; state.printCount = 0;
+// Tìm khung theo id: khung thường (modes[].frames) rồi thư viện khung sự kiện (eventFrames).
+function getFrameById(id) {
+  if (!id) return null;
+  for (const m of CFG.modes) { const f = (Array.isArray(m.frames) ? m.frames : []).find((x) => x.id === id); if (f) return f; }
+  const f = (CFG.eventFrames || []).find((x) => x.id === id);
+  if (!f) console.warn('[sự kiện] không có khung', id);
+  return f || null;
+}
+// Khung của sự kiện cho 1 kiểu chụp; không có khung hợp lệ → khung mặc định của kiểu đó (không bao giờ kẹt).
+function eventFramesFor(ev, m) {
+  const ids = (ev.frames && ev.frames[m.id]) || [];
+  const own = Array.isArray(m.frames) ? m.frames : [];
+  const list = ids.map(getFrameById).filter((f) => f && (own.includes(f) || f.mode === m.id));
+  return list.length ? list : own.slice(0, 1);
+}
+function inSchedule(ev, now = Date.now()) {
+  const sc = ev.schedule || {};
+  const a = sc.startAt ? Date.parse(sc.startAt) : NaN, b = sc.endAt ? Date.parse(sc.endAt) : NaN;
+  return !(a === a && now < a) && !(b === b && now > b);
+}
+// Sự kiện đang chạy (đã kiểm tra hợp lệ) hoặc null = luồng thường. Dữ liệu thiếu/hỏng → luồng thường.
+function activeEvent(settings = state.settings) {
+  const em = settings && settings.eventMode;
+  if (!em || !em.enabled) return null;
+  const ev = (settings.events || []).find((e) => e && e.id === em.activeEventId);
+  if (!ev || !inSchedule(ev)) return null;
+  const modes = (ev.modes || []).map((id) => CFG.modes.find((m) => m.id === id))
+    .filter((m) => m && (m.kind === 'photo' || ev.allowAnimated !== false));
+  if (!modes.length) return null;
+  return Object.assign({}, ev, { _modes: modes });
+}
+// Lý do sự kiện không chạy (hiện cảnh báo đỏ trong Cài đặt).
+function eventProblem(settings = state.settings) {
+  const em = settings && settings.eventMode;
+  if (!em || !em.enabled) return '';
+  const ev = (settings.events || []).find((e) => e && e.id === em.activeEventId);
+  if (!ev) return 'Đã bật luồng sự kiện nhưng chưa chọn sự kiện hợp lệ → đang chạy luồng thường.';
+  if (!inSchedule(ev)) return 'Sự kiện "' + ev.name + '" đang ngoài lịch chạy → đang chạy luồng thường.';
+  if (!activeEvent(settings)) return 'Sự kiện "' + ev.name + '" chưa có kiểu chụp hợp lệ → đang chạy luồng thường.';
+  return '';
+}
+// Kiểu chụp khách thấy: luồng thường = tất cả; sự kiện = event.modes (+ GIF/Boomerang nếu cho phép).
+function flowModes() {
+  const ev = state.flow;
+  if (!ev) return CFG.modes;
+  const list = ev._modes.slice();
+  if (ev.allowAnimated !== false) CFG.modes.forEach((m) => { if (m.kind !== 'photo' && !list.includes(m)) list.push(m); });
+  return list;
+}
+// Nạp khung sự kiện khai báo ngoài app (frames.json trong C:\YoungBooth-Frames\events\<bộ>\) vào CFG.eventFrames.
+async function loadExternalEventFrames() {
+  if (!window.booth.eventFrames) return;
+  try {
+    const list = await window.booth.eventFrames();
+    if (!Array.isArray(list)) return;
+    CFG.eventFrames = (CFG.eventFrames || []).filter((f) => !f.source);   // bỏ bản nạp lần trước
+    const ids = new Set(CFG.eventFrames.map((f) => f.id));
+    list.forEach((f) => { if (f && f.id && !ids.has(f.id)) { CFG.eventFrames.push(f); ids.add(f.id); } });
+  } catch (_e) {}
+}
+let _flowKey = null;
+// Áp luồng đang bật (giao diện + khung). Gọi ở màn chờ; nếu đang có khách → để dành tới khi về màn chờ.
+function applyFlow(force) {
+  const ev = activeEvent();
+  const key = ev ? JSON.stringify(ev) : '';
+  state.flowPending = false;
+  if (!force && key === _flowKey) return;
+  _flowKey = key; state.flow = ev;
+  applyEventTheme(ev);
+  renderEventHome(ev);
+  state.modeThumbs = {};
+  buildModeGrid();
+  resetConsent();
+  updatePrintBtn();
+  buildModeThumbs().then(() => { buildModeGrid(); renderHomeFan(); }).catch(() => {});
+}
+function maybeApplyFlow() {
+  const atHome = screens.home && screens.home.classList.contains('active');
+  if (atHome && !state.busy) applyFlow(); else state.flowPending = true;
+}
+function applyEventTheme(ev) {
+  const b = document.body;
+  b.classList.toggle('event-mode', !!ev);
+  const t = (ev && ev.theme) || {};
+  const set = (k, v) => { if (v) b.style.setProperty(k, v); else b.style.removeProperty(k); };
+  set('--ev-bg', ev ? (t.background || '#f4eefb') : '');
+  set('--ev-accent', ev ? (t.accent || '#8d6ccf') : '');
+  set('--ev-text', ev ? (t.textColor || '#2e2240') : '');
+  set('--ev-img', ev && t.backgroundImage ? 'url("' + String(t.backgroundImage).replace(/"/g, '%22') + '")' : '');
+  set('--ev-font', ev && t.font ? '"' + t.font + '", var(--font)' : '');
+  const title = document.querySelector('#screen-mode .screen-title');
+  if (title) {
+    if (!title.dataset.orig) title.dataset.orig = title.innerHTML;
+    title.innerHTML = ev ? esc(ev.name) + '<span>Chọn kiểu chụp</span>' : title.dataset.orig;
+  }
+}
+// Màn chờ sự kiện: logo, tiêu đề, lời chào, nút lớn, dải xem trước khung của sự kiện.
+function renderEventHome(ev) {
+  const box = $('#home-event');
+  if (!box) return;
+  if (!ev) { box.innerHTML = ''; return; }
+  const h = ev.home || {}, t = ev.theme || {};
+  const thumbs = [];
+  ev._modes.forEach((m) => eventFramesFor(ev, m).forEach((f) => {
+    const src = f.thumb || (f.overlay || m.overlay);
+    if (src && !thumbs.includes(src)) thumbs.push(src);
+  }));
+  const strip = thumbs.length ? `<div class="ev-strip"><div class="ev-track${thumbs.length > 3 ? ' run' : ''}">` +
+    (thumbs.length > 3 ? thumbs.concat(thumbs) : thumbs).map((u) => `<img src="${esc(u)}" alt="">`).join('') + '</div></div>' : '';
+  box.innerHTML =
+    (t.logo ? `<img class="ev-logo" src="${esc(t.logo)}" alt="">` : '') +
+    `<h1 class="ev-title">${esc(h.title || ev.name)}</h1>` +
+    (h.subtitle ? `<p class="ev-sub">${esc(h.subtitle)}</p>` : '') +
+    (h.welcome ? `<p class="ev-welcome">${esc(h.welcome)}</p>` : '') +
+    `<button class="btn btn-primary btn-cta" id="btn-ev-start" type="button"><span class="lbl">${esc(h.buttonLabel || 'CHỤP ẢNH')}</span></button>` +
+    strip +
+    (h.showYoungBoothBrand !== false ? '<div class="ev-powered">Powered by <b>YOUNG BOOTH</b></div>' : '');
+  box.querySelectorAll('img').forEach((im) => im.addEventListener('error', () => im.remove()));
+  $('#btn-ev-start').addEventListener('click', startFlow);
+}
+// Nút bắt đầu: chọn kiểu chụp; sự kiện chỉ có 1 kiểu → vào chụp luôn.
+function startFlow() {
+  const list = flowModes();
+  buildSourceBar();
+  if (state.flow && list.length === 1) { chooseMode(list[0]); return; }
+  buildModeGrid(); show('mode');
+}
+// Giới hạn số lần In mỗi lượt (sự kiện). 0 = không giới hạn.
+function printLimit() {
+  const p = state.flow && state.flow.print;
+  const n = p ? Number(p.maxPrintsPerSession) || 0 : 0;
+  return n > 0 ? n : 0;
+}
+function updatePrintBtn() {
+  const lim = printLimit();
+  ['#btn-print', '#se-print'].forEach((sel) => {
+    const b = $(sel);
+    if (!b) return;
+    if (!lim) { b.disabled = false; setLbl(b, 'In ảnh'); return; }
+    const left = Math.max(0, lim - (state.printCount || 0));
+    b.disabled = left === 0;
+    setLbl(b, left ? `In ảnh (còn ${left})` : 'Đã in đủ số bản');
+  });
+}
 
 // Font tiếng Việt nhúng sẵn — nạp 1 lần trước khi vẽ chữ lên canvas.
 let _fontsReady = null;
@@ -1129,8 +1288,8 @@ async function openFramePicker() {
   if (!m || !state.lastOutput) return;
   const run = ++_pickerRun;
   const list = modeFrames(m), cur = currentFrame(m);
-  $('#frame-picker-title').textContent = `Chọn khung — ${m.name}`;
-  const hiddenN = modeFrames(m, true).length - list.length;
+  $('#frame-picker-title').textContent = `Chọn khung — ${m.name}` + (state.flow ? ` · ${state.flow.name}` : '');
+  const hiddenN = state.flow ? 0 : modeFrames(m, true).length - list.length;
   $('#frame-pick-note').textContent = hiddenN ? `${hiddenN} khung dịp lễ / sự kiện đang ẩn.` : '';
   const grid = $('#frame-grid');
   grid.innerHTML = '';
@@ -1370,6 +1529,11 @@ function frameDateToday() {
 }
 // group = textGroup của khung (1 bộ khung = 1 nhóm, admin nhập 1 lần) hoặc id kiểu chụp.
 function frameTextValue(group, t) {
+  if (state.flow) {   // luồng sự kiện: chữ của sự kiện → chữ mặc định của khung (không dùng chữ đã nhập cho luồng thường)
+    const ev = (state.flow.texts || {})[t.id];
+    const val = (ev != null && ev !== '') ? ev : (t.value || '');
+    return (!val && t.id === 'date') ? frameDateToday() : val;
+  }
   const v = getFrameTextStore()[group + '.' + t.id];
   const val = (v != null && v !== '') ? v : (t.value || '');
   // Ô ngày để trống → tự điền ngày hôm nay (không in ngày cũ cố định).
@@ -1514,6 +1678,8 @@ async function ensureSessionAnim() {
 
 async function doPrint() {
   if (!state.lastOutput) return;
+  const lim = printLimit();
+  if (lim && (state.printCount || 0) >= lim) { updatePrintBtn(); alert('Đã in đủ số bản của sự kiện.'); return { success: false, reason: 'limit' }; }
   let dataUrl = state.lastOutput.dataUrl;
   const em = effectiveMode() || {};   // kiểu chụp + khung đang chọn (khung có thể ghi đè canvas/noRotate/cut2inch)
   const isStrip = em.layout === 'strip';
@@ -1559,7 +1725,7 @@ async function doPrint() {
 
   const res = await window.booth.print(dataUrl, {
     printerName,
-    copies: state.printCfg.copies,
+    copies: (state.flow && state.flow.print && Number(state.flow.print.copies)) || state.printCfg.copies,
     silent: state.printCfg.silent,
     paper,
     pageIn,
@@ -1571,6 +1737,7 @@ async function doPrint() {
     }
     return res;
   }
+  state.printCount = (state.printCount || 0) + 1;
   // Đẩy TRỌN LƯỢT (ảnh + GIF + Boomerang) lên cloud theo mã lượt → QR trên ảnh
   // truy cập được 3 ngày. Chạy ngầm, không chặn in.
   pushSessionOnce();
@@ -1596,7 +1763,7 @@ function pushSessionOnce() {
     } else {
       files.push({ role: out.kind === 'gif' ? 'gif' : 'photo', dataUrl: out.dataUrl });
     }
-    const r = await window.booth.pushSession(state.sessionId, files, !!state.publicShare);
+    const r = await window.booth.pushSession(state.sessionId, files, !!state.publicShare, state.flow ? state.flow.id : undefined);
     if (!r || !r.ok) state.pushedOutput = null; // lỗi mạng → lần sau thử lại
     return Object.assign({ files }, r);
   })().catch((e) => { state.pushedOutput = null; return { ok: false, reason: e.message }; });
@@ -1607,7 +1774,7 @@ $('#btn-print').addEventListener('click', async () => {
   const btn = $('#btn-print'); btn.disabled = true; setLbl(btn, 'Đang in…'); setStep(5);
   try { await doPrint(); }
   catch (e) { setStep(4); alert('Lỗi khi in: ' + e.message); }
-  finally { btn.disabled = false; setLbl(btn, 'In ảnh'); }
+  finally { updatePrintBtn(); }
 });
 
 // Xoay ảnh 90° (dọc → ngang) để in vừa giấy nằm ngang.
@@ -1677,6 +1844,7 @@ async function openSettings() {
   $('#set-subfooter').value = (state.brandOverride && state.brandOverride.subFooter) || '';
   buildFrameTextFields();
   buildFrameGroupFields();
+  await buildEventModeFields();
 
   // Canon control panel: only when the EDSDK module is present.
   const canonAvail = await window.booth.canon.available().catch(() => false);
@@ -1705,6 +1873,7 @@ function saveSettings() {
 
   saveFrameTextFields();
   saveFrameGroupFields();
+  saveEventModeFields();
 
   $('#settings-modal').classList.remove('show');
 
@@ -1713,6 +1882,33 @@ function saveSettings() {
     state.sessionAnim = null; state._shareRes = null;
     rerenderResult();
   }
+}
+// Luồng sự kiện trong Cài đặt: bật/tắt + chọn sự kiện (sửa chi tiết sự kiện ở webadmin).
+async function buildEventModeFields() {
+  try { state.settings = await window.booth.getSettings(); } catch (_e) {}
+  const s = state.settings || {}, em = s.eventMode || {}, evs = s.events || [];
+  const on = $('#set-ev-on'), sel = $('#set-ev-id');
+  if (!on || !sel) return;
+  on.checked = !!em.enabled;
+  sel.innerHTML = '<option value="">— chọn sự kiện —</option>' +
+    evs.map((e) => `<option value="${esc(e.id)}"${e.id === em.activeEventId ? ' selected' : ''}>${esc(e.name)}</option>`).join('');
+  const st = $('#ev-status'), warn = eventProblem(s), run = activeEvent(s);
+  st.textContent = run ? 'ĐANG BẬT: Sự kiện ' + run.name : 'ĐANG CHẠY: Luồng thường';
+  st.classList.toggle('on', !!run);
+  $('#ev-warn').textContent = warn ? '⚠️ ' + warn : '';
+  $('#ev-warn').style.display = warn ? '' : 'none';
+  let lan = '';
+  try { const i = await window.booth.info(); lan = (i && i.lanUrl) || ''; } catch (_e) {}
+  $('#ev-admin-link').textContent = 'Tạo / sửa sự kiện (giao diện, khung, chữ, thanh toán, giới hạn in): webadmin ' + (lan ? lan + '/admin' : 'http://127.0.0.1:3737/admin');
+}
+function saveEventModeFields() {
+  const on = $('#set-ev-on'), sel = $('#set-ev-id');
+  if (!on || !sel || !window.booth.setEventMode) return;
+  const em = (state.settings && state.settings.eventMode) || {};
+  if (!!em.enabled === on.checked && (em.activeEventId || '') === sel.value) return;   // không đổi
+  window.booth.setEventMode(on.checked, sel.value).then((r) => {
+    if (r && r.settings) { state.settings = r.settings; maybeApplyFlow(); }
+  }).catch((e) => alert('Không lưu được luồng sự kiện: ' + e.message));
 }
 // Dựng ô nhập chữ cho mọi khung có `texts` (sửa tên/ngày/lời mời... ngay trong app).
 // Ô nhập chữ trên khung, gom theo NHÓM: mode.texts (nhóm = id kiểu chụp) + frames[].texts (nhóm = textGroup).
@@ -2084,7 +2280,7 @@ $('#se-print').addEventListener('click', async () => {
   } catch (e) {
     setStep(4); alert('Lỗi khi in: ' + e.message);
   } finally {
-    btn.disabled = false; setLbl(btn, 'In ảnh');
+    updatePrintBtn();
   }
 });
 
@@ -2127,7 +2323,7 @@ async function ensureShare() {
       files.push({ role: 'boomerang', dataUrl: anim.boomerang });
     }
   }
-  state._shareRes = await window.booth.saveSession(files);
+  state._shareRes = await window.booth.saveSession(files, state.flow ? state.flow.id : undefined);
   return state._shareRes;
 }
 
@@ -2167,15 +2363,18 @@ function goHome() {
   $('#result-img').removeAttribute('src');
   try { stopPayPoll && stopPayPoll(); } catch (_e) {}
   stopCamera();
-  resetConsent();
+  state.printCount = 0;
   show('home');
+  applyFlow();      // admin đổi luồng / sự kiện trong lúc khách chụp → áp dụng bây giờ
+  resetConsent();
+  updatePrintBtn();
 }
 $('#btn-home').addEventListener('click', goHome);
 
 // ---- Quyền công khai / riêng tư (consent) ----
 function resetConsent() {
   const gal = CFG.gallery || {};
-  const def = gal.publicDefault !== false;
+  const def = gal.publicDefault !== false && !(state.flow && !(state.flow.gallery && state.flow.gallery.public));
   state.publicShare = def;
   const cb = $('#consent-public'); if (cb) cb.checked = def;
   try { window.booth.setPublic(def); } catch (_e) {}
@@ -2206,7 +2405,10 @@ function resetConsent() {
     if (Date.now() - last > secs * 1000) { last = Date.now(); goHome(); }
   }, 3000);
 })();
-$('#btn-start').addEventListener('click', () => { buildModeGrid(); buildSourceBar(); show('mode'); });
+$('#btn-start').addEventListener('click', startFlow);
+// Webadmin / Cài đặt lưu → áp luồng mới ngay nếu đang ở màn chờ, không thì sau lượt hiện tại.
+if (window.booth.onSettingsChanged) window.booth.onSettingsChanged(async (s) => { state.settings = s; await loadExternalEventFrames(); _flowKey = null; maybeApplyFlow(); });
+setInterval(() => { if (state.settings && state.settings.eventMode && state.settings.eventMode.enabled) maybeApplyFlow(); }, 30000);   // lịch chạy sự kiện
 
 // ---- init ----
 window.addEventListener('DOMContentLoaded', async () => {
@@ -2215,8 +2417,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   buildHomeShowcase();
   setStep(0);
   ensureFrameFonts();
-  buildModeThumbs().then(() => { buildModeGrid(); renderHomeFan(); }).catch(() => {});
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
+  await loadExternalEventFrames();
+  applyFlow(true);   // luồng thường hoặc sự kiện đang bật (dựng luôn ảnh mẫu khung)
 });
 
 // Dải "mẫu khung" ở màn hình chờ (thẻ ưu đãi + ảnh mẫu khung).
