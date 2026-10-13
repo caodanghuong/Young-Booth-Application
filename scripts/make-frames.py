@@ -5,6 +5,8 @@
 # Chạy:  py scripts/make-frames.py               → dựng lại TẤT CẢ khung (như trước)
 #        py scripts/make-frames.py youngbooth    → chỉ dựng khung được chọn (a b c d f youngbooth)
 #        thêm --out <thư mục> để xuất ra chỗ khác (vd xem thử trước khi ghi vào C:\YoungBooth-Frames)
+#        py scripts/make-frames.py sets          → 17 bộ khung mới cho nút "Chọn khung" (scripts/frame_sets.py) + *-thumb.png
+#        py scripts/make-frames.py set03 set07   → theo bộ;  py scripts/make-frames.py C-night-sky → theo id khung
 import math, os, shutil, sys, datetime
 from PIL import Image, ImageDraw, ImageFont
 OUT = 'C:/YoungBooth-Frames/'
@@ -581,6 +583,15 @@ if __name__ == '__main__':
         i = args.index('--out'); OUT = args[i + 1].rstrip('/\\') + '/'; del args[i:i + 2]
         os.makedirs(OUT, exist_ok=True)
     names = [a.lower() for a in args] or ['a', 'b', 'c', 'd', 'f']  # mặc định giữ như cũ (A–F)
+    old = [n for n in names if n in MAKERS]
+    new = [n for n in names if n not in MAKERS]
+    sets = None
+    if new:  # bộ khung mới (frame_sets.py): kiểm tra tên TRƯỚC khi backup/ghi
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import frame_sets
+        sets = frame_sets.select(new)
+        if not sets: sys.exit('Không có khung nào khớp: ' + ' '.join(new) + '  (vd: sets, set01…set17, C-night-sky)')
     backup_all()  # backup TOÀN BỘ PNG cũ trước khi ghi đè
-    for n in names: MAKERS[n]()
+    for n in old: MAKERS[n]()
+    if sets: frame_sets.build(sets, OUT, asset_dir='C:/YoungBooth-Frames/assets')
     print('ok', names, '->', OUT)
