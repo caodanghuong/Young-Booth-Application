@@ -3,6 +3,12 @@
 ==========================================================
 
 Yêu cầu: Windows 10/11 64-bit · máy ảnh Canon (cáp USB) · máy in DNP DS-RX1 (cáp USB, nếu in).
+MÁY CÀI TRẮNG: KHÔNG cần cài thêm gì (không cần Node.js, .NET, Visual C++, digiCamControl, driver máy ảnh).
+  - Nếu Windows hiện "Windows protected your PC" (SmartScreen): bấm "More info" → "Run anyway"
+    (app chưa ký số, chỉ hiện khi file chép từ Internet / Zalo / Drive; chép bằng USB thường không hiện).
+  - Đăng nhập Windows bằng 1 tài khoản cố định cho booth (app cài theo tài khoản, tự chạy khi tài khoản đó đăng nhập).
+  - Chỉnh đúng ngày giờ Windows (ngày in trên khung + QR cloud cần giờ đúng).
+  - Kết nối Wi-Fi và chọn mạng là "Private" (Riêng tư) để điện thoại khách tải ảnh qua QR được.
 
 **** CÁCH NHANH (khuyên dùng) ****
   1. Chép CẢ thư mục bộ cài này sang máy mới (USB / ổ cứng).
@@ -13,7 +19,8 @@ Yêu cầu: Windows 10/11 64-bit · máy ảnh Canon (cáp USB) · máy in DNP D
        [2] Chép khung ảnh vào  C:\YoungBooth-Frames
        [3] Chép cài đặt: sự kiện, giá, thanh toán, PIN  (hỏi trước nếu máy đã có cài đặt)
        [4] Cài driver máy in DNP + tạo 2 hàng in "DS-RX1" và "DS-RX1 (2inch cut)"
-       [5] Mở YoungBooth (từ giờ tự chạy cùng Windows)
+       [5] Mở quyền tường lửa cho YoungBooth + (hỏi) tắt chế độ ngủ khi cắm điện
+       [6] Mở YoungBooth (từ giờ tự chạy cùng Windows)
   4. Làm tiếp 3 việc ở mục "SAU KHI CÀI" bên dưới.
 
 Bộ cài gồm:
@@ -22,6 +29,7 @@ Bộ cài gồm:
   Du-lieu-cai-dat\             ← booth-settings.json: sự kiện, giá, thanh toán, PIN
   May-in-DNP\                  ← driver DNP DS-RX1 + setup-dnp.ps1 (thiết lập hàng in)
   CAI-DAT.bat / CAI-DAT.ps1    ← cài tự động
+  Don-dep-Cloudinary\          ← tự xoá ảnh cloud sau 3 ngày (CHỨA KHOÁ — không gửi cho ai)
 
 ----------------------------------------------------------
 SAU KHI CÀI (bắt buộc, ~3 phút)
@@ -43,9 +51,11 @@ NÊN LÀM
   http://127.0.0.1:3737/admin → mục Bảo mật → Đổi PIN quản trị → Lưu.
 - Internet / Wi-Fi: để QR tải ảnh + gallery online hoạt động. Không có mạng thì QR vẫn tải được
   khi điện thoại chung Wi-Fi với máy booth.
-- Tự xoá ảnh trên Cloudinary sau 3 ngày: chép file cleanup.bat (chứa khoá Cloudinary — giữ kín,
-  KHÔNG gửi cho ai) từ máy cũ (C:\Users\<tên>\young-booth-app\cleanup.bat) rồi đặt Task Scheduler
-  chạy mỗi ngày.
+- TỰ XOÁ ẢNH TRÊN CLOUDINARY SAU 3 NGÀY (thư mục Don-dep-Cloudinary — CHỨA KHOÁ CLOUDINARY, GIỮ KÍN):
+    1. Chép thư mục Don-dep-Cloudinary vào chỗ cố định trên máy mới, vd  C:\YoungBooth-Tools\Don-dep-Cloudinary
+    2. Nhấp đúp  Dat-lich-tu-dong.bat  → Windows tự chạy dọn dẹp mỗi ngày lúc 03:00.
+    3. Thử ngay: nhấp đúp cleanup.bat → mở cleanup.log xem "Tổng … ảnh, … quá hạn".
+    (Không cần cài Node.js: file tự dùng YoungBooth để chạy.)
 
 ----------------------------------------------------------
 LUỒNG SỰ KIỆN (đám cưới, sự kiện…)

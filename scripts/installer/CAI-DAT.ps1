@@ -68,8 +68,21 @@ if (Ask 'Có dùng máy in DNP DS-RX1 trên máy này không? (đã cắm USB + 
   }
 } else { Warn 'Bỏ qua máy in.' }
 
+# ---- 5. Tường lửa + nguồn điện (máy mới cài trắng hay thiếu)
+Step 5 'Tường lửa và chế độ ngủ'
+if (Test-Path $exe) {
+  # Cho điện thoại khách (chung Wi-Fi) tải ảnh qua QR LAN + vào webadmin cổng 3737 — mạng Riêng tư / Domain (không mở mạng Công cộng)
+  Get-NetFirewallRule -DisplayName 'YoungBooth' -ErrorAction SilentlyContinue | Remove-NetFirewallRule
+  New-NetFirewallRule -DisplayName 'YoungBooth' -Direction Inbound -Program $exe -Action Allow -Profile Private,Domain | Out-Null
+  Ok 'Đã cho phép YoungBooth qua tường lửa (mạng Riêng tư). Wi-Fi của booth nên đặt là "Private".'
+}
+if (Ask 'Đặt máy KHÔNG BAO GIỜ ngủ / tắt màn hình khi cắm điện (nên chọn cho máy booth)?') {
+  powercfg /change standby-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /change hibernate-timeout-ac 0
+  Ok 'Đã tắt chế độ ngủ khi cắm điện.'
+}
+
 # ---- Xong
-Step 5 'Hoàn tất'
+Step 6 'Hoàn tất'
 if (Test-Path $exe) {
   Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
   Start-Process $exe
