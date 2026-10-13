@@ -33,7 +33,7 @@ Một khung có thể ghi đè bố cục của kiểu chụp:
   cut2inch: true,                        // in qua máy "DS-RX1 (2inch cut)"
   qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },  // góc trên-trái ô QR
   textGroup: 'std-white',                // chữ dùng chung cho cả bộ khung (nhập 1 lần trong Cài đặt)
-  texts: [ { id: 'line1', label: 'Tên dòng 1', value: 'Minh Thư', xs: [270, 870], y: 1490, size: 72, fit: 480,
+  texts: [ { id: 'line1', label: 'Tên dòng 1', value: 'Khoảnh Khắc', xs: [270, 870], y: 1490, size: 72, fit: 480,
              color: '#1a1a1a', ff: '"YB Script", cursive' } ],
 }
 ```
@@ -69,12 +69,12 @@ Mỗi sự kiện có giao diện riêng + danh sách khung riêng. Khung sự k
 **Thêm khung sự kiện mới:**
 1. Thiết kế PNG đúng khổ của kiểu chụp (dọc 1200×1800, ngang 1800×1200), ô ảnh **trong suốt** đúng toạ độ `slots`.
    Kèm ảnh nhỏ `*-thumb.png` rộng ~300 px (không bắt buộc — thiếu thì dùng chính PNG khung).
-2. Chép vào `C:\YoungBooth-Frames\events\<tên bộ>\`, ví dụ `C:\YoungBooth-Frames\events\cuoi-thu-hsun\`.
+2. Chép vào `C:\YoungBooth-Frames\events\<tên bộ>\`, ví dụ `C:\YoungBooth-Frames\events\tiec-cuoi\`.
 3. Trong cùng thư mục tạo file **`frames.json`** khai báo khung (đường dẫn ảnh viết **tương đối** theo thư mục này):
 
 ```json
 [
-  { "id": "EV-C-cuoi-thu-hsun", "mode": "C", "name": "Cưới Thư & Hsun",
+  { "id": "EV-C-cuoi-thu-hsun", "mode": "C", "name": "Tiệc cưới",
     "overlay": "C-cuoi.png", "thumb": "C-cuoi-thumb.png",
     "background": "#ffffff", "logo": null, "showBrand": false, "cut2inch": true,
     "canvas": { "w": 1200, "h": 1800 },
@@ -83,7 +83,7 @@ Mỗi sự kiện có giao diện riêng + danh sách khung riêng. Khung sự k
                { "x": 640, "y": 40, "w": 520, "h": 328 }, { "x": 640, "y": 384, "w": 520, "h": 328 },
                { "x": 640, "y": 728, "w": 520, "h": 328 }, { "x": 640, "y": 1072, "w": 520, "h": 328 } ],
     "qr": { "size": 110, "label": false, "at": [ { "x": 448, "y": 1648 }, { "x": 1048, "y": 1648 } ] },
-    "texts": [ { "id": "line1", "label": "Tên cô dâu", "value": "Minh Thư", "xs": [300, 900], "y": 1520,
+    "texts": [ { "id": "line1", "label": "Dòng chữ", "value": "Khoảnh Khắc", "xs": [300, 900], "y": 1520,
                  "size": 64, "fit": 480, "color": "#1a1a1a", "ff": "\"YB Script\", cursive" } ] }
 ]
 ```

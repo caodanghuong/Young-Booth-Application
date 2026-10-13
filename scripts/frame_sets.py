@@ -32,10 +32,11 @@ NSERIF = '"Noto Serif", Georgia, serif'
 
 # ---------------------------------------------------------------- nhóm chữ động (1 bộ khung = 1 nhóm, admin nhập 1 lần)
 GROUPS = {
-    'std-white': ('Khung Save The Date', [('line1', 'Tên dòng 1', 'Minh Thư'), ('line2', 'Tên dòng 2', 'Kuan Hsun'),
-                                          ('date', 'Ngày', '09.07.2026'), ('tagline', 'Dòng dưới ngày', 'SAVE THE DATE')]),
-    'clover-sage': ('Khung Cỏ Bốn Lá', [('line1', 'Tên người thứ nhất', 'Tấn Nhã'), ('sep', 'Ký tự nối', '+'),
-                                        ('line2', 'Tên người thứ hai', 'Huỳnh Như'), ('date', 'Ngày', '05.07.2026')]),
+    # Chữ mặc định CHUNG (không tên người) — hợp cả đám cưới lẫn sự kiện; ngày để trống = app tự in ngày hôm nay.
+    'std-white': ('Khung Save The Date', [('line1', 'Dòng chữ 1', 'Khoảnh Khắc'), ('line2', 'Dòng chữ 2', 'Đáng Nhớ'),
+                                          ('date', 'Ngày (trống = hôm nay)', ''), ('tagline', 'Dòng dưới ngày', 'SAVE THE DATE')]),
+    'clover-sage': ('Khung Cỏ Bốn Lá', [('line1', 'Dòng chữ trên', 'Yêu Thương'), ('sep', 'Ký tự nối', '+'),
+                                        ('line2', 'Dòng chữ dưới', 'Hạnh Phúc'), ('date', 'Ngày (trống = hôm nay)', '')]),
     'event-orientation': ('Khung Orientation Day', [('title', 'Tên sự kiện', 'ORIENTATION'), ('title2', 'Chữ phụ tên sự kiện', 'day'),
                                                     ('tagline', 'Khẩu hiệu', 'Future Starts Here')]),
     'quockhanh': ('Khung Quốc Khánh 02.09', [('date', 'Ngày lễ', '02.09'), ('title', 'Dòng chữ dưới', 'VIỆT NAM')]),
@@ -1004,8 +1005,11 @@ def make_thumb(f, png, c, width=300):
         comp(th, sl, s['x'], s['y'])
     th.alpha_composite(png)
     for box, label in c.ph: placeholder(th, *box, label, c.fonts)
+    import datetime
+    today = datetime.date.today().strftime('%d . %m . %Y')   # giống app: ô ngày để trống → ngày hôm nay
     for t in f['texts']:
-        for x, y in _instances(t): draw_text(th, c.fonts, t['value'], x, y, t)
+        val = t['value'] or (today if t['id'] == 'date' else '')
+        for x, y in _instances(t): draw_text(th, c.fonts, val, x, y, t)
     if f['qr']:
         for i, p in enumerate(f['qr']['at']): fake_qr(th, p['x'], p['y'], f['qr']['size'], i + 3)
     return th.convert('RGB').resize((width, round(H * width / W)), Image.LANCZOS)
@@ -1152,10 +1156,10 @@ def emit_config(path):
 # ================================================================================================
 P_, L_ = (1200, 1800), (1800, 1200)
 GROUPS.update({
-    'rv': ('Khung Đỏ Rượu Vang', [('line1', 'Tên thứ nhất', 'Nhã'), ('line2', 'Tên thứ hai', 'Như'),
-                                  ('date', 'Ngày', '05 - 07 - 2026'), ('thanks', 'Lời cảm ơn', 'Thank You')]),
-    'lc': ('Khung Chanh Vàng', [('mono', 'Chữ cái đầu (monogram)', 'H&T'), ('date', 'Ngày', '01.07.2026')]),
-    'bc': ('Khung Báo Cũ', [('dateline', 'Dòng ngày kiểu báo', 'Monday, August 30, 1926')]),
+    'rv': ('Khung Đỏ Rượu Vang', [('line1', 'Chữ bên trái trái tim', 'Love'), ('line2', 'Chữ bên phải trái tim', 'Forever'),
+                                  ('date', 'Ngày (trống = hôm nay)', ''), ('thanks', 'Lời cảm ơn', 'Thank You')]),
+    'lc': ('Khung Chanh Vàng', [('mono', 'Chữ trong vòng lá (vd chữ cái đầu)', 'Love'), ('date', 'Ngày (trống = hôm nay)', '')]),
+    'bc': ('Khung Báo Cũ', [('dateline', 'Dòng ngày kiểu báo', 'Ấn bản đặc biệt')]),
     'pl': ('Khung Polaroid', [('caption', 'Chữ dưới ảnh Polaroid', 'Young Booth')]),
 })
 EV = dict(lib='event', set='ev')
