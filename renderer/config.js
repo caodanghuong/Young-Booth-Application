@@ -450,8 +450,35 @@ const BOOTH_CONFIG = {
 
   // Sticker dán lên ảnh (màn kết quả). emojis = mặc định; images = PNG trong renderer/stickers/.
   stickers: {
-    // Prop chữ tiệc/quẩy (SVG tự vẽ) — hiện trước, rồi tới emoji.
+    // Bộ sticker ĐÁNG YÊU (PNG viền trắng cắt dán, scripts/make-stickers.py) — hiện trước; sau đó prop chữ tiệc cũ, rồi emoji.
     images: [
+      'stickers/cute/xinh-xiu.png',
+      'stickers/cute/tai-meo.png',
+      'stickers/cute/tai-tho.png',
+      'stickers/cute/kinh-tim.png',
+      'stickers/cute/vuong-mien-hoa.png',
+      'stickers/cute/ma-hong.png',
+      'stickers/cute/no.png',
+      'stickers/cute/vuong-mien.png',
+      'stickers/cute/gau.png',
+      'stickers/cute/meo.png',
+      'stickers/cute/tho.png',
+      'stickers/cute/tim.png',
+      'stickers/cute/sao.png',
+      'stickers/cute/may.png',
+      'stickers/cute/dau.png',
+      'stickers/cute/kem.png',
+      'stickers/cute/banh-kem.png',
+      'stickers/cute/hoa-cuc.png',
+      'stickers/cute/yeu-qua.png',
+      'stickers/cute/dang-yeu.png',
+      'stickers/cute/best-friend.png',
+      'stickers/cute/happy.png',
+      'stickers/cute/tim-nho.png',
+      'stickers/cute/lap-lanh.png',
+      'stickers/cute/bong-bay.png',
+      'stickers/cute/cau-vong.png',
+
       'stickers/trai-tim-doodle.svg',
       'stickers/sparkle-doodle.svg',
       'stickers/umbala.svg',
