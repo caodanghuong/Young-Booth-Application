@@ -1035,7 +1035,7 @@ def select(names):
     for n in names:
         nl = n.lower()
         if nl in ('sets', 'all-sets'): out += FR
-        elif nl.startswith('set') and nl[3:].zfill(2) in SETS: out += [f for f in FR if f['set'] == nl[3:].zfill(2)]
+        elif nl.startswith('set') and nl[3:].zfill(2) in {f['set'] for f in FR}: out += [f for f in FR if f['set'] == nl[3:].zfill(2)]
         else: out += [f for f in FR if f['id'].lower() == nl]
     seen, res = set(), []
     for f in out:
@@ -1124,7 +1124,8 @@ def emit_config(path):
     out.append('const FRAME_TEXT_GROUPS = {')
     for g, (name, _) in GROUPS.items():
         modes = sorted({f['mode'] for f in FR if f.get('textGroup') == g}, key='ACDBF'.index)
-        if g == 'event-orientation': out.append(f"  {_js(g)}: {_js(name + ' (khung sự kiện)')},"); continue
+        if all(f.get('lib') == 'event' for f in FR if f.get('textGroup') == g):   # nhóm chỉ dùng cho khung sự kiện
+            out.append(f"  {_js(g)}: {_js(name + ' (khung sự kiện)')},"); continue
         names = {'A': 'Khoảnh Khắc', 'B': 'Ngọt Ngào', 'C': 'Nhật Ký', 'D': 'Chia Đôi', 'F': 'Dịu Dàng'}
         out.append(f"  {_js(g)}: {_js(name + ' (' + ' · '.join(names[x] for x in modes) + ')')},")
     out.append('};')
@@ -1141,3 +1142,308 @@ def emit_config(path):
         src = src[:a] + block + '\n\n' + src[a:]
     open(path, 'w', encoding='utf-8', newline='').write(src.replace('\n', nl))
     return sum(1 for f in FR)
+
+
+# ================================================================================================
+# KHUNG CHO LUỒNG SỰ KIỆN — danh sách user chọn (MO-TA-DANH-SACH-KHUNG.md): chỉ tờ dọc 4×6 / tờ ngang 6×4.
+# Thư viện eventFrames (lib='event'), file ở C:\YoungBooth-Frames\events\<bộ>\<mã>.png. Kiểu chụp theo số ảnh:
+#   1 ảnh → Khoảnh Khắc (A) · 2 ảnh → Ngọt Ngào (B) · 3 ảnh → Dịu Dàng (F, chụp 3).  Chạy: py scripts/make-frames.py setev config
+# ================================================================================================
+P_, L_ = (1200, 1800), (1800, 1200)
+GROUPS.update({
+    'rv': ('Khung Đỏ Rượu Vang', [('line1', 'Tên thứ nhất', 'Nhã'), ('line2', 'Tên thứ hai', 'Như'),
+                                  ('date', 'Ngày', '05 - 07 - 2026'), ('thanks', 'Lời cảm ơn', 'Thank You')]),
+    'lc': ('Khung Chanh Vàng', [('mono', 'Chữ cái đầu (monogram)', 'H&T'), ('date', 'Ngày', '01.07.2026')]),
+    'bc': ('Khung Báo Cũ', [('dateline', 'Dòng ngày kiểu báo', 'Monday, August 30, 1926')]),
+    'pl': ('Khung Polaroid', [('caption', 'Chữ dưới ảnh Polaroid', 'Young Booth')]),
+})
+EV = dict(lib='event', set='ev')
+
+
+def ev_copy(src_id, new_id, folder, name):
+    """Khung sự kiện dùng lại thiết kế của 1 khung thường (cùng toạ độ, cùng cách vẽ)."""
+    import copy
+    f = copy.deepcopy(next(x for x in FR if x['id'] == src_id))
+    f.update(id=new_id, name=name, file='events/' + folder + '/' + new_id.split('-', 2)[2], **EV)
+    f.pop('hidden', None); f.pop('holiday', None)
+    return f
+
+
+# ---------------- BỘ 1 — Cỏ Bốn Lá (CS) — cùng thiết kế bộ #02
+FR.append(ev_copy('A-clover-sage', 'EV-A-cs-d1', 'co-bon-la', 'Cỏ Bốn Lá – Tờ dọc'))
+FR.append(ev_copy('A-clover-sage-wide', 'EV-A-cs-n1', 'co-bon-la', 'Cỏ Bốn Lá – Tờ ngang'))
+for _f in FR[-2:]: _f['photos'] = 1
+
+
+# ---------------- BỘ 2 — Đỏ Rượu Vang – Chữ Ký (RV)
+def rv_texts(cx, y, size, fit, dy_date, dy_thx, sd, st):
+    g = 'rv'; c = '#f5efe6'
+    return [T(g, 'line1', x=cx - 40, y=y, size=size, fit=fit, align='right', ff=SCRIPT, color=c),
+            T(g, 'line2', x=cx + 40, y=y, size=size, fit=fit, align='left', ff=SCRIPT, color=c),
+            T(g, 'date', x=cx, y=y + dy_date, size=sd, ls=3, ff=SANS, weight='500', color=c),
+            T(g, 'thanks', x=cx, y=y + dy_thx, size=st, ff=SCRIPT, color=c)]
+
+
+RV_BRAND = dict(text='YOUNG BOOTH', color=(245, 239, 230, 150), ls=5, **BRAND_SERIF)
+add(id='EV-A-rv-d1', mode='A', name='Đỏ Rượu Vang – 1 ảnh dọc', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-d1',
+    photos=1, slots=[S(42, 42, 1116, 1380, 14)], heart=(600, 1532, 30), sprigs=[(1050, 1532, 120, -20, 1)],
+    texts=rv_texts(600, 1560, 84, 330, 70, 146, 26, 42), fixed=[dict(x=600, y=1784, size=12, **RV_BRAND)], qr=qr(120, (1036, 1636)), **EV)
+add(id='EV-B-rv-d2', mode='B', name='Đỏ Rượu Vang – 2 ảnh dọc', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-d2',
+    photos=2, paper='4x6', noRotate=False, slots=[S(42, 42, 1116, 718, 12), S(42, 776, 1116, 718, 12)],
+    heart=(600, 1574, 26), sprigs=[(1040, 1574, 104, -20, 1)],
+    texts=rv_texts(600, 1600, 70, 330, 58, 124, 22, 36), fixed=[dict(x=600, y=1784, size=12, **RV_BRAND)], qr=qr(120, (1036, 1636)), **EV)
+add(id='EV-A-rv-n1', mode='A', name='Đỏ Rượu Vang – 1 ảnh ngang', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-n1',
+    photos=1, canvas=L_, paper='4x6', slots=[S(40, 40, 1720, 900, 14)], heart=(900, 1022, 30),
+    sprigs=[(470, 1030, 120, -20, -1), (1330, 1030, 120, -20, 1)],
+    texts=rv_texts(900, 1050, 80, 380, 58, 112, 24, 36), fixed=[dict(x=900, y=1188, size=11, **RV_BRAND)], qr=qr(120, (1620, 1020)), **EV)
+
+
+# ---------------- BỘ 3 — Chanh Vàng – Monogram (LC)
+def lc_texts(cx, y, size, sd, dy):
+    return [T('lc', 'mono', x=cx, y=y, size=size, fit=size * 3.2, ff=SERIF, weight='700', color='#7a5a1e'),
+            T('lc', 'date', x=cx, y=y + dy, size=sd, ls=2, ff=SERIF, weight='600', color='#7a5a1e')]
+
+
+LC_BRAND = dict(text='YOUNG BOOTH', color='#b39a5e', ls=5, **BRAND_SERIF)
+add(id='EV-A-lc-d1', mode='A', name='Chanh Vàng – Tờ dọc', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-d1',
+    photos=1, slots=[S(42, 42, 1116, 1400)], filigree=True, wreath=(600, 1612, 138),
+    lemons=[(70, 62, 1.0, 'tl'), (1150, 1430, 1.1, 'br')], olives=[(1150, 30, 1.0, 150), (40, 1770, 1.0, -30)],
+    texts=lc_texts(600, 1632, 66, 22, 54), fixed=[dict(x=600, y=1782, size=12, **LC_BRAND)], qr=qr(120, (1036, 1636)), **EV)
+add(id='EV-A-lc-n1', mode='A', name='Chanh Vàng – Tờ ngang', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n1',
+    photos=1, canvas=L_, paper='4x6', slots=[S(42, 42, 1716, 860)], filigree=True, wreath=(900, 1036, 112),
+    lemons=[(70, 62, 1.0, 'tl'), (1750, 890, 1.0, 'br')], olives=[(1760, 28, 0.9, 150), (36, 1170, 0.9, -30)],
+    texts=lc_texts(900, 1054, 54, 18, 44), fixed=[dict(x=900, y=1186, size=11, **LC_BRAND)], qr=qr(120, (1620, 1020)), **EV)
+add(id='EV-F-lc-n3', mode='F', name='Chanh Vàng – 3 ảnh ngang', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n3',
+    photos=3, canvas=L_, paper='4x6', slots=[S(40, 40, 850, 550), S(40, 610, 850, 550), S(910, 610, 850, 550)],
+    wreath=(1300, 300, 205), lemons=[(68, 60, 1.0, 'tl'), (1752, 1150, 0.9, 'br')], olives=[(1770, 30, 0.9, 150)],
+    texts=lc_texts(1300, 322, 112, 30, 82), fixed=[dict(x=1300, y=560, size=13, **LC_BRAND)], qr=qr(120, (1600, 410)), **EV)
+
+# ---------------- BỘ 4 — Báo Cũ – The Daily (BC)
+add(id='EV-A-bc-d1', mode='A', name='Báo Cũ – The Daily', style='news', background='#cfc4a5', textGroup='bc', file='events/bao-cu/bc-d1',
+    photos=1, slots=[S(60, 96, 1080, 1290)], headline=(450, 1450, 1140, 1730),
+    texts=[T('bc', 'dateline', x=64, y=1478, size=22, fit=360, align='left', ff=NSERIF, color='#4e4434')],
+    fixed=[dict(text='THE DAILY', x=1110, y=1572, size=108, align='right', ff=NSERIF, weight=700, color='#a2977f', fit=640),
+           dict(text='Young Booth', x=1110, y=1690, size=96, align='right', ff=NSERIF, weight=700, color='#a2977f', fit=640)],
+    qr=qr(120, (70, 1590)), **EV)
+
+# ---------------- BỘ 5 — Polaroid Băng Dính (PL)
+add(id='EV-B-pl-n2', mode='B', name='Polaroid Băng Dính', style='polaroid', background='#ffffff', textGroup='pl', file='events/polaroid/pl-n2',
+    photos=2, canvas=L_, cards=[(36, 90, 846, 1020), (918, 90, 846, 1020)], slots=[S(99, 153, 720, 720), S(981, 153, 720, 720)],
+    texts=[T('pl', 'caption', xs=[400, 1282], y=1010, size=62, fit=520, ff=SCRIPT, color='#8c8680')],
+    qr=qr(120, (700, 950), (1582, 950)), **EV)
+
+# ---------------- BỘ 6 — Sao Vàng Nền Đen (SV)
+add(id='EV-A-sv-n1', mode='A', name='Sao Vàng Nền Đen', style='goldstar', background='#0b0b0b', file='events/sao-vang/sv-n1',
+    photos=1, canvas=L_, paper='4x6', slots=[S(180, 120, 1440, 960, 125)],
+    fixed=[dict(text='Young Booth', x=900, y=1166, size=40, ff=SCRIPT, color='#e8c02e')], qr=qr(120, (1636, 1036)), **EV)
+
+
+# ---------------- cách vẽ các bộ mới
+def sprig(img, x, y, length, ang_deg, d, color, width=3):
+    """Nhành lá line-art (nét mảnh, không tô): thân cong + lá hình giọt xen kẽ. d = 1 hướng phải, -1 hướng trái."""
+    a = math.radians(ang_deg)
+    ux, uy = math.cos(a) * d, math.sin(a)
+    end = (x + ux * length, y + uy * length)
+    mid = (x + ux * length / 2 - uy * length * .12 * d, y + uy * length / 2 + ux * length * .12 * d)
+    stem = quad((x, y), mid, end)
+    stroke_poly(img, stem, color, width, closed=False)
+    n = 6
+    for i in range(1, n + 1):
+        t = i / (n + 1); px, py = stem[int(t * (len(stem) - 1))]
+        side = 1 if i % 2 else -1
+        la = a + side * .75 * d if d > 0 else math.pi - a - side * .75
+        L = length * (.2 if i < n else .16)
+        tip = (px + math.cos(la) * L * (1 if d > 0 else 1), py + math.sin(la) * L)
+        nx, ny = -(tip[1] - py) / L * L * .28, (tip[0] - px) / L * L * .28
+        leafp = quad((px, py), ((px + tip[0]) / 2 + nx, (py + tip[1]) / 2 + ny), tip, 10) + quad(tip, ((px + tip[0]) / 2 - nx, (py + tip[1]) / 2 - ny), (px, py), 10)[1:]
+        stroke_poly(img, leafp, color, width * .8)
+    tipL = quad(end, (end[0] + ux * length * .1, end[1] + uy * length * .1 - 8), (end[0] + ux * length * .2, end[1] + uy * length * .2), 8)
+    stroke_poly(img, tipL, color, width * .8, closed=False)
+
+
+def st_rv_over(img, c, R):
+    f = c.f; col = (245, 239, 230, 255)
+    hx, hy, hs = f['heart']
+    fill_poly(img, heart_pts(hx, hy, hs), col)
+    for x, y, L, ang, d in f.get('sprigs', []): sprig(img, x, y, L, ang, d, col, 2.6)
+
+
+def lemon(img, cx, cy, r, rot):
+    """Quả chanh màu nước: hình bầu dục 2 đầu nhọn, màu chuyển + vệt sáng."""
+    c, s_ = math.cos(rot), math.sin(rot)
+    pts = []
+    for i in range(64):
+        t = i / 64 * 2 * math.pi
+        k = 1 + .16 * abs(math.cos(t)) ** 8   # đầu nhọn
+        px, py = math.cos(t) * r * 1.25 * k, math.sin(t) * r
+        pts.append((cx + px * c - py * s_, cy + px * s_ + py * c))
+    fill_poly(img, pts, (0, 0, 0, 40), blur=r * .12, offset=(2, 4))
+    fill_poly(img, pts, lambda w, h, x0, y0: rad_grad(w, h, (cx - r * .3 - x0, cy - r * .35 - y0), r * .1, r * 1.4,
+                                                      [(0, '#fbeb8f'), (.55, '#f2d64b'), (1, '#e3b92e')]), blur=.8, alpha=.95)
+    circle(img, cx - r * .35, cy - r * .3, r * .22, (255, 255, 255, 110), blur=r * .12)
+
+
+def lemon_leaf(img, x, y, L, ang, alpha=1.0):
+    a = math.radians(ang)
+    pts = ellipse_rot(x + math.cos(a) * L / 2, y + math.sin(a) * L / 2, L / 2, L * .2, a, 40)
+    fill_poly(img, pts, lambda w, h, x0, y0: lin_grad(w, h, (x - x0, y - y0), (x + math.cos(a) * L - x0, y + math.sin(a) * L - y0),
+                                                      [(0, '#5f7e45'), (1, '#a9b98f')]), alpha=.9 * alpha, blur=.7)
+    stroke_poly(img, [(x, y), (x + math.cos(a) * L * .9, y + math.sin(a) * L * .9)], (255, 255, 255, round(90 * alpha)), 1.5, closed=False)
+
+
+def blossom(img, x, y, r):
+    for i in range(5):
+        a = i / 5 * 2 * math.pi - math.pi / 2
+        fill_poly(img, ellipse_rot(x + math.cos(a) * r * .55, y + math.sin(a) * r * .55, r * .55, r * .36, a, 28), (255, 255, 255, 240), blur=.6)
+        stroke_poly(img, ellipse_rot(x + math.cos(a) * r * .55, y + math.sin(a) * r * .55, r * .55, r * .36, a, 28), (205, 200, 170, 160), 1.2)
+    circle(img, x, y, r * .22, '#e3b92e')
+
+
+def lemon_cluster(img, x, y, k, where):
+    """Cụm chanh + lá (+ hoa ở góc trên-trái), tâm tại góc ô ảnh."""
+    s_ = 1 if where == 'tl' else -1
+    lemon_leaf(img, x, y, 120 * k, -30 if s_ > 0 else 150); lemon_leaf(img, x, y, 105 * k, 70 if s_ > 0 else 250)
+    lemon_leaf(img, x + 20 * s_ * k, y - 10 * k, 90 * k, 20 if s_ > 0 else 200, .9)
+    lemon(img, x + 18 * s_ * k, y + 14 * s_ * k, 46 * k, .5)
+    if where == 'tl':
+        blossom(img, x + 78 * k, y + 50 * k, 26 * k)
+    else:
+        lemon(img, x - 72 * k, y - 18 * k, 38 * k, -.4)
+
+
+def olive_sprig(img, x, y, k, ang):
+    a = math.radians(ang)
+    L = 170 * k
+    end = (x + math.cos(a) * L, y + math.sin(a) * L)
+    stroke_poly(img, [(x, y), end], (126, 148, 102, 150), 2.2, closed=False)
+    for i in range(1, 7):
+        t = i / 7; px, py = x + math.cos(a) * L * t, y + math.sin(a) * L * t
+        for side in (1, -1):
+            la = a + side * .6
+            pts = ellipse_rot(px + math.cos(la) * 18 * k, py + math.sin(la) * 18 * k, 20 * k, 6 * k, la, 24)
+            fill_poly(img, pts, (169, 185, 143, 150), blur=.5)
+
+
+def wreath(img, cx, cy, r):
+    """Vòng lá ô liu 2 nhành cong đối xứng, hở trên và dưới."""
+    for side in (-1, 1):
+        n = 13
+        for i in range(n):
+            t = math.radians(-62 + 124 * i / (n - 1))           # từ dưới lên trên theo cung bên trái / phải
+            ang = math.pi + t if side < 0 else -t
+            px, py = cx + math.cos(ang) * r, cy + math.sin(ang) * r
+            tan = ang + math.pi / 2 * (-1 if side < 0 else 1)
+            for out in (1, -1):
+                la = tan + out * .55 * (1 if side > 0 else -1)
+                L = r * .16 * (1 - abs(i - n / 2) / n * .5)
+                pts = ellipse_rot(px + math.cos(la) * L, py + math.sin(la) * L, L, L * .34, la, 24)
+                fill_poly(img, pts, lambda w, h, x0, y0: lin_grad(w, h, (0, 0), (w, h), [(0, '#7e9466'), (1, '#a9b98f')]), alpha=.9, blur=.5)
+        arc = [(cx + math.cos(math.pi + math.radians(a) if side < 0 else -math.radians(a)) * r,
+                cy + math.sin(math.pi + math.radians(a) if side < 0 else -math.radians(a)) * r) for a in range(-64, 66, 4)]
+        stroke_poly(img, arc, (110, 130, 90, 200), 2, closed=False)
+
+
+def filigree(img, cx, y, col='#b8963e'):
+    """Hoa văn cuộn lá nhỏ màu vàng đồng giữa cạnh trên ô ảnh."""
+    rect(img, cx - 70, y - 16, cx + 70, y + 16, '#fffdf7')
+    for d in (1, -1):
+        sp = [(cx + d * (14 + math.cos(t) * (12 - t * 1.4) + t * 7), y + math.sin(t) * (12 - t * 1.4)) for t in (i * .25 for i in range(30))]
+        stroke_poly(img, sp, col, 2.2, closed=False)
+    fill_poly(img, [(cx, y - 11), (cx + 8, y), (cx, y + 11), (cx - 8, y)], col)
+
+
+def st_lemon_over(img, c, R):
+    f = c.f; gold = '#d9cba3'
+    for s in f['slots']:   # viền vàng kem mảnh, cách mép ảnh 1 khe trắng
+        stroke_rect(img, s['x'] - 12, s['y'] - 12, s['x'] + s['w'] + 12, s['y'] + s['h'] + 12, gold, 2.6)
+    if f.get('filigree'):
+        s = f['slots'][0]; filigree(img, s['x'] + s['w'] / 2, s['y'] - 12)
+    for x, y, k, ang in f.get('olives', []): olive_sprig(img, x, y, k, ang)
+    if f.get('wreath'): wreath(img, *f['wreath'])
+    for x, y, k, where in f.get('lemons', []): lemon_cluster(img, x, y, k, where)
+
+
+LOREM = ('Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua '
+         'Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat Duis aute irure '
+         'dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur hendrerit Nunc morbi ultrices mollis ').split()
+
+
+def st_news_bg(img, c, R):
+    W, H = c.W, c.H
+    img.alpha_composite(rad_grad(W, H, (W / 2, H / 2), min(W, H) * .35, max(W, H) * .75, [(0, '#d6cbac'), (.7, '#cbbf9e'), (1, '#b2a37e')]))
+    n = (np.random.default_rng(11).normal(0, 1, (H, W)) * 6).clip(-14, 14)
+    a = np.asarray(img).astype(np.int16); a[..., :3] = (a[..., :3] + n[..., None]).clip(0, 255)
+    img.paste(Image.fromarray(a.astype('uint8'), 'RGBA'))
+    lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    for _ in range(9):   # vết ố
+        circle(lay, R.random() * W, R.random() * H, 60 + R.random() * 140, (150, 120, 70, 40))
+    img.alpha_composite(lay.filter(ImageFilter.GaussianBlur(40)))
+    # chữ báo mờ chia cột phủ khắp tờ (phần dưới ảnh sẽ bị khoét)
+    fonts = c.fonts; col = (110, 98, 80, 128)
+    colw, gx = 340, 30
+    words = LOREM * 40; wi = 0
+    for cx0 in range(40, W - 40, colw + gx):
+        y = 54
+        while y < H - 50:
+            line = ''
+            while wi < len(words) and text_width(line + ' ' + words[wi], fonts.get('Noto Serif', 400, False, 17)) < colw:
+                line = (line + ' ' + words[wi]).strip(); wi += 1
+            if wi >= len(words): wi = 0
+            draw_text(img, fonts, line, cx0, y, dict(size=17, ff=NSERIF, color=col, align='left'))
+            y += 24
+
+
+def st_news_over(img, c, R):
+    f = c.f; W, H = c.W, c.H; brown = '#6b5638'
+    for x in range(14, W, 30):   # viền răng cưa chấm tròn 4 cạnh
+        circle(img, x, 14, 7, brown); circle(img, x, H - 14, 7, brown)
+    for y in range(44, H - 30, 30):
+        circle(img, 14, y, 7, brown); circle(img, W - 14, y, 7, brown)
+    s = f['slots'][0]; yrow = s['y'] + s['h'] + 30
+    for x in range(s['x'] + 8, s['x'] + s['w'], 26): circle(img, x, yrow, 8, brown)   # hàng chấm ngăn cách
+    x0, y0, x1, y1 = f['headline']
+    rect(img, x0 + 4, y0 + 6, x1 + 4, y1 + 6, (0, 0, 0, 40), blur=6)
+    rect(img, x0, y0, x1, y1, '#e2dac3')
+    stroke_rect(img, x0 + 10, y0 + 10, x1 - 10, y1 - 10, (162, 151, 127, 160), 2)
+    rect(img, 60, yrow + 26, 420, yrow + 70, (207, 196, 165, 230))   # chỗ dòng ngày (chữ động) dễ đọc
+
+
+def st_polaroid_bg(img, c, R):
+    rect(img, 0, 0, c.W, c.H, c.f['background'])
+    for x, y, w, h in c.f['cards']:
+        rect(img, x + 3, y + 8, x + w + 3, y + h + 10, (0, 0, 0, 55), blur=10)
+        rect(img, x, y, x + w, y + h, lambda ww, hh, x0, y0: lin_grad(ww, hh, (0, 0), (0, hh), [(0, '#f6f2ea'), (.85, '#f4f0e8'), (1, '#ebe6dc')]))
+        stroke_rect(img, x, y, x + w, y + h, '#e2ded6', 2)
+
+
+def tape(img, cx, cy, w, h, deg):
+    a = math.radians(deg); ca, sa = math.cos(a), math.sin(a)
+    P = lambda u, v: (cx + u * ca - v * sa, cy + u * sa + v * ca)
+    edge = lambda u0, sgn: [P(u0 + sgn * (4 if i % 2 else 0), -h / 2 + h * i / 10) for i in range(11)]
+    pts = edge(-w / 2, -1) + list(reversed(edge(w / 2, 1)))
+    pts = [P(-w / 2, -h / 2)] + [P(w / 2, -h / 2)] + edge(w / 2, 1)[1:] + [P(-w / 2, h / 2)] + list(reversed(edge(-w / 2, -1)))[1:]
+    fill_poly(img, pts, (0, 0, 0, 30), blur=3, offset=(1, 3))
+    fill_poly(img, pts, (233, 207, 148, 217))
+    for k in range(5):
+        stroke_poly(img, [P(-w / 2 + 10, -h / 2 + 12 + k * h / 6), P(w / 2 - 10, -h / 2 + 12 + k * h / 6)], (255, 255, 255, 25), 2, closed=False)
+
+
+def st_polaroid_over(img, c, R):
+    for i, (x, y, w, h) in enumerate(c.f['cards']):
+        tape(img, x + w / 2, y + 4, 270, 72, -2 if i == 0 else 2)
+
+
+def st_goldstar_over(img, c, R):
+    s = c.f['slots'][0]
+    W, H = c.W, c.H
+    regions = [((0, 0, s['x'], H), 6), ((0, s['y'] + s['h'], W, H), 5), ((0, 0, W, s['y']), 3), ((s['x'] + s['w'], 0, W, H), 3)]
+    placed = []
+    for reg, n in regions:
+        placed += scatter(c, R, n, lambda i: 13 + (R.random() ** 1.6) * 32, 0,
+                          lambda x, y, r, i: draw_star(img, x, y, r, '#e8c02e', rot=R.random() * 1.26), region=reg, edge=-0.5, spread=1.6)
+
+
+STYLES.update({
+    'rv': (st_plain_bg, st_rv_over), 'lemon': (st_plain_bg, st_lemon_over), 'news': (st_news_bg, st_news_over),
+    'polaroid': (st_polaroid_bg, st_polaroid_over), 'goldstar': (st_plain_bg, st_goldstar_over),
+})

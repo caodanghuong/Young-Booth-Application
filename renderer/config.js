@@ -258,6 +258,77 @@ const EVENT_FRAMES = [
           { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', x: 830, y: 1560, size: 56, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
           { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', x: 590, y: 1600, size: 34, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
         ] },
+      { id: 'EV-A-cs-d1', mode: 'A', name: 'Cỏ Bốn Lá – Tờ dọc', photos: 1, textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-d1-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
+        slots: [{ x: 80, y: 80, w: 1040, h: 1300, radius: 40 }],
+        texts: [
+          { id: 'line1', label: 'Tên người thứ nhất', value: 'Tấn Nhã', x: 470, y: 1530, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
+          { id: 'sep', label: 'Ký tự nối', value: '+', x: 600, y: 1600, size: 40, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
+          { id: 'line2', label: 'Tên người thứ hai', value: 'Huỳnh Như', x: 720, y: 1680, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
+          { id: 'date', label: 'Ngày', value: '05.07.2026', x: 720, y: 1735, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
+        ] },
+      { id: 'EV-A-cs-n1', mode: 'A', name: 'Cỏ Bốn Lá – Tờ ngang', photos: 1, textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
+        slots: [{ x: 85, y: 63, w: 1630, h: 910, radius: 40 }],
+        texts: [
+          { id: 'line1', label: 'Tên người thứ nhất', value: 'Tấn Nhã', x: 840, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'right' },
+          { id: 'sep', label: 'Ký tự nối', value: '+', x: 900, y: 1088, size: 44, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
+          { id: 'line2', label: 'Tên người thứ hai', value: 'Huỳnh Như', x: 960, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'left' },
+          { id: 'date', label: 'Ngày', value: '05.07.2026', x: 900, y: 1140, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
+        ] },
+      { id: 'EV-A-rv-d1', mode: 'A', name: 'Đỏ Rượu Vang – 1 ảnh dọc', photos: 1, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d1-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
+        slots: [{ x: 42, y: 42, w: 1116, h: 1380, radius: 14 }],
+        texts: [
+          { id: 'line1', label: 'Tên thứ nhất', value: 'Nhã', x: 560, y: 1560, size: 84, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
+          { id: 'line2', label: 'Tên thứ hai', value: 'Như', x: 640, y: 1560, size: 84, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
+          { id: 'date', label: 'Ngày', value: '05 - 07 - 2026', x: 600, y: 1630, size: 26, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
+          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 600, y: 1706, size: 42, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
+        ] },
+      { id: 'EV-B-rv-d2', mode: 'B', name: 'Đỏ Rượu Vang – 2 ảnh dọc', photos: 2, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
+        slots: [{ x: 42, y: 42, w: 1116, h: 718, radius: 12 }, { x: 42, y: 776, w: 1116, h: 718, radius: 12 }],
+        texts: [
+          { id: 'line1', label: 'Tên thứ nhất', value: 'Nhã', x: 560, y: 1600, size: 70, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
+          { id: 'line2', label: 'Tên thứ hai', value: 'Như', x: 640, y: 1600, size: 70, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
+          { id: 'date', label: 'Ngày', value: '05 - 07 - 2026', x: 600, y: 1658, size: 22, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
+          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 600, y: 1724, size: 36, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
+        ] },
+      { id: 'EV-A-rv-n1', mode: 'A', name: 'Đỏ Rượu Vang – 1 ảnh ngang', photos: 1, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+        slots: [{ x: 40, y: 40, w: 1720, h: 900, radius: 14 }],
+        texts: [
+          { id: 'line1', label: 'Tên thứ nhất', value: 'Nhã', x: 860, y: 1050, size: 80, fit: 380, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
+          { id: 'line2', label: 'Tên thứ hai', value: 'Như', x: 940, y: 1050, size: 80, fit: 380, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
+          { id: 'date', label: 'Ngày', value: '05 - 07 - 2026', x: 900, y: 1108, size: 24, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
+          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 900, y: 1162, size: 36, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
+        ] },
+      { id: 'EV-A-lc-d1', mode: 'A', name: 'Chanh Vàng – Tờ dọc', photos: 1, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-d1-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
+        slots: [{ x: 42, y: 42, w: 1116, h: 1400 }],
+        texts: [
+          { id: 'mono', label: 'Chữ cái đầu (monogram)', value: 'H&T', x: 600, y: 1632, size: 66, fit: 211.2, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
+          { id: 'date', label: 'Ngày', value: '01.07.2026', x: 600, y: 1686, size: 22, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
+        ] },
+      { id: 'EV-A-lc-n1', mode: 'A', name: 'Chanh Vàng – Tờ ngang', photos: 1, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+        slots: [{ x: 42, y: 42, w: 1716, h: 860 }],
+        texts: [
+          { id: 'mono', label: 'Chữ cái đầu (monogram)', value: 'H&T', x: 900, y: 1054, size: 54, fit: 172.8, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
+          { id: 'date', label: 'Ngày', value: '01.07.2026', x: 900, y: 1098, size: 18, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
+        ] },
+      { id: 'EV-F-lc-n3', mode: 'F', name: 'Chanh Vàng – 3 ảnh ngang', photos: 3, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1600, y: 410 }] },
+        slots: [{ x: 40, y: 40, w: 850, h: 550 }, { x: 40, y: 610, w: 850, h: 550 }, { x: 910, y: 610, w: 850, h: 550 }],
+        texts: [
+          { id: 'mono', label: 'Chữ cái đầu (monogram)', value: 'H&T', x: 1300, y: 322, size: 112, fit: 358.4, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
+          { id: 'date', label: 'Ngày', value: '01.07.2026', x: 1300, y: 404, size: 30, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
+        ] },
+      { id: 'EV-A-bc-d1', mode: 'A', name: 'Báo Cũ – The Daily', photos: 1, textGroup: 'bc', overlay: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1-thumb.png', background: '#cfc4a5', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 70, y: 1590 }] },
+        slots: [{ x: 60, y: 96, w: 1080, h: 1290 }],
+        texts: [
+          { id: 'dateline', label: 'Dòng ngày kiểu báo', value: 'Monday, August 30, 1926', x: 64, y: 1478, size: 22, fit: 360, color: '#4e4434', ff: '"Noto Serif", Georgia, serif', align: 'left' },
+        ] },
+      { id: 'EV-B-pl-n2', mode: 'B', name: 'Polaroid Băng Dính', photos: 2, textGroup: 'pl', overlay: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2.png', thumb: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 700, y: 950 }, { x: 1582, y: 950 }] },
+        slots: [{ x: 99, y: 153, w: 720, h: 720 }, { x: 981, y: 153, w: 720, h: 720 }],
+        texts: [
+          { id: 'caption', label: 'Chữ dưới ảnh Polaroid', value: 'Young Booth', xs: [400, 1282], y: 1010, size: 62, fit: 520, color: '#8c8680', ff: '"YB Script", "Dancing Script", cursive' },
+        ] },
+      { id: 'EV-A-sv-n1', mode: 'A', name: 'Sao Vàng Nền Đen', photos: 1, overlay: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1-thumb.png', background: '#0b0b0b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
+        slots: [{ x: 180, y: 120, w: 1440, h: 960, radius: 125 }],
+        texts: [] },
 ];
 const FRAME_TEXT_GROUPS = {
   'std-white': 'Khung Save The Date (Nhật Ký · Chia Đôi · Ngọt Ngào)',
@@ -271,6 +342,10 @@ const FRAME_TEXT_GROUPS = {
   'qk-bronze': 'Khung Không Gì Quý Hơn Độc Lập Tự Do (Nhật Ký · Dịu Dàng)',
   'qk-airmail': 'Khung Thư Bưu Chính 2/9 (Nhật Ký · Dịu Dàng)',
   'trungthu': 'Khung Trung Thu (Nhật Ký · Dịu Dàng)',
+  'rv': 'Khung Đỏ Rượu Vang (khung sự kiện)',
+  'lc': 'Khung Chanh Vàng (khung sự kiện)',
+  'bc': 'Khung Báo Cũ (khung sự kiện)',
+  'pl': 'Khung Polaroid (khung sự kiện)',
 };
 // ==== HẾT KHUNG MỚI (tự sinh)
 
