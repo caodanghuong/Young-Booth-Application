@@ -222,6 +222,12 @@ add(id='C-quoc-khanh', mode='C', set='08', name='Quốc Khánh 02.09', style='qk
     texts=qk_texts(dict(xs=[40, 640], y=862, size=48), dict(xs=[390, 990], y=1740, size=48, fit=250)),
     fixed=[vb(575, 600, '#b5523b', 22), vb(1175, 600, '#b5523b', 22), vb(25, 1400, '#b5523b', 22), vb(625, 1400, '#b5523b', 22)],
     qr=qr(110, (40, 1648), (640, 1648)))
+# Bản THƯỜNG NGÀY của khung #08 (chủ app chọn 13/10/2026): giữ nền tia nắng + pháo hoa, bỏ mọi chữ / hình liên quan 2/9 → hiện quanh năm.
+add(id='C-sunburst', mode='C', set='08', name='Tia Nắng Pháo Hoa', style='qk08', everyday=True, background='#f8eedb', cut2inch=True,
+    slots=strip_slots(50, 170, 50, 12),
+    fixed=[vb(575, 600, '#b5523b', 22), vb(1175, 600, '#b5523b', 22), vb(25, 1400, '#b5523b', 22), vb(625, 1400, '#b5523b', 22),
+           dict(text='Young Booth', xs=[372, 972], y=1748, size=58, ff=SCRIPT, color='#b5523b')],
+    qr=qr(110, (40, 1648), (640, 1648)))
 add(id='F-quoc-khanh', mode='F', set='08', name='Quốc Khánh 02.09', style='qk08', background='#f8eedb', textGroup='quockhanh', **QK,
     slots=grid2x2_slots(70, 190, 70, 14),
     texts=qk_texts(dict(x=40, y=868, size=64), dict(x=600, y=1730, size=72, fit=420)),
@@ -674,9 +680,13 @@ def st_qk08_over(img, c, R):
     if f['mode'] == 'C':
         for ox in (0, 600):
             fireworks(img, ox + 62, 62, 52, QK_COLS, R)
-            fireworks(img, ox + 215, 1716, 36, QK_COLS, R); fireworks(img, ox + 550, 1690, 26, QK_COLS, R)
-            heart_flag(img, ox + 548, 442, 56)
-            c.asset('holidays/quockhanh/non-la.png', img, (ox + 528, 1218, 70, 64), 'Nón lá')
+            if not f.get('everyday'): fireworks(img, ox + 215, 1716, 36, QK_COLS, R)   # bản thường ngày: chỗ này là chữ Young Booth
+            fireworks(img, ox + 550, 1690, 26, QK_COLS, R)
+            if f.get('everyday'):   # bản thường ngày: không tim cờ / nón lá, thêm 1 chùm pháo hoa nhỏ mép phải
+                fireworks(img, ox + 556, 442, 30, QK_COLS, R)
+            else:
+                heart_flag(img, ox + 548, 442, 56)
+                c.asset('holidays/quockhanh/non-la.png', img, (ox + 528, 1218, 70, 64), 'Nón lá')
             for _ in range(4):
                 p = free_spot(c, R, 8, 0, region=(ox + 8, 8, ox + 592, 1792))
                 if p: draw_star(img, p[0], p[1], 7 + R.random() * 5, '#f2b632', rot=R.random())
