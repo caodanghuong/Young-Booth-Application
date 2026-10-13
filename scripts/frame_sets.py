@@ -17,7 +17,8 @@ from PIL import Image, ImageDraw
 from frame_kit import (rgba, seeded, comp, lin_grad, rad_grad, shape, fill_poly, stroke_poly, circle, ellipse_rot, rect,
                        stroke_rect, cubic, quad, star_pts, draw_star, metal_star, twinkle_pts, glow_star, gem, heart_pts,
                        flag_vn, heart_flag, fireworks, cloud, skyline, clover, leaf, lantern, placeholder, load_asset, paste_fit,
-                       Fonts, draw_text, text_width, _family, fake_qr, strip_slots, grid2x2_slots, wide_row, S, punch)
+                       Fonts, draw_text, text_width, _family, fake_qr, strip_slots, grid2x2_slots, wide_row, S, punch,
+                       clover_cluster, leaves_wc)
 from PIL import ImageFilter
 
 # ---------------------------------------------------------------- font (chuỗi ff giống config.js)
@@ -113,7 +114,7 @@ add(id='C-clover-sage', mode='C', set='02', name='Cỏ Bốn Lá – Sage', styl
                     dict(xs=[370, 970], y=1612, size=52, fit=360), dict(xs=[370, 970], y=1660, size=20, ls=2)),
     fixed=[dict(text='YOUNG BOOTH', xs=[300, 900], y=1765, size=16, ls=7, **CLV_BRAND)],
     clovers=[(40, 40, 110, .6), (505, 1400, 160, 1), (640, 40, 110, .6), (1105, 1400, 160, 1)],
-    leaves=[(70, 1480, .6), (670, 1480, .6)],
+    leaves=[(70, 1500, .48), (670, 1500, .48)],
     qr=qr(110, (36, 1648), (636, 1648)))
 add(id='A-clover-sage', mode='A', set='02', name='Cỏ Bốn Lá – Sage', style='clover', background='#c3d1ba', textGroup='clover-sage',
     band=1380, slots=[S(80, 80, 1040, 1300, 40)],
@@ -536,14 +537,14 @@ def st_clover_bg(img, c, R):
 
 
 def st_clover_over(img, c, R):
-    for x, y, s in c.f.get('leaves', []):
+    """Họa tiết màu nước tự vẽ (frame_kit.clover_cluster / leaves_wc); có file PNG bản quyền trong assets/clover thì dùng file."""
+    for i, (x, y, s) in enumerate(c.f.get('leaves', [])):
         if not c.asset('clover/leaves.png', img, (x - 90 * s, y - 70 * s, 180 * s, 150 * s), 'leaves.png', vector=True):
-            leaf(img, x, y, s, -.6, .95); leaf(img, x + 40 * s, y + 50 * s, s * .85, .3, .95); leaf(img, x - 30 * s, y + 70 * s, s * .7, -1.3, .9)
-    for x, y, size, a in c.f.get('clovers', []):
+            leaves_wc(img, x, y, s, seed=31 + i)
+    for i, (x, y, size, a) in enumerate(c.f.get('clovers', [])):
         name = 'clover/clover-small.png' if a < 1 else 'clover/clover-big.png'
         if not c.asset(name, img, (x - size / 2, y - size / 2, size, size), os.path.basename(name), alpha=a, vector=True):
-            clover(img, x, y, size, a, rot=.3 + R.random() * .4)
-            if a >= 1: clover(img, x - size * .38, y + size * .42, size * .42, .95, rot=1.1)
+            clover_cluster(img, x, y, size, seed=11 + i * 7, big=a >= 1, alpha=1.0 if a >= 1 else .62)
 
 
 def st_white_bg(img, c, R):

@@ -482,3 +482,106 @@ def punch(img, slots):
     a = np.minimum(np.asarray(img.getchannel('A')), np.asarray(keep))
     img.putalpha(Image.fromarray(a))
     return img
+
+
+# ---------------------------------------------------------------- màu nước (cỏ bốn lá / lá) — tự vẽ, không dùng tranh bên thứ ba
+def _smooth_noise(w, h, seed, cell=7):
+    """Nhiễu mịn (loang màu nước): lưới ngẫu nhiên nhỏ phóng to bicubic. Trả mảng float ~[-1, 1]."""
+    rng = np.random.default_rng(seed)
+    gw, gh = max(2, w // cell + 2), max(2, h // cell + 2)
+    small = Image.fromarray((rng.random((gh, gw)) * 255).astype(np.uint8), 'L')
+    big = np.asarray(small.resize((w, h), Image.BICUBIC), dtype=np.float32)
+    return (big - 127.5) / 127.5
+
+
+def wc_shape(img, pts, stops, focus, edge=None, edge_w=3.0, alpha=0.95, seed=0, blur=0.8, grain=0.07):
+    """Hình tô kiểu màu nước: màu chuyển toả từ `focus` + loang ngẫu nhiên + mép đậm hơn (màu đọng ở mép)."""
+    def fillfn(w, h, x0, y0):
+        g = rad_grad(w, h, (focus[0] - x0, focus[1] - y0), 0, max(w, h) * .72, stops)
+        a = np.asarray(g).astype(np.float32)
+        n = _smooth_noise(w, h, seed) * .6 + _smooth_noise(w, h, seed + 7, 3) * .4
+        a[..., :3] *= (1 + n[..., None] * grain)
+        return Image.fromarray(a.clip(0, 255).astype(np.uint8), 'RGBA')
+    fill_poly(img, pts, fillfn, blur=blur, alpha=alpha)
+    if edge:
+        stroke_poly(img, pts, rgba(edge, .55 * alpha), edge_w, blur=1.1)
+
+
+def _rot(pts, cx, cy, a):
+    c, s = math.cos(a), math.sin(a)
+    return [(cx + x * c - y * s, cy + x * s + y * c) for x, y in pts]
+
+
+def clover_wc(img, cx, cy, size, alpha=1.0, rot=0.3, seed=1, pale=False):
+    """Cỏ bốn lá màu nước: 4 lá hình tim to tròn, loang đậm nhạt, vệt sáng chữ V, gân giữa, thân cong."""
+    R = random.Random(seed)
+    light, mid, dark = ('#dcefc4', '#b5d88f', '#7fb062') if pale else ('#c9e7a2', '#8cc865', '#3f8a3a')
+    edge = '#6fa15a' if pale else '#2f6e2e'
+    stem_end = (cx + size * (.08 + R.random() * .08), cy + size * .62)
+    stroke_poly(img, quad((cx, cy), (cx + size * .12, cy + size * .32), stem_end), rgba('#5c9447' if not pale else '#94bd7c', .85 * alpha),
+                max(1.5, size * .03), closed=False)
+    for i in range(4):
+        a = rot + i * math.pi / 2 + (R.random() - .5) * .18
+        s = size * (.47 + R.random() * .06)
+        # lá hình tim: mũi tim ở tâm cây, 2 thuỳ hướng ra ngoài
+        local = [(x, -y) for x, y in heart_pts(0, 0, s, 30)]            # tim lộn ngược: mũi ở trên (gần tâm)
+        local = [(x, y + s * .36) for x, y in local]                       # đưa mũi về gốc toạ độ
+        pts = _rot(local, cx, cy, a - math.pi / 2)
+        ox, oy = math.cos(a) * s * .52, math.sin(a) * s * .52              # tâm lá
+        wc_shape(img, pts, [(0, light), (.45, mid), (1, dark)], (cx + ox * 1.15, cy + oy * 1.15), edge=edge, edge_w=max(1.5, s * .03),
+                 alpha=.93 * alpha, seed=seed * 10 + i)
+        # vệt sáng chữ V đặc trưng của cỏ ba lá / bốn lá
+        for side in (-1, 1):
+            b = a + side * .55
+            v = [(cx + math.cos(a) * s * .18, cy + math.sin(a) * s * .18),
+                 (cx + math.cos(a) * s * .38 + math.cos(b) * s * .16, cy + math.sin(a) * s * .38 + math.sin(b) * s * .16)]
+            stroke_poly(img, v, (255, 255, 255, round(95 * alpha)), max(2, s * .07), closed=False, blur=s * .025)
+        # gân giữa
+        stroke_poly(img, [(cx + math.cos(a) * s * .06, cy + math.sin(a) * s * .06), (cx + math.cos(a) * s * .74, cy + math.sin(a) * s * .74)],
+                    (255, 255, 255, round(120 * alpha)), max(1, s * .018), closed=False)
+    circle(img, cx, cy, max(2, size * .035), rgba('#3d7a34' if not pale else '#86b06e', alpha))
+
+
+def leaf_wc(img, x, y, L, ang, alpha=1.0, seed=3, dark=True):
+    """Lá to bản xanh đậm màu nước, gân giữa + gân phụ sáng, mép đậm."""
+    a = math.radians(ang)
+    w = L * .42
+    half = cubic((0, 0), (L * .25, -w * .95), (L * .78, -w * .55), (L, 0), 22)
+    other = cubic((L, 0), (L * .78, w * .6), (L * .25, w * .9), (0, 0), 22)
+    pts = _rot(half + other[1:], x, y, a)
+    stops = [(0, '#7fa96a'), (.5, '#4c7f45'), (1, '#24502c')] if dark else [(0, '#b9d7a0'), (.5, '#86b26c'), (1, '#4f8445')]
+    wc_shape(img, pts, stops, (x + math.cos(a) * L * .45, y + math.sin(a) * L * .45), edge='#1d3f22' if dark else '#3d6b36',
+             edge_w=max(1.5, L * .012), alpha=.94 * alpha, seed=seed, grain=.09)
+    vein = _rot([(L * .04, 0), (L * .94, 0)], x, y, a)
+    stroke_poly(img, vein, (220, 240, 210, round(130 * alpha)), max(1.5, L * .012), closed=False)
+    for k in range(1, 6):
+        t = k / 6.5
+        for side in (-1, 1):
+            p0 = (L * t, 0); p1 = (L * (t + .13), side * w * .34 * (1 - t * .5))
+            stroke_poly(img, _rot([p0, p1], x, y, a), (220, 240, 210, round(85 * alpha)), max(1, L * .007), closed=False)
+
+
+def droplets(img, cx, cy, r, n, seed, color='#8cc865', alpha=.55):
+    R = random.Random(seed)
+    for _ in range(n):
+        ang, d = R.random() * 2 * math.pi, r * (.6 + R.random() * .6)
+        circle(img, cx + math.cos(ang) * d, cy + math.sin(ang) * d, 2 + R.random() * r * .035, rgba(color, alpha * (.5 + R.random() * .5)), blur=.8)
+
+
+def clover_cluster(img, cx, cy, size, seed=5, big=True, alpha=1.0):
+    """Cụm cỏ lớn (điểm nhấn): 1 cây to + 2 cây nhỏ phía dưới + giọt màu; cụm nhỏ = 1 cây nhạt."""
+    if not big:
+        clover_wc(img, cx, cy, size, alpha=alpha, rot=.25, seed=seed, pale=True)
+        return
+    droplets(img, cx, cy, size * .7, 9, seed)
+    clover_wc(img, cx - size * .30, cy + size * .44, size * .42, alpha=alpha, rot=.9, seed=seed + 1)
+    clover_wc(img, cx + size * .02, cy + size * .62, size * .32, alpha=alpha, rot=.45, seed=seed + 2)
+    clover_wc(img, cx, cy, size, alpha=alpha, rot=.32, seed=seed)
+
+
+def leaves_wc(img, x, y, s, seed=9, alpha=1.0):
+    """Chùm 3 lá xanh đậm chồi ra từ góc dưới-trái."""
+    bx, by = x - 75 * s, y + 125 * s          # gốc chùm lá: sát mép trái-dưới (lá chồi từ ngoài tờ vào)
+    leaf_wc(img, bx - 10 * s, by + 10 * s, 190 * s, -72, alpha, seed, dark=True)
+    leaf_wc(img, bx, by, 215 * s, -42, alpha, seed + 1, dark=True)
+    leaf_wc(img, bx + 10 * s, by + 18 * s, 150 * s, -12, alpha * .9, seed + 2, dark=False)
