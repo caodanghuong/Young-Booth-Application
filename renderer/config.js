@@ -3,6 +3,20 @@
 // LƯU Ý: file nằm trong app.asar → sửa xong phải đóng gói lại (build/cài lại) mới có hiệu lực.
 // Ô chữ id 'date' để trống ('') = tự in ngày hôm nay.
 
+// ---- Công thức ô ảnh dùng chung cho các bộ khung (bản Python tương đương trong scripts/make-frames.py) ----
+// Nhật Ký: canvas 1200×1800, 2 dải 600 giống nhau (cắt x=600), 4 ảnh/dải → 8 ô (dải phải lặp i % 4).
+function stripSlots({ top, bottom, side, gap, radius = 0 }) {
+  const w = 600 - 2 * side, h = Math.floor((1800 - top - bottom - 3 * gap) / 4);
+  const out = [];
+  for (const ox of [0, 600]) for (let i = 0; i < 4; i++) out.push({ x: ox + side, y: top + i * (h + gap), w, h, radius });
+  return out;
+}
+// Dịu Dàng: canvas 1200×1800, lưới 2×2.
+function grid2x2Slots({ top, bottom, side, gap, radius = 0 }) {
+  const w = Math.floor((1200 - 2 * side - gap) / 2), h = Math.floor((1800 - top - bottom - gap) / 2);
+  return [[0, 0], [1, 0], [0, 1], [1, 1]].map(([c, r]) => ({ x: side + c * (w + gap), y: top + r * (h + gap), w, h, radius }));
+}
+
 const BOOTH_CONFIG = {
   brand: {
     title: 'YOUNG BOOTH',
@@ -153,6 +167,11 @@ const BOOTH_CONFIG = {
         { x: 60, y: 150, w: 1080, h: 1390, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
+      // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
+      // Thêm khung: 1 phần tử { id, name, overlay, … } (xem FRAMES_GUIDE.md).
+      frames: [
+        { id: 'A-default', name: 'Gallery Navy' },
+      ],
       showBrand: false,
       qr: { xs: [994], y: 1586, width: 136, label: '' },   // QR trong footer, thẳng viền ngoài bên phải
       // Logo giữa header (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
@@ -181,6 +200,11 @@ const BOOTH_CONFIG = {
         { x: 1010, y: 160, w: 680, h: 810, radius: 24 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
+      // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
+      // Thêm khung: 1 phần tử { id, name, overlay, … } (xem FRAMES_GUIDE.md).
+      frames: [
+        { id: 'B-default', name: 'Ngọt Ngào Hồng' },
+      ],
       showBrand: false,
       qr: { xs: [640, 1540], y: 990, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 60, h: 66 },
@@ -214,6 +238,11 @@ const BOOTH_CONFIG = {
         { x: 650, y: 1180, w: 500, h: 330, radius: 14 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/youngbooth-strip.png',
+      // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
+      // Thêm khung: 1 phần tử { id, name, overlay, … } (xem FRAMES_GUIDE.md).
+      frames: [
+        { id: 'C-default', name: 'Chocolate YoungBooth' },
+      ],
       showBrand: false,
       qr: { xs: [378, 978], y: 1536, width: 150, label: '' },
       texts: [
@@ -243,6 +272,11 @@ const BOOTH_CONFIG = {
         { x: 1010, y: 150, w: 680, h: 810, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/split2-ivory.png',
+      // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
+      // Thêm khung: 1 phần tử { id, name, overlay, … } (xem FRAMES_GUIDE.md).
+      frames: [
+        { id: 'D-default', name: 'Scrapbook' },
+      ],
       showBrand: false,
       qr: { xs: [640, 1540], y: 1000, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 44, h: 56 },
@@ -269,6 +303,11 @@ const BOOTH_CONFIG = {
         { x: 618, y: 854, w: 490, h: 650, radius: 28 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
+      // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
+      // Thêm khung: 1 phần tử { id, name, overlay, … } (xem FRAMES_GUIDE.md).
+      frames: [
+        { id: 'F-default', name: 'Pastel Hàn Quốc' },
+      ],
       showBrand: false,
       qr: { xs: [960], y: 1588, width: 130, label: '' },   // QR footer, thẳng mép phải lưới ảnh
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 50, h: 74 },
@@ -308,6 +347,15 @@ const BOOTH_CONFIG = {
     includeAnimation: true,
     animationFrameDelay: 450, // ms mỗi khung của GIF/Boomerang tạo từ ảnh chụp
   },
+
+  // Tên hiển thị trong ⚙️ Cài đặt cho nhóm khung dịp lễ / sự kiện (frames[].holiday / frames[].event) — mặc định ẨN.
+  frameGroups: {
+    quockhanh: 'Khung Quốc Khánh 2/9',
+    trungthu: 'Khung Trung Thu',
+    'event:orientation': 'Khung sự kiện Orientation Day',
+  },
+  // Tên nhóm chữ (frames[].textGroup) trong Cài đặt → admin nhập 1 lần cho cả bộ khung.
+  textGroups: {},
 
   // Kích thước xuất ảnh (px). 300dpi: 4×6 = 1200×1800.
   output: {

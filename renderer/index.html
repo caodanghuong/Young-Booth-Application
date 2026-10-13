@@ -20,6 +20,7 @@
     <symbol id="i-gif" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5H6.5v3H8v-1.4M11 10.5v3M14 13.5v-3h2.4M14 12h1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
     <symbol id="i-loop" viewBox="0 0 24 24"><path d="M7 9h9a3 3 0 0 1 0 6h-1M17 15H8a3 3 0 0 1 0-6h1M14 6l3 3-3 3M10 12l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 10.5l5-3v9l-5-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="7" y="7" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 14.5l3-3 2.4 2.4L14 12l3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -168,6 +169,7 @@
           </label>
 
           <div class="result-buttons">
+            <button class="btn btn-soft btn-frame" id="btn-frame" type="button" style="display:none"><svg><use href="#i-frame"/></svg><span class="lbl">Chọn khung</span></button>
             <button class="btn btn-primary btn-big" id="btn-print" type="button"><svg><use href="#i-print"/></svg><span class="lbl">In ảnh</span></button>
             <div class="row2">
               <button class="btn btn-soft" id="btn-sticker" type="button"><svg><use href="#i-spark"/></svg><span class="lbl">Thêm sticker</span></button>
@@ -190,6 +192,29 @@
         <p class="qr-url" id="qr-url"></p>
         <p class="qr-note">Điện thoại phải dùng chung Wi‑Fi với máy này.</p>
         <button class="btn btn-soft" id="btn-close-share" type="button"><span class="lbl">Đóng</span></button>
+      </div>
+    </div>
+
+    <!-- ============ CHỌN KHUNG (cùng kiểu chụp) ============ -->
+    <div class="modal-overlay" id="frame-picker">
+      <div class="modal frames" role="dialog" aria-modal="true" aria-labelledby="frame-picker-title">
+        <div class="frames-head">
+          <h3 id="frame-picker-title">Chọn khung</h3>
+          <button class="btn btn-soft" id="btn-frame-close" type="button"><svg><use href="#i-close"/></svg><span class="lbl">Đóng</span></button>
+        </div>
+        <div class="frame-grid" id="frame-grid"></div>
+        <p class="qr-note" id="frame-pick-note"></p>
+      </div>
+    </div>
+
+    <!-- ============ XÁC NHẬN ============ -->
+    <div class="modal-overlay" id="confirm-modal">
+      <div class="modal notice">
+        <p id="confirm-text"></p>
+        <div class="modal-btn-row">
+          <button class="btn btn-primary" id="confirm-ok" type="button"><span class="lbl">Đồng ý</span></button>
+          <button class="btn btn-ghost" id="confirm-cancel" type="button"><span class="lbl">Huỷ</span></button>
+        </div>
       </div>
     </div>
 
@@ -271,6 +296,13 @@
         <div class="set-row col">
           <label for="set-subfooter">Ngày / dòng dưới (để trống = ngày hôm nay)</label>
           <input type="text" id="set-subfooter" class="set-text" placeholder="vd: Sinh nhật Minh Anh · 28/09/2026" />
+        </div>
+
+        <div id="frame-group-wrap" style="display:none;">
+          <hr class="set-sep" />
+          <div class="set-cam-head"><span>Khung dịp lễ / sự kiện</span></div>
+          <p class="cam-note">Mặc định tắt. Bật nhóm (hoặc từng khung) thì khung hiện trong danh sách "Chọn khung" của khách.</p>
+          <div id="frame-group-fields"></div>
         </div>
 
         <div id="frame-text-wrap" style="display:none;">

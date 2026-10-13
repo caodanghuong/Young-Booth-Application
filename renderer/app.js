@@ -41,6 +41,9 @@ const state = {
   webcamDeviceId: null,// selected webcam (when several)
   usingCanon: false,   // true once a Canon camera is live
   canonUnsub: null,    // unsubscribe fn for live-view frames
+  frameId: null,       // khung khách chọn ở màn kết quả (null = khung mặc định của kiểu chụp)
+  framePreviews: {},   // ảnh xem trước theo frameId trong lượt hiện tại
+  stickered: false,    // ảnh kết quả đã dán sticker (đổi khung sẽ mất sticker)
 };
 try { state.webcamDeviceId = localStorage.getItem('booth.webcamId') || null; } catch {}
 
@@ -441,7 +444,7 @@ async function buildModeThumbs() {
       const n = m.select || m.captureCount || 1;
       state.rawFrames = Array.from({ length: n }, (_, i) => placeholderFrame(900, 1100, i));
       let c;
-      try { c = await composeTemplate(m); } catch (e) { console.warn('[thumb]', m.id, e.message); continue; }
+      try { c = await composeTemplate(applyFrame(m, defaultFrame(m))); } catch (e) { console.warn('[thumb]', m.id, e.message); continue; }
       if (state.mode !== m) { touched = true; break; }   // khách đã bấm chọn kiểu → dừng, không ghi đè
       const k = 560 / Math.max(c.width, c.height);
       const t = document.createElement('canvas'); t.width = Math.round(c.width * k); t.height = Math.round(c.height * k);
@@ -457,6 +460,7 @@ async function buildModeThumbs() {
 async function chooseMode(m) {
   state.mode = m;
   state.rawFrames = []; state.captured = null; state.sessionAnim = null; state._shareRes = null;
+  state.frameId = null; state.framePreviews = {}; state.stickered = false;
   clearBeautyCache();
   // refresh settings (price may have changed on the webadmin)
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
@@ -778,6 +782,7 @@ async function finishToResult() {
   state.qrUrl = (q.mode === 'session')
     ? ((q.galleryBase || '') + '#/s/' + state.sessionId)
     : ((q.galleryBase || '') + '#/');
+  state.framePreviews = {}; state.stickered = false;
   show('processing');
   $('#proc-text').textContent = state.mode.kind === 'photo' ? 'Đang ghép khung…' : 'Đang tạo ảnh động…';
   await wait(60); // let UI paint
@@ -794,6 +799,8 @@ function showResult(out) {
   const show1 = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
   const imgOnly = ['#btn-sticker', '#btn-print', '#filter-bar-result', '#consent-row'];
   imgOnly.forEach((sel) => { const el = $(sel); if (el) el.style.display = isVideo ? 'none' : ''; });
+  const fb = $('#btn-frame');
+  if (fb) fb.style.display = (!isVideo && out.kind !== 'gif' && state.mode && state.mode.kind === 'photo' && modeFrames(state.mode).length > 1) ? '' : 'none';
   if (isVideo) {
     show1(img, false);
     if (vid) { vid.src = out.dataUrl; show1(vid, true); vid.play().catch(() => {}); }
@@ -849,9 +856,11 @@ $('#btn-select-continue').addEventListener('click', async () => {
 $('#btn-select-retake').addEventListener('click', () => { show('capture'); });
 
 // re-render result when the filter changes on the result screen
-async function rerenderResult() {
+async function rerenderResult(msg, keepPreviews) {
   show('processing');
-  $('#proc-text').textContent = 'Đang áp bộ lọc…';
+  $('#proc-text').textContent = msg || 'Đang áp bộ lọc…';
+  if (!keepPreviews) state.framePreviews = {};   // bộ lọc đổi → ảnh xem trước các khung cũng đổi
+  state.stickered = false;
   await wait(40);
   const out = await composeOutput();
   state.lastOutput = out;
@@ -1050,6 +1059,126 @@ function loadImage(src) {
   return p;
 }
 
+/* ================= nhiều khung cho một kiểu chụp (mode.frames[]) ================= */
+// frames[0] = khung mặc định. Mỗi khung được ghi đè các trường dưới đây (KHÔNG ghi đè captureCount/select).
+const FRAME_OVERRIDES = ['background', 'logo', 'texts', 'showBrand', 'canvas', 'slots', 'paper', 'noRotate', 'cut2inch', 'qr', 'textGroup'];
+function readJSON(key) { try { return JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_e) { return {}; } }
+const getFrameVis = () => readJSON('booth.frameHidden');      // { frameId: true(ẩn)/false(hiện) } — ghi đè riêng từng khung
+const getFrameGroupsOn = () => readJSON('booth.frameGroups'); // { quockhanh: true, 'event:orientation': true, … }
+function frameGroupKey(f) { return f.holiday || (f.event ? 'event:' + f.event : null); }
+function isFrameHidden(f) {
+  const own = getFrameVis();
+  if (Object.prototype.hasOwnProperty.call(own, f.id)) return !!own[f.id];
+  const g = frameGroupKey(f);
+  if (g) return !getFrameGroupsOn()[g];   // khung dịp lễ / sự kiện: theo công tắc nhóm (mặc định tắt)
+  return !!f.hidden;
+}
+// Khung đang hiện cho khách (khung mặc định luôn hiện).
+function modeFrames(m, includeHidden) {
+  const list = Array.isArray(m && m.frames) ? m.frames : [];
+  return includeHidden ? list : list.filter((f, i) => i === 0 || !isFrameHidden(f));
+}
+// Khung mặc định: frames[0], hoặc khung sự kiện đang bật có defaultForEvent.
+function defaultFrame(m) {
+  const vis = modeFrames(m);
+  return vis.find((f, i) => i > 0 && f.defaultForEvent) || vis[0] || null;
+}
+function currentFrame(m = state.mode) {
+  const list = Array.isArray(m && m.frames) ? m.frames : [];
+  return list.find((f) => f.id === state.frameId) || defaultFrame(m);
+}
+// Mode đã áp 1 khung (không sửa object gốc trong config). Giữ nguyên m.id.
+function applyFrame(m, fr) {
+  if (!m || !fr) return m;
+  const out = Object.assign({}, m, { overlay: fr.overlay || m.overlay, frameId: fr.id, frameName: fr.name });
+  FRAME_OVERRIDES.forEach((k) => { if (fr[k] !== undefined) out[k] = fr[k]; });
+  if (fr.textColor && out.texts) out.texts = out.texts.map((t) => Object.assign({}, t, { color: fr.textColor }));
+  return out;
+}
+function effectiveMode(m = state.mode) { return m ? applyFrame(m, currentFrame(m)) : m; }
+
+// Font tiếng Việt nhúng sẵn — nạp 1 lần trước khi vẽ chữ lên canvas.
+let _fontsReady = null;
+function ensureFrameFonts() {
+  if (!_fontsReady) {
+    const specs = ['400 48px "YB Script"', '400 32px "YB Serif"', '600 32px "YB Serif"', '700 32px "YB Serif"',
+      '700 48px "Dancing Script"', '400 48px "Great Vibes"', '700 32px "Oswald"', '800 32px "Baloo 2"',
+      '700 32px "Noto Serif"', '800 32px "Be Vietnam Pro"', 'italic 800 32px "Be Vietnam Pro"'];
+    _fontsReady = Promise.all(specs.map((f) => document.fonts.load(f, 'Thư Huỳnh Như ĐỘC LẬP Ệ ấ ư').catch(() => null)));
+  }
+  return _fontsReady;
+}
+
+// Ảnh xem trước = ảnh THẬT của khách ghép vào khung đó (cache theo frameId trong lượt).
+async function framePreview(m, f) {
+  if (state.framePreviews[f.id]) return state.framePreviews[f.id];
+  if (!state.rawFrames || !state.rawFrames.length) return null;
+  const em = applyFrame(m, f);
+  if (em.overlay) { try { await loadImage(em.overlay); } catch (_e) { console.warn('[frame] thiếu PNG', f.id, em.overlay); return 'missing'; } }
+  try {
+    const c = await composeTemplate(em);
+    const k = 420 / Math.max(c.width, c.height);
+    const t = document.createElement('canvas'); t.width = Math.round(c.width * k); t.height = Math.round(c.height * k);
+    t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+    return (state.framePreviews[f.id] = t.toDataURL('image/jpeg', 0.72));
+  } catch (e) { console.warn('[frame]', f.id, e.message); return null; }
+}
+let _pickerRun = 0;
+async function openFramePicker() {
+  const m = state.mode;
+  if (!m || !state.lastOutput) return;
+  const run = ++_pickerRun;
+  const list = modeFrames(m), cur = currentFrame(m);
+  $('#frame-picker-title').textContent = `Chọn khung — ${m.name}`;
+  const hiddenN = modeFrames(m, true).length - list.length;
+  $('#frame-pick-note').textContent = hiddenN ? `${hiddenN} khung dịp lễ / sự kiện đang ẩn.` : '';
+  const grid = $('#frame-grid');
+  grid.innerHTML = '';
+  const tiles = list.map((f) => {
+    const em = applyFrame(m, f);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'frame-tile' + (f.id === cur.id ? ' on' : '');
+    const ar = em.canvas ? `${em.canvas.w} / ${em.canvas.h}` : '2 / 3';
+    b.innerHTML = `<span class="ph" style="aspect-ratio:${ar}"><img alt="" src="${esc(f.thumb || em.overlay || '')}"></span>` +
+      `<span class="nm">${esc(f.name)}</span>` +
+      `<span class="meta">${f.id === cur.id ? '<em class="tag now"><svg><use href="#i-check"/></svg>Đang dùng</em>' : ''}` +
+      `${frameGroupKey(f) ? '<em class="tag">Dịp lễ / sự kiện</em>' : ''}</span>`;
+    const im = b.querySelector('img');
+    im.addEventListener('error', () => { im.style.visibility = 'hidden'; });   // thumb/overlay chưa có → ô trống, không hiện icon ảnh vỡ
+    b.addEventListener('click', () => pickFrame(f));
+    grid.appendChild(b);
+    return { f, b, im };
+  });
+  $('#frame-picker').classList.add('show');
+  for (const { f, b, im } of tiles) {   // thay dần bằng ảnh thật của khách (không chặn giao diện)
+    if (run !== _pickerRun || !$('#frame-picker').classList.contains('show')) return;
+    const url = await framePreview(m, f);
+    if (url === 'missing') { b.classList.add('missing'); b.disabled = true; b.querySelector('.meta').innerHTML = '<em class="tag warn">Thiếu file khung</em>'; }
+    else if (url) im.src = url;
+  }
+}
+function closeFramePicker() { _pickerRun++; $('#frame-picker').classList.remove('show'); }
+async function pickFrame(f) {
+  const cur = currentFrame();
+  if (cur && f.id === cur.id) { closeFramePicker(); return; }
+  if (state.stickered && !(await askConfirm('Đổi khung sẽ xoá sticker đã dán. Tiếp tục?'))) return;
+  state.frameId = f.id;
+  closeFramePicker();
+  await rerenderResult('Đang đổi khung…', true);
+}
+// Hộp xác nhận theo giao diện app (confirm() mặc định của Windows xấu và chặn luồng).
+function askConfirm(msg) {
+  return new Promise((resolve) => {
+    const md = $('#confirm-modal');
+    $('#confirm-text').textContent = msg;
+    const done = (v) => { md.classList.remove('show'); $('#confirm-ok').onclick = $('#confirm-cancel').onclick = null; resolve(v); };
+    $('#confirm-ok').onclick = () => done(true);
+    $('#confirm-cancel').onclick = () => done(false);
+    md.classList.add('show');
+  });
+}
+
 async function composeOutput() {
   const m = state.mode;
   if (m.kind === 'photo') {
@@ -1062,7 +1191,7 @@ async function composeOutput() {
 }
 
 async function composePhoto() {
-  const m = state.mode;
+  const m = effectiveMode();   // kiểu chụp + khung khách chọn (frames[])
   // Custom template: designer PNG + explicit photo slots → full control.
   if (m.slots && m.canvas) return composeTemplate(m);
 
@@ -1121,12 +1250,13 @@ async function composePhoto() {
     try { const img = await loadImage(m.overlay); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
     catch (e) { console.warn(e.message); }
   }
-  await drawGalleryQR(ctx, canvas); // QR tĩnh góc ảnh → gallery
+  await drawGalleryQR(ctx, canvas, m); // QR tĩnh góc ảnh → gallery
   return canvas;
 }
 
 // Template-driven layout: background, photos into named slots, then a PNG frame.
 async function composeTemplate(m) {
+  await ensureFrameFonts();   // canvas không tự đợi font → nạp font tiếng Việt trước khi vẽ chữ
   const f = state.filter.css;
   const canvas = document.createElement('canvas');
   canvas.width = m.canvas.w; canvas.height = m.canvas.h;
@@ -1162,7 +1292,7 @@ async function composeTemplate(m) {
     } catch (e) { console.warn('logo:', e.message); }
   }
   drawFrameTexts(ctx, m); // chữ sửa được (tên/ngày/lời mời...) vẽ lên trên khung
-  await drawGalleryQR(ctx, canvas); // QR tĩnh góc ảnh → gallery
+  await drawGalleryQR(ctx, canvas, m); // QR tĩnh góc ảnh → gallery
   if (m.showBrand) drawBrand(ctx, canvas.width / 2, canvas.height - 120, true);
   return canvas;
 }
@@ -1174,10 +1304,14 @@ async function makeQRCached(url) {
   try { const r = await window.booth.makeQR(url); if (r && r.ok) { _qrCache[url] = r.dataUrl; return r.dataUrl; } } catch (_e) {}
   return null;
 }
-async function drawGalleryQR(ctx, canvas) {
-  const mq = state.mode && state.mode.qr; // ghi đè theo khung: false = không vẽ QR
+async function drawGalleryQR(ctx, canvas, m) {
+  // Ghi đè theo khung: m.qr = false → không vẽ; { size, label:false, at:[{x,y},…] } → vẽ ở mọi vị trí trong at
+  // (toạ độ = góc trên-trái ô QR); hoặc kiểu cũ { xs:[…], y, width }.
+  const mq = (m || effectiveMode() || {}).qr;
   if (mq === false) return;
   const q = Object.assign({}, CFG.galleryQR || {}, mq || {});
+  if (q.size) q.width = q.size;
+  if (q.label === false) q.label = '';
   if (!q.enabled) return;
   const url = state.qrUrl || ((q.galleryBase || '') + '#/');
   if (!url) return;
@@ -1192,11 +1326,12 @@ async function drawGalleryQR(ctx, canvas) {
   const mg = q.margin != null ? q.margin : 34;
   const corner = q.corner || 'br';
   // Khung có thể đặt QR riêng (m.qr.xs = mép trái từng ô QR, m.qr.y = mép trên) — vd dải đôi: mỗi dải 1 QR.
-  const xs = Array.isArray(q.xs) ? q.xs : [corner.indexOf('l') >= 0 ? mg : (canvas.width - mg - tileW)];
-  const y = q.y != null ? q.y : (corner.indexOf('t') >= 0 ? mg : (canvas.height - mg - tileH));
+  const y0 = q.y != null ? q.y : (corner.indexOf('t') >= 0 ? mg : (canvas.height - mg - tileH));
+  const spots = Array.isArray(q.at) && q.at.length ? q.at.map((p) => [p.x, p.y])
+    : (Array.isArray(q.xs) ? q.xs : [corner.indexOf('l') >= 0 ? mg : (canvas.width - mg - tileW)]).map((x) => [x, y0]);
   const r = 16;
   const rr = (xx, yy, w, h, rad) => { ctx.beginPath(); ctx.moveTo(xx + rad, yy); ctx.arcTo(xx + w, yy, xx + w, yy + h, rad); ctx.arcTo(xx + w, yy + h, xx, yy + h, rad); ctx.arcTo(xx, yy + h, xx, yy, rad); ctx.arcTo(xx, yy, xx + w, yy, rad); ctx.closePath(); };
-  for (const x of xs) {
+  for (const [x, y] of spots) {
     ctx.save();
     rr(x, y, tileW, tileH, r); ctx.fillStyle = '#ffffff'; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; rr(x, y, tileW, tileH, r); ctx.stroke();
@@ -1233,8 +1368,9 @@ function frameDateToday() {
   const p = (n) => String(n).padStart(2, '0');
   return `${p(d.getDate())} . ${p(d.getMonth() + 1)} . ${d.getFullYear()}`;
 }
-function frameTextValue(modeId, t) {
-  const v = getFrameTextStore()[modeId + '.' + t.id];
+// group = textGroup của khung (1 bộ khung = 1 nhóm, admin nhập 1 lần) hoặc id kiểu chụp.
+function frameTextValue(group, t) {
+  const v = getFrameTextStore()[group + '.' + t.id];
   const val = (v != null && v !== '') ? v : (t.value || '');
   // Ô ngày để trống → tự điền ngày hôm nay (không in ngày cũ cố định).
   if (!val && t.id === 'date') return frameDateToday();
@@ -1249,18 +1385,28 @@ function splitIndexFor(chars) {
 }
 function drawFrameTexts(ctx, m) {
   if (!m.texts || !m.texts.length) return;
+  const group = m.textGroup || m.id;
   for (const t of m.texts) {
-    const text = frameTextValue(m.id, t);
-    if (!text) continue;
-    ctx.font = (t.italic ? 'italic ' : '') + (t.weight || '400') + ' ' + t.size + 'px ' + (t.ff || 'Arial, sans-serif');
+    const text = frameTextValue(group, t);
+    if (!text) continue;   // ô trống → không vẽ
+    const ls = t.ls || 0;
+    const fontAt = (px) => (t.italic ? 'italic ' : '') + (t.weight || '400') + ' ' + px + 'px ' + (t.ff || 'Arial, sans-serif');
+    const lineW = (str) => [...str].reduce((a, c) => a + ctx.measureText(c).width, 0) + ls * Math.max(0, [...str].length - 1);
+    // fit: tên dài → giảm cỡ chữ dần (bước 2px, tối thiểu 60% size) cho tới khi vừa bề rộng fit
+    let size = t.size;
+    ctx.font = fontAt(size);
+    if (t.fit && !t.w) {
+      const min = Math.max(8, Math.round(t.size * 0.6));
+      while (size > min && lineW(String(text)) > t.fit) { size -= 2; ctx.font = fontAt(size); }
+    }
     ctx.fillStyle = t.color || '#000';
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    const ls = t.ls || 0;
     const align = t.align || 'center'; // 'left' | 'center' | 'right'
-    const xs = Array.isArray(t.xs) ? t.xs : [t.x]; // vẽ ở nhiều cột nếu có xs
-    for (const X of xs) {
-      // Tuỳ chọn thêm (không bắt buộc): color2 = màu nửa sau chữ (tách ở dấu cách hoặc
-      // chữ HOA thứ 2, vd "Young|Booth"); stroke/strokeWidth = viền chữ; rotate = độ nghiêng.
+    const xs = Array.isArray(t.xs) ? t.xs : [t.x];   // nhiều cột
+    const ys = Array.isArray(t.ys) ? t.ys : [t.y];   // nhiều hàng → vẽ ở mọi cặp (x, y)
+    const strokeW = t.strokeW || t.strokeWidth || 4;
+    for (const X of xs) for (const Y of ys) {
+      // color2 = màu nửa sau chữ (tách ở dấu cách / chữ HOA thứ 2); stroke + strokeW = viền chữ; rotate = độ nghiêng.
       const drawLine = (str, cy) => {
         const chars = [...str];
         const widths = chars.map((c) => ctx.measureText(c).width);
@@ -1271,7 +1417,7 @@ function drawFrameTexts(ctx, m) {
         ctx.translate(X, cy);
         if (t.rotate) ctx.rotate(t.rotate * Math.PI / 180);
         if (t.stroke) {
-          ctx.strokeStyle = t.stroke; ctx.lineWidth = t.strokeWidth || 4; ctx.lineJoin = 'round';
+          ctx.strokeStyle = t.stroke; ctx.lineWidth = strokeW; ctx.lineJoin = 'round';
           let sx = x0;
           for (let i = 0; i < chars.length; i++) { ctx.strokeText(chars[i], sx, 0); sx += widths[i] + ls; }
         }
@@ -1287,14 +1433,13 @@ function drawFrameTexts(ctx, m) {
         const lines = []; let line = '';
         for (const wd of words) {
           const test = line ? line + ' ' + wd : wd;
-          const ww = ctx.measureText(test).width + (ls ? ls * Math.max(0, test.length - 1) : 0);
-          if (ww > t.w && line) { lines.push(line); line = wd; } else line = test;
+          if (lineW(test) > t.w && line) { lines.push(line); line = wd; } else line = test;
         }
         if (line) lines.push(line);
-        const lh = t.lh || t.size * 1.3;
-        lines.forEach((ln, i) => drawLine(ln, t.y + i * lh));
+        const lh = t.lh || size * 1.3;
+        lines.forEach((ln, i) => drawLine(ln, Y + i * lh));
       } else {
-        drawLine(String(text), t.y);
+        drawLine(String(text), Y);
       }
     }
   }
@@ -1370,7 +1515,8 @@ async function ensureSessionAnim() {
 async function doPrint() {
   if (!state.lastOutput) return;
   let dataUrl = state.lastOutput.dataUrl;
-  const isStrip = state.mode && state.mode.layout === 'strip';
+  const em = effectiveMode() || {};   // kiểu chụp + khung đang chọn (khung có thể ghi đè canvas/noRotate/cut2inch)
+  const isStrip = em.layout === 'strip';
   const doubled = state.printCfg.stripDoubleOn4x6 && isStrip;
   // Strip: optionally lay 2 copies side by side on a 4×6 sheet.
   if (doubled) dataUrl = await makeDoubleStrip(dataUrl);
@@ -1385,7 +1531,7 @@ async function doPrint() {
   if (manual) {
     // Chế độ nâng cao: người dùng tự chọn khổ trong Cài đặt → giữ hành vi cũ (xoay tay).
     paper = state.printCfg.paper;
-    if (state.printCfg.rotate && !(state.mode && state.mode.noRotate)) {
+    if (state.printCfg.rotate && !em.noRotate) {
       dataUrl = await rotate90(dataUrl);
       const toLandscape = { '4x6': '6x4', '2x6': '6x2', '10.5x15.5': '15.5x10.5', '5.5x15.5': '15.5x5.5' };
       if (toLandscape[paper]) paper = toLandscape[paper];
@@ -1393,7 +1539,7 @@ async function doPrint() {
   }
 
   // Dải (và khung đã có sẵn 2 dải, vd Nhật Ký C) dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
-  const useStripPrinter = isStrip || !!(state.mode && state.mode.stripCut);
+  const useStripPrinter = isStrip || !!(em.cut2inch || em.stripCut);
   const printerName = useStripPrinter
     ? (state.printCfg.stripPrinterName || state.printCfg.printerName)
     : state.printCfg.printerName;
@@ -1405,8 +1551,7 @@ async function doPrint() {
     // dao cắt ngang giữa tờ = đúng vạch giữa 2 dải.
     const shape = await window.booth.pageShape(printerName).catch(() => null);
     const pageLandscape = !!(shape && shape.ok && shape.landscape);   // không đọc được → coi như dọc
-    const designLandscape = !!(state.mode && state.mode.canvas &&
-      state.mode.canvas.w > state.mode.canvas.h);
+    const designLandscape = !!(em.canvas && em.canvas.w > em.canvas.h);
     if (designLandscape !== pageLandscape) dataUrl = await rotate90(dataUrl);
     if (shape && shape.ok) pageIn = { w: shape.width / 100, h: shape.height / 100 };  // 1/100 inch → inch
     paper = '4x6';   // = dùng khổ mặc định của driver, không ép kích thước
@@ -1531,6 +1676,7 @@ async function openSettings() {
     ? state.brandOverride.tagline : (CFG.brand.tagline || '');
   $('#set-subfooter').value = (state.brandOverride && state.brandOverride.subFooter) || '';
   buildFrameTextFields();
+  buildFrameGroupFields();
 
   // Canon control panel: only when the EDSDK module is present.
   const canonAvail = await window.booth.canon.available().catch(() => false);
@@ -1558,6 +1704,7 @@ function saveSettings() {
   try { localStorage.setItem('booth.brand', JSON.stringify(state.brandOverride)); } catch {}
 
   saveFrameTextFields();
+  saveFrameGroupFields();
 
   $('#settings-modal').classList.remove('show');
 
@@ -1568,43 +1715,110 @@ function saveSettings() {
   }
 }
 // Dựng ô nhập chữ cho mọi khung có `texts` (sửa tên/ngày/lời mời... ngay trong app).
+// Ô nhập chữ trên khung, gom theo NHÓM: mode.texts (nhóm = id kiểu chụp) + frames[].texts (nhóm = textGroup).
+// 1 nhóm hiện 1 lần (khử trùng theo nhóm + id chữ) → admin nhập 1 lần, áp cho cả bộ khung.
+function frameTextGroups() {
+  const groups = new Map();
+  const add = (g, label, t, hidden) => {
+    if (!groups.has(g)) groups.set(g, { label, texts: new Map(), allHidden: true });
+    const G = groups.get(g);
+    if (!G.texts.has(t.id)) G.texts.set(t.id, t);
+    if (!hidden) G.allHidden = false;
+  };
+  (CFG.modes || []).forEach((m) => {
+    (m.texts || []).forEach((t) => add(m.id, m.name, t, false));
+    (Array.isArray(m.frames) ? m.frames : []).forEach((f) => {   // GIF/Boomerang dùng frames = số khung hình
+      if (!f.texts || !f.texts.length) return;
+      const g = f.textGroup || m.id;
+      const label = (CFG.textGroups && CFG.textGroups[g]) || (f.textGroup ? f.name : m.name);
+      f.texts.forEach((t) => add(g, label, t, isFrameHidden(f)));
+    });
+  });
+  return groups;
+}
+const ftInputId = (g, tid) => 'ft-' + String(g).replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + tid;
 function buildFrameTextFields() {
   const wrap = $('#frame-text-wrap');
   const box = $('#frame-text-fields');
   if (!wrap || !box) return;
   const store = getFrameTextStore();
-  const modesWithText = (CFG.modes || []).filter((m) => m.texts && m.texts.length);
+  const groups = frameTextGroups();
   box.innerHTML = '';
-  if (!modesWithText.length) { wrap.style.display = 'none'; return; }
+  if (!groups.size) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  modesWithText.forEach((m) => {
+  groups.forEach((G, g) => {
     const grp = document.createElement('div');
-    grp.innerHTML = `<div style="font-weight:800;margin:10px 0 4px;opacity:0.85">${m.name}</div>`;
-    m.texts.forEach((t) => {
-      const key = m.id + '.' + t.id;
+    grp.className = 'ft-group';
+    grp.innerHTML = `<div class="ft-title">${esc(G.label)}${G.allHidden ? ' <small>(đang ẩn)</small>' : ''}</div>`;
+    G.texts.forEach((t) => {
+      const key = g + '.' + t.id;
       const val = (store[key] != null) ? store[key] : (t.value || '');
       const row = document.createElement('div');
-      row.className = 'set-row';
-      row.style.cssText = 'flex-direction:column;align-items:stretch;gap:6px;';
-      const inpId = 'ft-' + m.id + '-' + t.id;
-      row.innerHTML = `<label>${t.label || t.id}</label>` +
+      row.className = 'set-row col';
+      const inpId = ftInputId(g, t.id);
+      row.innerHTML = `<label for="${inpId}">${esc(t.label || t.id)}</label>` +
         `<input type="text" id="${inpId}" class="set-text" value="${String(val).replace(/"/g, '&quot;')}"` +
-        (t.id === 'date' ? ' placeholder="Để trống = ngày hôm nay"' : '') + ' />';
+        (t.id === 'date' ? ' placeholder="Để trống = ngày hôm nay"' : ' placeholder="Để trống = không in dòng này"') + ' />';
       grp.appendChild(row);
     });
     box.appendChild(grp);
   });
 }
 function saveFrameTextFields() {
-  const store = {};
-  (CFG.modes || []).forEach((m) => {
-    if (!m.texts) return;
-    m.texts.forEach((t) => {
-      const el = document.getElementById('ft-' + m.id + '-' + t.id);
-      if (el) store[m.id + '.' + t.id] = el.value;
+  const store = getFrameTextStore();   // giữ giá trị của nhóm không hiện (nếu có)
+  frameTextGroups().forEach((G, g) => {
+    G.texts.forEach((t) => {
+      const el = document.getElementById(ftInputId(g, t.id));
+      if (el) store[g + '.' + t.id] = el.value;
     });
   });
   try { localStorage.setItem('booth.frameText', JSON.stringify(store)); } catch (_e) {}
+}
+
+// Bật/tắt khung dịp lễ / sự kiện: công tắc cả nhóm + từng khung (lưu booth.frameGroups / booth.frameHidden).
+function frameGroupList() {
+  const groups = new Map();
+  (CFG.modes || []).forEach((m) => (Array.isArray(m.frames) ? m.frames : []).forEach((f) => {
+    const g = frameGroupKey(f);
+    if (!g) return;
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push({ m, f });
+  }));
+  return groups;
+}
+function buildFrameGroupFields() {
+  const wrap = $('#frame-group-wrap'), box = $('#frame-group-fields');
+  if (!wrap || !box) return;
+  const groups = frameGroupList();
+  box.innerHTML = '';
+  if (!groups.size) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const on = getFrameGroupsOn();
+  groups.forEach((list, g) => {
+    const label = (CFG.frameGroups && CFG.frameGroups[g]) || g;
+    const el = document.createElement('div');
+    el.className = 'fg-group';
+    const gid = 'fg-' + g.replace(/[^a-zA-Z0-9_-]/g, '_');
+    el.innerHTML = `<div class="set-row"><label for="${gid}"><b>${esc(label)}</b> <small>(${list.length} khung)</small></label>` +
+      `<input type="checkbox" id="${gid}" data-group="${esc(g)}" ${on[g] ? 'checked' : ''} /></div>` +
+      `<div class="fg-items">${list.map(({ m, f }) => `<label class="fg-item"><input type="checkbox" data-frame="${esc(f.id)}" data-group="${esc(g)}" ${isFrameHidden(f) ? '' : 'checked'} />${esc(m.name)} · ${esc(f.name)}</label>`).join('')}</div>`;
+    el.querySelector('#' + gid).addEventListener('change', (e) => {   // bật/tắt cả nhóm 1 lần
+      el.querySelectorAll('input[data-frame]').forEach((cb) => { cb.checked = e.target.checked; });
+    });
+    box.appendChild(el);
+  });
+}
+function saveFrameGroupFields() {
+  const box = $('#frame-group-fields');
+  if (!box || !box.children.length) return;
+  const on = getFrameGroupsOn(), own = getFrameVis();
+  box.querySelectorAll('input[data-group]:not([data-frame])').forEach((cb) => { on[cb.dataset.group] = cb.checked; });
+  box.querySelectorAll('input[data-frame]').forEach((cb) => {
+    const groupOn = !!on[cb.dataset.group];
+    if (cb.checked === groupOn) delete own[cb.dataset.frame];   // giống công tắc nhóm → theo nhóm
+    else own[cb.dataset.frame] = !cb.checked;                   // khác nhóm → ghi đè riêng (true = ẩn)
+  });
+  try { localStorage.setItem('booth.frameGroups', JSON.stringify(on)); localStorage.setItem('booth.frameHidden', JSON.stringify(own)); } catch (_e) {}
 }
 
 // Cài đặt chỉ dành cho nhân viên: giữ góc phải-trên màn hình 3 giây → nhập PIN quản trị.
@@ -1857,6 +2071,7 @@ async function applyStickers() {
     state.lastOutput = { dataUrl, kind: 'photo' };
     $('#result-img').src = dataUrl;
     state._shareRes = null; // buộc tạo QR/upload mới cho ảnh có sticker
+    state.stickered = true;
   }
 }
 
@@ -1936,13 +2151,17 @@ $('#btn-share').addEventListener('click', async () => {
   }
 });
 $('#btn-close-share').addEventListener('click', () => $('#share-modal').classList.remove('show'));
+$('#btn-frame').addEventListener('click', openFramePicker);
+$('#btn-frame-close').addEventListener('click', closeFramePicker);
+$('#frame-picker').addEventListener('click', (e) => { if (e.target.id === 'frame-picker') closeFramePicker(); });
 
 // retake / home / start
 $('#btn-retake').addEventListener('click', () => { state._shareRes = null; state.sessionAnim = null; show('capture'); startCamera(); });
 function goHome() {
   state._shareRes = null; state.sessionAnim = null; state.pushedOutput = null;
+  state.frameId = null; state.framePreviews = {}; state.stickered = false;
   // Đóng mọi lớp phủ (sticker / QR / cài đặt) — nếu không, khách sau sẽ thấy ảnh khách trước.
-  ['#sticker-editor', '#share-modal', '#settings-modal', '#pin-modal', '#notice-modal'].forEach((sel) => { const el = $(sel); if (el) el.classList.remove('show'); });
+  ['#sticker-editor', '#share-modal', '#settings-modal', '#pin-modal', '#notice-modal', '#frame-picker', '#confirm-modal'].forEach((sel) => { const el = $(sel); if (el) el.classList.remove('show'); });
   SE.stickers.forEach((s) => s.el.remove()); SE.stickers = []; SE.selected = null;
   state.lastOutput = null;
   $('#result-img').removeAttribute('src');
@@ -1995,6 +2214,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   buildSourceBar(false); // don't power on the webcam just to read labels at startup
   buildHomeShowcase();
   setStep(0);
+  ensureFrameFonts();
   buildModeThumbs().then(() => { buildModeGrid(); renderHomeFan(); }).catch(() => {});
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
 });
