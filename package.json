@@ -1,6 +1,6 @@
 {
   "name": "youngbooth",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "YoungBooth - a LumaBooth-style photo booth app for Windows",
   "main": "main.js",
   "author": "Cao Dang Huong",

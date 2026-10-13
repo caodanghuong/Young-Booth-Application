@@ -1595,10 +1595,11 @@ async function drawGalleryQR(ctx, canvas, m) {
 // Chạy 1 lần: xoá các giá trị MẪU cũ (ngày cố định, tên mẫu) đã bị lưu vào máy,
 // để ngày tự cập nhật theo hôm nay. Giá trị nhân viên tự gõ khác mẫu được giữ nguyên.
 (function migrateFrameText() {
-  const VER = 2;
+  const VER = 3;   // v3 (13/10/2026): bỏ tên người + ngày mẫu cũ của các bộ khung (đã đổi sang chữ chung, ngày trống = hôm nay)
   try {
     if (Number(localStorage.getItem('booth.frameTextV')) >= VER) return;
-    const OLD = ['06 . 10 . 2026', '07 . 10 . 2026', '17 . 03 . 2024', 'Thu & Raph', 'Saigon, Vietnam'];
+    const OLD = ['06 . 10 . 2026', '07 . 10 . 2026', '17 . 03 . 2024', 'Thu & Raph', 'Saigon, Vietnam',
+      'Minh Thư', 'Kuan Hsun', '09.07.2026', 'Tấn Nhã', 'Huỳnh Như', '05.07.2026', '01 . 01 . 2026', 'Nhã', 'Như', 'H&T', '05 - 07 - 2026', '01.07.2026'];
     const store = JSON.parse(localStorage.getItem('booth.frameText') || '{}');
     Object.keys(store).forEach((k) => { if (OLD.includes(store[k])) delete store[k]; });
     localStorage.setItem('booth.frameText', JSON.stringify(store));
@@ -2064,7 +2065,10 @@ function saveFrameTextFields() {
   frameTextGroups().forEach((G, g) => {
     G.texts.forEach((t) => {
       const el = document.getElementById(ftInputId(g, t.id));
-      if (el) store[g + '.' + t.id] = el.value;
+      if (!el) return;
+      // Chỉ lưu chữ ĐÃ SỬA; để nguyên như mặc định → không lưu (đổi chữ mặc định sau này khung tự đổi theo).
+      if (el.value === (t.value || '')) delete store[g + '.' + t.id];
+      else store[g + '.' + t.id] = el.value;
     });
   });
   try { localStorage.setItem('booth.frameText', JSON.stringify(store)); } catch (_e) {}
