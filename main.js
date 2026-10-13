@@ -525,8 +525,73 @@ ipcMain.handle('booth:pageShape', async (_evt, { printerName }) => {
 });
 
 /** Print a data URL by rendering it full-page in a hidden window. */
+// In bằng Windows (System.Drawing / GDI) — dùng cho in thẳng tự động. Hỏi driver kích thước TỜ THẬT (đã theo chiều
+// của hàng in), xoay ảnh nếu khác chiều, vẽ PHỦ KÍN tờ (giữ tỉ lệ, cắt phần thừa rất nhỏ nếu tỉ lệ lệch).
+// Không qua Chromium: Chromium dựng trang cho máy DNP sai chiều → ảnh chỉ in được ~2/3 tờ (in thật 13/10/2026).
+const GDI_PRINT_PS = `param([string]$Printer, [string]$Image, [int]$Copies = 1, [string]$DocName = 'YoungBooth')
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Drawing
+$img = [Drawing.Image]::FromFile($Image)
+try {
+  $doc = New-Object Drawing.Printing.PrintDocument
+  if ($Printer) { $doc.PrinterSettings.PrinterName = $Printer }
+  if (-not $doc.PrinterSettings.IsValid) { Write-Output "ERR khong thay may in '$Printer'"; exit 3 }
+  $doc.PrintController = New-Object Drawing.Printing.StandardPrintController
+  $doc.DocumentName = $DocName
+  $doc.PrinterSettings.Copies = [int16][Math]::Max(1, $Copies)
+  $doc.DefaultPageSettings.Margins = New-Object Drawing.Printing.Margins 0, 0, 0, 0
+  $pb0 = $doc.DefaultPageSettings.Bounds
+  $rot = 'khong'
+  if (($pb0.Width -gt $pb0.Height) -ne ($img.Width -gt $img.Height)) { $img.RotateFlip([Drawing.RotateFlipType]::Rotate90FlipNone); $rot = 'co' }
+  $doc.add_PrintPage({
+    param($s, $e)
+    $pb = $e.PageBounds
+    $e.Graphics.TranslateTransform(-$e.PageSettings.HardMarginX, -$e.PageSettings.HardMarginY)
+    $k = [Math]::Max($pb.Width / $img.Width, $pb.Height / $img.Height)
+    $w = $img.Width * $k; $h = $img.Height * $k
+    $e.Graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $e.Graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $e.Graphics.DrawImage($img, [single](($pb.Width - $w) / 2), [single](($pb.Height - $h) / 2), [single]$w, [single]$h)
+    $e.HasMorePages = $false
+  })
+  $doc.Print()
+  Write-Output ("OK {0} {1}x{2} xoay={3} kho={4}" -f $doc.PrinterSettings.PrinterName, $pb0.Width, $pb0.Height, $rot, $doc.DefaultPageSettings.PaperSize.PaperName)
+} finally { $img.Dispose() }
+`;
+function printViaGdi(dataUrl, opts) {
+  const { execFile } = require('child_process');
+  const tmp = app.getPath('temp');
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const ps1 = path.join(tmp, 'yb-print-gdi.ps1');
+  const png = path.join(tmp, `yb-print-${id}.png`);
+  fs.writeFileSync(ps1, '﻿' + GDI_PRINT_PS, 'utf8');
+  fs.writeFileSync(png, Buffer.from(String(dataUrl).replace(/^data:[^;]+;base64,/, ''), 'base64'));
+  return new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', ps1,
+      '-Printer', opts.printerName || '', '-Image', png, '-Copies', String(Math.max(1, parseInt(opts.copies, 10) || 1)), '-DocName', 'YoungBooth'],
+    { timeout: 90000, windowsHide: true }, (err, stdout, stderr) => {
+      try { fs.unlinkSync(png); } catch (_e) {}
+      const out = String(stdout || '').trim();
+      const ok = !err && /^OK /m.test(out);
+      const reason = ok ? '' : ((out.match(/ERR .*/) || [])[0] || String(stderr || (err && err.message) || 'loi in').split('\n')[0]);
+      try {
+        const lf = path.join(app.getPath('userData'), 'print-log.txt');
+        fs.appendFileSync(lf, [new Date().toISOString(), ok ? 'OK' : 'LOI ' + reason, 'cach=windows', 'may=' + (opts.printerName || '(mac dinh)'),
+          ok ? out.replace(/^OK /, 'driver: ') : '', 'ban=' + (opts.copies || 1)].join(' | ') + '\r\n');
+      } catch (_e) {}
+      resolve({ success: ok, reason });
+    });
+  });
+}
+
 ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
   opts = opts || {};
+  if (opts.engine === 'gdi') {
+    if (!opts.printerName) {
+      try { const def = (await mainWindow.webContents.getPrintersAsync()).find((p) => p.isDefault); if (def) opts.printerName = def.name; } catch (_e) {}
+    }
+    return printViaGdi(dataUrl, opts);
+  }
   const printWin = new BrowserWindow({ show: false, webPreferences: { offscreen: false } });
   // Khung ảnh = ĐÚNG kích thước trang driver cấp (inch), đặt ở góc trên-trái; ảnh vừa khít trong khung.
   // Không dùng %/vw/vh: khi in, Chromium tính chúng theo cửa sổ ẩn (800×600) → ảnh to/lệch khỏi trang.
