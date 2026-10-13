@@ -1054,3 +1054,81 @@ def build(frames, out_dir, asset_dir=None, log=print):
         log(f"  {f['id']:<24} {c.W}×{c.H}  {len(f['slots'])} ô" + (f"  · bỏ qua (thiếu asset): {', '.join(miss)}" if miss else '')
             + (f"  · vẽ vector thay: {', '.join(vec)}" if vec else '')
             + (f"  ⚠ {'; '.join(w)}" if w else ''))
+
+
+# ---------------------------------------------------------------- khai báo vào renderer/config.js (tự sinh, cùng nguồn với PNG)
+CANVAS_DEFAULT = {'A': (1200, 1800), 'B': (1800, 1200), 'C': (1200, 1800), 'D': (1800, 1200), 'F': (1200, 1800)}
+TEXT_KEYS = ['id', 'label', 'value', 'x', 'xs', 'y', 'ys', 'size', 'fit', 'w', 'lh', 'color', 'ff', 'weight', 'italic', 'ls', 'align',
+             'stroke', 'strokeW', 'rotate']
+BEGIN, END = '// ==== KHUNG MỚI cho nút "Chọn khung" — TỰ SINH bởi: py scripts/make-frames.py config', '// ==== HẾT KHUNG MỚI (tự sinh)'
+
+
+def _js(v):
+    import json
+    if isinstance(v, bool): return 'true' if v else 'false'
+    if isinstance(v, (int, float)): return str(int(v)) if float(v).is_integer() else str(round(v, 2))
+    if isinstance(v, str):
+        if "'" not in v and '\\' not in v: return "'" + v + "'"
+        return json.dumps(v, ensure_ascii=False)
+    if isinstance(v, list): return '[' + ', '.join(_js(x) for x in v) + ']'
+    if isinstance(v, dict): return '{ ' + ', '.join(f'{k}: {_js(x)}' for k, x in v.items()) + ' }'
+    if v is None: return 'null'
+    raise TypeError(v)
+
+
+def frame_js(f):
+    W, H = f['canvas']
+    o = dict(id=f['id'], name=f['name'])
+    for k in ('hidden', 'holiday', 'event', 'textGroup'):
+        if f.get(k) is not None: o[k] = f[k]
+    o['overlay'] = f"file:///C:/YoungBooth-Frames/{f['id']}.png"
+    o['thumb'] = f"file:///C:/YoungBooth-Frames/{f['id']}-thumb.png"
+    o['background'] = f['background']; o['logo'] = None; o['showBrand'] = False
+    o['canvas'] = dict(w=W, h=H)
+    for k in ('paper', 'noRotate', 'cut2inch'):
+        if f.get(k) is not None: o[k] = f[k]
+    if f['mode'] == 'D' and (W, H) == (1800, 1200) and f.get('cut2inch'): o.setdefault('noRotate', False)
+    if f['qr']: o['qr'] = dict(size=f['qr']['size'], label=False, at=f['qr']['at'])
+    lines = ['      { ' + ', '.join(f'{k}: {_js(v)}' for k, v in o.items()) + ',']
+    lines.append('        slots: [' + ', '.join(_js(dict(x=s['x'], y=s['y'], w=s['w'], h=s['h'], **({'radius': s['radius']} if s.get('radius') else {})))
+                                         for s in f['slots']) + '],')
+    if f['texts']:
+        lines.append('        texts: [')
+        for t in f['texts']:
+            lines.append('          ' + _js({k: (str(t[k]) if k == 'weight' else t[k]) for k in TEXT_KEYS if k in t}) + ',')
+        lines.append('        ] },')
+    else:
+        lines.append('        texts: [] },')
+    return lines
+
+
+def emit_config(path):
+    """Ghi lại khối FRAME_SETS / FRAME_TEXT_GROUPS trong config.js (giữa 2 dòng đánh dấu)."""
+    out = [BEGIN, '// Toạ độ ô ảnh / chữ / QR khớp file PNG trong C:/YoungBooth-Frames. Muốn sửa: sửa scripts/frame_sets.py rồi chạy lại',
+           '// "py scripts/make-frames.py sets config" (sinh lại PNG + khối này). Thứ tự trong mảng = thứ tự trong bảng "Chọn khung".',
+           'const FRAME_SETS = {']
+    for m in ('A', 'B', 'C', 'D', 'F'):
+        lst = [f for f in FR if f['mode'] == m]
+        out.append(f'  {m}: [')
+        for f in lst: out += frame_js(f)
+        out.append('  ],')
+    out.append('};')
+    out.append('const FRAME_TEXT_GROUPS = {')
+    for g, (name, _) in GROUPS.items():
+        modes = sorted({f['mode'] for f in FR if f.get('textGroup') == g}, key='ACDBF'.index)
+        names = {'A': 'Khoảnh Khắc', 'B': 'Ngọt Ngào', 'C': 'Nhật Ký', 'D': 'Chia Đôi', 'F': 'Dịu Dàng'}
+        out.append(f"  {_js(g)}: {_js(name + ' (' + ' · '.join(names[x] for x in modes) + ')')},")
+    out.append('};')
+    out.append(END)
+    src = open(path, encoding='utf-8').read()
+    nl = '\r\n' if '\r\n' in src else '\n'
+    src = src.replace('\r\n', '\n')
+    block = '\n'.join(out)
+    if BEGIN in src:
+        a = src.index(BEGIN); b = src.index(END) + len(END)
+        src = src[:a] + block + src[b:]
+    else:
+        a = src.index('const BOOTH_CONFIG = {')
+        src = src[:a] + block + '\n\n' + src[a:]
+    open(path, 'w', encoding='utf-8', newline='').write(src.replace('\n', nl))
+    return sum(1 for f in FR)
