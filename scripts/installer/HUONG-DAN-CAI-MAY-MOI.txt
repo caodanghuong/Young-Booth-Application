@@ -1,0 +1,70 @@
+﻿==========================================================
+   YOUNGBOOTH 0.2.0 — HƯỚNG DẪN CÀI TRÊN MÁY MỚI
+==========================================================
+
+Yêu cầu: Windows 10/11 64-bit · máy ảnh Canon (cáp USB) · máy in DNP DS-RX1 (cáp USB, nếu in).
+
+**** CÁCH NHANH (khuyên dùng) ****
+  1. Chép CẢ thư mục bộ cài này sang máy mới (USB / ổ cứng).
+  2. Cắm máy in DNP vào máy tính + BẬT máy in (nếu có in).
+  3. Nhấp đúp  CAI-DAT.bat  → bấm "Yes" khi Windows hỏi quyền Administrator.
+     File này tự làm:
+       [1] Cài app YoungBooth
+       [2] Chép khung ảnh vào  C:\YoungBooth-Frames
+       [3] Chép cài đặt: sự kiện, giá, thanh toán, PIN  (hỏi trước nếu máy đã có cài đặt)
+       [4] Cài driver máy in DNP + tạo 2 hàng in "DS-RX1" và "DS-RX1 (2inch cut)"
+       [5] Mở YoungBooth (từ giờ tự chạy cùng Windows)
+  4. Làm tiếp 3 việc ở mục "SAU KHI CÀI" bên dưới.
+
+Bộ cài gồm:
+  YoungBooth Setup 0.2.0.exe   ← app (có thể chạy tay nếu không dùng CAI-DAT.bat)
+  YoungBooth-Frames\           ← toàn bộ khung ảnh (luồng thường + luồng sự kiện), logo
+  Du-lieu-cai-dat\             ← booth-settings.json: sự kiện, giá, thanh toán, PIN
+  May-in-DNP\                  ← driver DNP DS-RX1 + setup-dnp.ps1 (thiết lập hàng in)
+  CAI-DAT.bat / CAI-DAT.ps1    ← cài tự động
+
+----------------------------------------------------------
+SAU KHI CÀI (bắt buộc, ~3 phút)
+----------------------------------------------------------
+[ ] 1. MÁY ẢNH CANON: cắm cáp USB, BẬT máy, chế độ chụp ảnh, tắt tự ngủ (Auto power off),
+       nên cắm điện cho máy ảnh. KHÔNG mở EOS Utility / EOS Webcam Utility / digiCamControl
+       (chúng giành máy ảnh với YoungBooth). App mới KHÔNG cần digiCamControl nữa.
+[ ] 2. CHỌN MÁY IN TRONG APP: giữ góc PHẢI-TRÊN màn hình 3 giây → nhập PIN → Cài đặt:
+         - Máy in (ảnh/lưới 4×6)        = DS-RX1
+         - Máy in dải 2×6 (2inch cut)   = DS-RX1 (2inch cut)
+         - Khổ giấy = Tự động · bỏ tick "Xoay 90°" → Lưu.
+       (Cài đặt máy in lưu theo từng máy nên phải chọn lại trên máy mới.)
+[ ] 3. IN THỬ 1 tấm Khoảnh Khắc (4×6) và 1 tấm Nhật Ký (dải) để kiểm tra chiều in + màu.
+
+----------------------------------------------------------
+NÊN LÀM
+----------------------------------------------------------
+- ĐỔI PIN (đang là 1234 nếu chưa đổi): trên máy booth mở trình duyệt
+  http://127.0.0.1:3737/admin → mục Bảo mật → Đổi PIN quản trị → Lưu.
+- Internet / Wi-Fi: để QR tải ảnh + gallery online hoạt động. Không có mạng thì QR vẫn tải được
+  khi điện thoại chung Wi-Fi với máy booth.
+- Tự xoá ảnh trên Cloudinary sau 3 ngày: chép file cleanup.bat (chứa khoá Cloudinary — giữ kín,
+  KHÔNG gửi cho ai) từ máy cũ (C:\Users\<tên>\young-booth-app\cleanup.bat) rồi đặt Task Scheduler
+  chạy mỗi ngày.
+
+----------------------------------------------------------
+LUỒNG SỰ KIỆN (đám cưới, sự kiện…)
+----------------------------------------------------------
+Webadmin  http://127.0.0.1:3737/admin  → mục "Luồng sự kiện":
+  - Nhân bản sự kiện mẫu → sửa tên, chữ trên khung (tên, ngày, lời cảm ơn), chọn khung → Xong sửa → Lưu.
+  - Bật "Bật luồng sự kiện" + chọn "Sự kiện chạy" → Lưu → booth đổi ngay.
+  - Hết sự kiện: bỏ tick "Bật luồng sự kiện" → Lưu → về luồng thường.
+Ảnh sự kiện lưu ở  %APPDATA%\YoungBooth\captures\events\<mã sự kiện>\
+
+----------------------------------------------------------
+XỬ LÝ SỰ CỐ
+----------------------------------------------------------
+* "Máy ảnh Canon" xám / không nhận: rút-cắm lại cáp, tắt-bật máy ảnh, đóng EOS Utility /
+  digiCamControl / Zoom… rồi mở lại YoungBooth.
+* Khung ra trống, không có logo: thiếu thư mục C:\YoungBooth-Frames → chạy lại CAI-DAT.bat
+  (hoặc chép tay thư mục YoungBooth-Frames vào ổ C:).
+* Chưa thấy máy in "DS-RX1": cắm USB + bật máy in, chạy lại CAI-DAT.bat (chọn Y ở bước máy in),
+  hoặc chuột phải May-in-DNP\setup-dnp.ps1 → Run with PowerShell (quyền Administrator).
+* In ra bị xoay / bị cắt: Cài đặt → Khổ giấy = Tự động, bỏ tick "Xoay 90°".
+* Máy in không cắt đôi dải 2×6: firmware máy in DS-RX1 cũ chưa hỗ trợ cắt 2 inch → cắt tay.
+==========================================================
