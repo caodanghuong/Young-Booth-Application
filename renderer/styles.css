@@ -367,3 +367,4 @@ body.event-yb .home-showcase { display: none; }
 body.event-yb .home-ev-badge { display: block; width: fit-content; margin-top: calc(var(--u) * 2.2); padding: calc(var(--u) * .7) calc(var(--u) * 1.8); border-radius: 999px;
   background: rgba(255, 255, 255, .8); box-shadow: var(--shadow); color: var(--lav-deep); font-weight: 800; font-size: calc(var(--u) * 1.6); letter-spacing: .01em; }
 .home-fan.n1 img:nth-child(1) { transform: translate(-50%, -50%) rotate(-3deg); }
+.live-tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; }

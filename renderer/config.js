@@ -471,14 +471,16 @@ const BOOTH_CONFIG = {
   },
 
   // Bộ lọc màu (CSS filter). Áp cho ảnh & GIF, đổi được cả sau khi chụp.
+  // Bộ lọc (thử trên ảnh thật 13/10/2026): css = bộ lọc màu; tint = lớp ánh màu phủ lên ảnh (soft-light: ấm / mát mà KHÔNG đổi màu da).
+  // "Tự nhiên" làm sáng + trong nhẹ vì máy in nhiệt DNP in tối / nhạt hơn màn hình.
   filters: [
-    { id: 'none',    name: 'Gốc',       css: 'none' },
-    { id: 'bw',      name: 'Đen trắng', css: 'grayscale(1) contrast(1.05)' },
-    { id: 'sepia',   name: 'Nâu',       css: 'sepia(0.7) saturate(1.1) contrast(1.05)' },
-    { id: 'warm',    name: 'Ấm',        css: 'saturate(1.2) sepia(0.15) brightness(1.03) contrast(1.05)' },
-    { id: 'cool',    name: 'Lạnh',      css: 'saturate(1.05) hue-rotate(-12deg) brightness(1.02)' },
-    { id: 'vivid',   name: 'Rực rỡ',    css: 'saturate(1.55) contrast(1.15)' },
-    { id: 'vintage', name: 'Cổ điển',   css: 'sepia(0.35) saturate(0.85) contrast(0.95) brightness(1.05)' },
+    { id: 'none',    name: 'Tự nhiên',  css: 'brightness(1.04) contrast(1.06) saturate(1.06)' },
+    { id: 'bw',      name: 'Đen trắng', css: 'grayscale(1) contrast(1.15) brightness(1.05)' },
+    { id: 'sepia',   name: 'Nâu',       css: 'sepia(0.55) saturate(1.05) contrast(1.06) brightness(1.04)' },
+    { id: 'warm',    name: 'Ấm',        css: 'brightness(1.05) contrast(1.04) saturate(1.08)', tint: { color: '#ff9a3c', alpha: 0.14, mode: 'soft-light' } },
+    { id: 'cool',    name: 'Lạnh',      css: 'brightness(1.05) contrast(1.04) saturate(1.02)', tint: { color: '#3c8cff', alpha: 0.14, mode: 'soft-light' } },
+    { id: 'vivid',   name: 'Rực rỡ',    css: 'saturate(1.28) contrast(1.1) brightness(1.03)' },
+    { id: 'vintage', name: 'Cổ điển',   css: 'sepia(0.25) saturate(0.85) contrast(0.92) brightness(1.06)', tint: { color: '#3a2a1a', alpha: 0.22, mode: 'lighten' } },
   ],
 
   // Kiểu chụp.

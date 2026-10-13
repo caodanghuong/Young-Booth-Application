@@ -279,6 +279,12 @@ function applyLivePreviewFilter() {
   const css = state.filter.css === 'none' ? 'none' : state.filter.css;
   video.style.filter = css;
   liveImg.style.filter = css;
+  const t = state.filter.tint, tl = document.getElementById('live-tint');   // lớp ánh màu (Ấm / Lạnh / Cổ điển) giống ảnh ghép
+  if (tl) {
+    tl.style.background = t ? t.color : 'transparent';
+    tl.style.opacity = t ? t.alpha : 0;
+    tl.style.mixBlendMode = t ? (t.mode || 'soft-light') : 'normal';
+  }
 }
 
 // ---- source selector (webcam vs Canon) ----
@@ -977,7 +983,11 @@ function roundRectPath(ctx, x, y, w, h, r) {
 }
 
 // Draw a photo, cover-fit, with optional rounded corners + filter.
-function drawCover(ctx, src, dx, dy, dw, dh, filterCss, radius = 0) {
+// filter = chuỗi CSS hoặc bộ lọc trong config { css, tint: { color, alpha, mode } } — tint = lớp ánh màu phủ lên ảnh
+// (vd soft-light cam / xanh) để ấm / mát mà không đổi màu da như hue-rotate.
+function drawCover(ctx, src, dx, dy, dw, dh, filter, radius = 0) {
+  const filterCss = filter && typeof filter === 'object' ? filter.css : filter;
+  const tint = filter && typeof filter === 'object' ? filter.tint : null;
   const sw = src.width, sh = src.height;
   const scale = Math.max(dw / sw, dh / sh);
   const w = sw * scale, h = sh * scale;
@@ -988,6 +998,13 @@ function drawCover(ctx, src, dx, dy, dw, dh, filterCss, radius = 0) {
   ctx.clip();
   ctx.filter = (filterCss && filterCss !== 'none') ? filterCss : 'none';
   ctx.drawImage(src, ox, oy, w, h);
+  ctx.filter = 'none';
+  if (tint && tint.color && tint.alpha > 0) {   // vẫn trong vùng clip của ô ảnh
+    ctx.globalCompositeOperation = tint.mode || 'soft-light';
+    ctx.globalAlpha = tint.alpha;
+    ctx.fillStyle = tint.color;
+    ctx.fillRect(dx, dy, dw, dh);
+  }
   ctx.restore();
 }
 
@@ -1404,7 +1421,7 @@ async function composePhoto() {
   if (m.slots && m.canvas) return composeTemplate(m);
 
   const O = CFG.output;
-  const f = state.filter.css;
+  const f = state.filter;   // { css, tint? }
   const rad = CFG.brand.photoRadius || 0;
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -1465,7 +1482,7 @@ async function composePhoto() {
 // Template-driven layout: background, photos into named slots, then a PNG frame.
 async function composeTemplate(m) {
   await ensureFrameFonts();   // canvas không tự đợi font → nạp font tiếng Việt trước khi vẽ chữ
-  const f = state.filter.css;
+  const f = state.filter;   // { css, tint? }
   const canvas = document.createElement('canvas');
   canvas.width = m.canvas.w; canvas.height = m.canvas.h;
   const ctx = canvas.getContext('2d');
@@ -1663,7 +1680,7 @@ function framesToGif(rawFrames, boomerang, delay) {
   return new Promise((resolve, reject) => {
     const O = CFG.output;
     const size = O.gifSize, bar = O.gifBrandBar;
-    const f = state.filter.css;
+    const f = state.filter;   // { css, tint? }
     const onGradient = CFG.brand.frameStyle !== 'white';
 
     let frames = rawFrames.map((fr) => {
