@@ -360,3 +360,10 @@ body.event-mode #screen-mode .screen-title span, body.event-mode #screen-review 
 .ev-status { margin: 0 0 calc(var(--u) * .6); font-weight: 800; color: var(--ok); }
 .ev-status.on { color: var(--lav-deep); }
 .ev-warn { margin: 0 0 calc(var(--u) * .6); padding: calc(var(--u) * .6) calc(var(--u) * .9); border-radius: calc(var(--u) * .6); background: #FCE8EE; color: var(--danger); font-weight: 600; }
+
+/* Sự kiện giữ giao diện YoungBooth: như luồng thường, ẩn ưu đãi, thêm dòng tên sự kiện trên tiêu đề */
+.home-ev-badge { display: none; }
+body.event-yb .home-showcase { display: none; }
+body.event-yb .home-ev-badge { display: block; width: fit-content; margin-top: calc(var(--u) * 2.2); padding: calc(var(--u) * .7) calc(var(--u) * 1.8); border-radius: 999px;
+  background: rgba(255, 255, 255, .8); box-shadow: var(--shadow); color: var(--lav-deep); font-weight: 800; font-size: calc(var(--u) * 1.6); letter-spacing: .01em; }
+.home-fan.n1 img:nth-child(1) { transform: translate(-50%, -50%) rotate(-3deg); }

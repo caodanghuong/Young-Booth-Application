@@ -451,6 +451,29 @@ async function buildModeThumbs() {
       t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
       state.modeThumbs[m.id] = t.toDataURL('image/jpeg', 0.86);
     }
+    // Luồng sự kiện: ảnh mẫu xếp quạt ở màn chờ = tối đa 3 khung CỦA SỰ KIỆN (không lấy khung luồng thường).
+    const ev = state.flow;
+    state.flowFan = null;
+    if (ev && !touched) {
+      const fan = [];
+      for (const m of ev._modes) {
+        if (!(m.slots && m.canvas)) continue;
+        for (const f of eventFramesFor(ev, m)) {
+          if (fan.length >= 3) break;
+          state.mode = m;
+          state.rawFrames = Array.from({ length: m.select || m.captureCount || 1 }, (_, i) => placeholderFrame(900, 1100, i));
+          let c;
+          try { c = await composeTemplate(applyFrame(m, f)); } catch (e) { console.warn('[thumb]', f.id, e.message); continue; }
+          if (state.mode !== m || state.flow !== ev) { touched = true; break; }
+          const k = 560 / Math.max(c.width, c.height);
+          const t = document.createElement('canvas'); t.width = Math.round(c.width * k); t.height = Math.round(c.height * k);
+          t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+          fan.push(t.toDataURL('image/jpeg', 0.86));
+        }
+        if (touched) break;
+      }
+      if (!touched) state.flowFan = fan;
+    }
   } finally {
     state.beauty = keep.beauty; state.filter = keep.filter;
     if (!touched) { state.mode = prev.mode; state.qrUrl = prev.qrUrl; state.rawFrames = prev.rawFrames; }
@@ -1181,7 +1204,8 @@ function applyFlow(force) {
   _flowKey = key; state.flow = ev;
   applyEventTheme(ev);
   renderEventHome(ev);
-  state.modeThumbs = {};
+  state.modeThumbs = {}; state.flowFan = null;
+  renderHomeFan();
   buildModeGrid();
   resetConsent();
   updatePrintBtn();
@@ -1191,8 +1215,14 @@ function maybeApplyFlow() {
   const atHome = screens.home && screens.home.classList.contains('active');
   if (atHome && !state.busy) applyFlow(); else state.flowPending = true;
 }
+// Sự kiện giao diện riêng (theme.style = 'custom')? Mặc định giữ giao diện YoungBooth như luồng thường.
+const customUI = (ev) => !!(ev && ev.theme && ev.theme.style === 'custom');
 function applyEventTheme(ev) {
   const b = document.body;
+  b.classList.toggle('event-yb', !!ev && !customUI(ev));   // giao diện YoungBooth: chỉ ẩn ưu đãi + thêm dòng tên sự kiện
+  const badge = $('#home-ev-badge');
+  if (badge) badge.textContent = ev && !customUI(ev) ? ((ev.home && ev.home.title) || ev.name) : '';
+  ev = customUI(ev) ? ev : null;                            // màu / màn chờ riêng chỉ khi giao diện riêng
   b.classList.toggle('event-mode', !!ev);
   const t = (ev && ev.theme) || {};
   const set = (k, v) => { if (v) b.style.setProperty(k, v); else b.style.removeProperty(k); };
@@ -1204,14 +1234,15 @@ function applyEventTheme(ev) {
   const title = document.querySelector('#screen-mode .screen-title');
   if (title) {
     if (!title.dataset.orig) title.dataset.orig = title.innerHTML;
-    title.innerHTML = ev ? esc(ev.name) + '<span>Chọn kiểu chụp</span>' : title.dataset.orig;
+    title.innerHTML = ev ? esc(ev.name) + '<span>Chọn kiểu chụp</span>'
+      : (state.flow ? title.dataset.orig.replace(/<span>[\s\S]*<\/span>/, '<span>' + esc(state.flow.name) + '</span>') : title.dataset.orig);
   }
 }
 // Màn chờ sự kiện: logo, tiêu đề, lời chào, nút lớn, dải xem trước khung của sự kiện.
 function renderEventHome(ev) {
   const box = $('#home-event');
   if (!box) return;
-  if (!ev) { box.innerHTML = ''; return; }
+  if (!customUI(ev)) { box.innerHTML = ''; return; }
   const h = ev.home || {}, t = ev.theme || {};
   const thumbs = [];
   ev._modes.forEach((m) => eventFramesFor(ev, m).forEach((f) => {
@@ -2430,6 +2461,13 @@ function esc(s) {
 function renderHomeFan() {
   const fan = $('#home-fan');
   if (!fan) return;
+  if (state.flow) {   // luồng sự kiện: chỉ khung của sự kiện
+    const list = state.flowFan || [];
+    fan.classList.toggle('n1', list.length === 1);
+    fan.innerHTML = list.map((u) => `<img src="${u}" alt="">`).join('');
+    return;
+  }
+  fan.classList.remove('n1');
   const t = state.modeThumbs || {};
   const pick = ['A', 'C', 'F'].filter((id) => t[id]);
   Object.keys(t).forEach((id) => { if (pick.length < 3 && !pick.includes(id)) pick.push(id); });

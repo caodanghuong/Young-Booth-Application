@@ -20,7 +20,7 @@ const DEFAULTS = {
     activeEventId: '',
   },
   events: [EVENT_TEMPLATE('orientation', 'Orientation Day – Greenwich', {
-    theme: { background: '#3fb6e8', accent: '#1d3a8a', textColor: '#ffffff' },
+    theme: { style: 'custom', background: '#3fb6e8', accent: '#1d3a8a', textColor: '#ffffff' },
     home: { title: 'ORIENTATION DAY', subtitle: 'Future Starts Here' },
     modes: ['C', 'B'],
     frames: { C: ['EV-C-orientation'], B: ['EV-B-orientation'] },
@@ -32,7 +32,8 @@ const DEFAULTS = {
 function EVENT_TEMPLATE(id, name, over) {
   const base = {
     id, name,
-    theme: { background: '#f4eefb', backgroundImage: '', accent: '#8d6ccf', textColor: '#2e2240', logo: '', font: '' },
+    // style: 'youngbooth' = giữ giao diện YoungBooth như luồng thường (MẶC ĐỊNH) · 'custom' = màn chờ + màu riêng của sự kiện
+    theme: { style: 'youngbooth', background: '#f4eefb', backgroundImage: '', accent: '#8d6ccf', textColor: '#2e2240', logo: '', font: '' },
     home: { title: name, subtitle: '', welcome: 'Chạm để chụp ảnh lưu niệm', buttonLabel: 'CHỤP ẢNH', showYoungBoothBrand: true },
     modes: ['C'],
     frames: {},

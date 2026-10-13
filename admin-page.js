@@ -117,12 +117,15 @@ function renderEditor(){
     '<label>Mã (id) <input id="e_id" value="'+esc(e.id)+'" '+(EDIT.isNew?'':'disabled')+'></label>'+
     (EDIT.isNew?'<p class="hint">Mã tự sinh từ tên (chữ thường không dấu, số, dấu -). Sau khi tạo không đổi được.</p>':'')+
     '<h3>Giao diện</h3>'+
+    '<label>Kiểu giao diện <select id="t_style" onchange="syncEditor();render()"><option value="youngbooth" '+(t.style!=='custom'?'selected':'')+'>YoungBooth (như luồng thường)</option><option value="custom" '+(t.style==='custom'?'selected':'')+'>Riêng của sự kiện (màn chờ + màu riêng)</option></select></label>'+
+    (t.style!=='custom'?'<p class="hint">Màn chờ, màu sắc giữ như luồng thường; chỉ ẩn ưu đãi/bảng giá và hiện tên sự kiện (ô "Chữ lớn" bên dưới) trên màn chờ. Khung + chữ trên khung vẫn theo sự kiện.</p>':'')+
+    '<div style="'+(t.style!=='custom'?'display:none':'')+'">'+
     '<label>Màu nền <input type="color" id="t_bg" value="'+esc(t.background||'#f4eefb')+'"></label>'+
     '<label>Màu nút chính <input type="color" id="t_accent" value="'+esc(t.accent||'#8d6ccf')+'"></label>'+
     '<label>Màu chữ <input type="color" id="t_text" value="'+esc(t.textColor||'#2e2240')+'"></label>'+
     '<label>Ảnh nền (tuỳ chọn) <input id="t_img" value="'+esc(t.backgroundImage)+'" placeholder="file:///C:/YoungBooth-Frames/events/…/home.jpg"></label>'+
     '<label>Logo sự kiện (tuỳ chọn) <input id="t_logo" value="'+esc(t.logo)+'" placeholder="file:///C:/YoungBooth-Frames/events/…/logo.png"></label>'+
-    '<label>Font tiêu đề <select id="t_font">'+['','Be Vietnam Pro','YB Script','YB Serif','Dancing Script','Oswald','Baloo 2','Noto Serif'].map((f)=>'<option '+(f===(t.font||'')?'selected':'')+' value="'+esc(f)+'">'+(f||'(mặc định)')+'</option>').join('')+'</select></label>'+
+    '<label>Font tiêu đề <select id="t_font">'+['','Be Vietnam Pro','YB Script','YB Serif','Dancing Script','Oswald','Baloo 2','Noto Serif'].map((f)=>'<option '+(f===(t.font||'')?'selected':'')+' value="'+esc(f)+'">'+(f||'(mặc định)')+'</option>').join('')+'</select></label></div>'+
     '<h3>Màn chờ</h3>'+
     '<label>Chữ lớn <input id="h_title" value="'+esc(hm.title)+'"></label>'+
     '<label>Dòng phụ <input id="h_sub" value="'+esc(hm.subtitle)+'"></label>'+
@@ -173,7 +176,7 @@ function mv(id,d){syncEditor();const e=EDIT.ev;const pm=photoModes().map((m)=>m.
 function syncEditor(){
   if(!EDIT||!$('e_name'))return;const e=EDIT.ev,v=(id)=>$(id).value;
   e.name=v('e_name').trim();if(EDIT.isNew)e.id=v('e_id').trim();
-  e.theme=Object.assign({},e.theme,{background:v('t_bg'),accent:v('t_accent'),textColor:v('t_text'),backgroundImage:v('t_img').trim(),logo:v('t_logo').trim(),font:v('t_font')});
+  e.theme=Object.assign({},e.theme,{style:v('t_style'),background:v('t_bg'),accent:v('t_accent'),textColor:v('t_text'),backgroundImage:v('t_img').trim(),logo:v('t_logo').trim(),font:v('t_font')});
   e.home=Object.assign({},e.home,{title:v('h_title'),subtitle:v('h_sub'),welcome:v('h_welcome'),buttonLabel:v('h_btn'),showYoungBoothBrand:$('h_brand').checked});
   const pm=photoModes().map((m)=>m.id);const prev=e.modes||[];const order=prev.concat(pm.filter((x)=>!prev.includes(x)));
   e.modes=order.filter((id)=>$('m_'+id)&&$('m_'+id).checked);
