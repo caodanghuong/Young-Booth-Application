@@ -1742,6 +1742,8 @@ async function ensureSessionAnim() {
 
 /* ================= sharing / print / email ================= */
 
+// Máy in nhiệt DNP (DS-RX1, DS620, DS820, DS40, QW410…) — xem ghi chú trong doPrint.
+const DNP_PRINTER = /DS-?RX1|DS-?620|DS-?820|DS-?40|QW-?410|DNP/i;
 async function doPrint() {
   if (!state.lastOutput) return;
   const lim = printLimit();
@@ -1788,10 +1790,18 @@ async function doPrint() {
     // hàng in bật 2inch cut = (6x4) NGANG (driver bắt buộc) → thiết kế dọc 2 dải (C) xoay ngang,
     // dao cắt ngang giữa tờ = đúng vạch giữa 2 dải.
     const shape = await window.booth.pageShape(printerName).catch(() => null);
-    const pageLandscape = !!(shape && shape.ok && shape.landscape);   // không đọc được → coi như dọc
+    let pageLandscape = !!(shape && shape.ok && shape.landscape);   // không đọc được → coi như dọc
+    if (shape && shape.ok) pageIn = { w: shape.width / 100, h: shape.height / 100 };  // 1/100 inch → inch
+    // Máy in nhiệt DNP (giấy cuộn rộng 6"): trang Chromium dựng cho driver LUÔN là 6×4 NẰM NGANG, kể cả khi driver báo
+    // khổ "PR (4x6)" dọc (in thật 13/10/2026: thiết kế dọc bị đặt vào trang ngang → mất phần dưới, bên phải trống).
+    // → luôn gửi trang NGANG 6×4: thiết kế dọc được xoay 90°, tờ in vẫn là ảnh 4×6 đầy đủ (giống hàng in 2inch cut đang in đúng).
+    if (DNP_PRINTER.test(printerName || '')) {
+      pageLandscape = true;
+      if (pageIn) pageIn = { w: Math.max(pageIn.w, pageIn.h), h: Math.min(pageIn.w, pageIn.h) };
+      else pageIn = { w: 6.15, h: 4.13 };
+    }
     const designLandscape = !!(em.canvas && em.canvas.w > em.canvas.h);
     if (designLandscape !== pageLandscape) { dataUrl = await rotate90(dataUrl); rotated = true; }
-    if (shape && shape.ok) pageIn = { w: shape.width / 100, h: shape.height / 100 };  // 1/100 inch → inch
     paper = '4x6';   // = dùng khổ mặc định của driver, không ép kích thước
   }
 
