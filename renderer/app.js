@@ -5,7 +5,25 @@ const CFG = window.BOOTH_CONFIG;
 document.documentElement.style.setProperty('--accent1', CFG.brand.accent1);
 document.documentElement.style.setProperty('--accent2', CFG.brand.accent2);
 if (CFG.brand.accent3) document.documentElement.style.setProperty('--accent3', CFG.brand.accent3);
-document.querySelector('.logo').textContent = CFG.brand.logoEmoji;
+// Logo thật ở màn chờ (C:\YoungBooth-Frames\logo.png); thiếu file → ẩn ảnh.
+{ const lg = document.getElementById('home-logo'); if (lg) lg.addEventListener('error', () => { lg.style.display = 'none'; }); }
+
+// Hộp thông báo theo giao diện app, thay cho alert() mặc định của Windows (không chặn luồng).
+(function setupNotice() {
+  const modal = document.getElementById('notice-modal'), text = document.getElementById('notice-text');
+  if (!modal || !text) return;
+  const queue = [];
+  const next = () => { if (!queue.length) { modal.classList.remove('show'); return; } text.textContent = queue.shift(); modal.classList.add('show'); };
+  document.getElementById('notice-ok').addEventListener('click', next);
+  window.alert = (msg) => { queue.push(String(msg == null ? '' : msg)); if (!modal.classList.contains('show')) next(); };
+})();
+
+// Đổi chữ trên nút có icon: chỉ đổi phần .lbl, giữ nguyên icon.
+function setLbl(btn, text) {
+  if (!btn) return;
+  const l = btn.querySelector('.lbl');
+  if (l) l.textContent = text; else btn.textContent = text;
+}
 
 // ---- state ----
 function loadSource() {
@@ -69,9 +87,23 @@ const flashEl = $('#flash');
 const shotProgress = $('#shot-progress');
 
 // ---- navigation ----
+// Màn hình → bước trên thanh 5 bước (Chọn kiểu · Chụp · Chọn ảnh · Trang trí · In). 0 = ẩn thanh.
+const STEP_OF = { home: 0, mode: 1, pay: 1, capture: 2, select: 3, review: 3, result: 4 };
+function setStep(n) {
+  const bar = document.getElementById('stepbar');
+  if (!bar) return;
+  bar.classList.toggle('show', n > 0);
+  bar.querySelectorAll('.step').forEach((el) => {
+    const k = +el.dataset.step;
+    el.classList.toggle('done', k < n);
+    el.classList.toggle('now', k === n);
+    el.querySelector('b').innerHTML = k < n ? '<svg><use href="#i-check"/></svg>' : String(k);
+  });
+}
 function show(name) {
   Object.values(screens).forEach((s) => s.classList.remove('active'));
   screens[name].classList.add('active');
+  if (name in STEP_OF) setStep(STEP_OF[name]);   // 'processing' giữ nguyên bước hiện tại
 }
 
 document.querySelectorAll('[data-goto]').forEach((el) => {
@@ -349,22 +381,77 @@ async function buildSourceBar(allowPrompt = true) {
 }
 
 // ---- mode grid ----
+function shotsLabel(m) {
+  const cap = m.captureCount || m.select || 1, sel = m.select || cap;
+  return cap > sel ? `Chụp ${cap} · chọn ${sel}` : `${cap} tấm`;
+}
+const MOTION_ICON = { gif: 'i-gif', boomerang: 'i-loop', video: 'i-video' };
 function buildModeGrid() {
-  const grid = $('#mode-grid');
+  const grid = $('#mode-grid'), motion = $('#mode-motion');
   grid.innerHTML = '';
+  if (motion) motion.innerHTML = '';
   CFG.modes.forEach((m) => {
+    if (m.kind !== 'photo' && motion) {   // GIF / Boomerang / Video → hàng thẻ ngang phía dưới
+      const c = document.createElement('div');
+      c.className = 'mcard';
+      c.innerHTML = `<span class="ic"><svg><use href="#${MOTION_ICON[m.kind] || 'i-gif'}"/></svg></span>` +
+        `<div><b>${esc(m.name)}</b><span class="d">${esc(m.desc || '')}</span></div>`;
+      c.addEventListener('click', () => chooseMode(m));
+      motion.appendChild(c);
+      return;
+    }
     const card = document.createElement('div');
     card.className = 'mode-card';
-    // Khung có thiết kế (overlay/thumb) → hiện ảnh preview thật cho khách chọn;
-    // kiểu thường → hiện icon emoji.
-    const preview = m.thumb || m.overlay;
-    const top = preview
-      ? `<img class="thumb" src="${preview}" alt="" onerror="this.outerHTML='<div class=&quot;ic&quot;>${m.icon}</div>'">`
-      : `<div class="ic">${m.icon}</div>`;
-    card.innerHTML = `${top}<div class="nm">${m.name}</div><div class="ds">${m.desc}</div>`;
+    // Ảnh mẫu: khung thật ghép ảnh minh hoạ (buildModeThumbs), chưa có thì dùng thumb/overlay.
+    const preview = (state.modeThumbs && state.modeThumbs[m.id]) || m.thumb || m.overlay;
+    card.innerHTML = `<div class="ph">${preview ? `<img class="thumb" src="${preview}" alt="">` : ''}</div>` +
+      `<div class="nm">${esc(m.name)}</div><div class="ds"><span>${esc(m.desc || '')}</span><em>${shotsLabel(m)}</em></div>`;
+    const im = card.querySelector('img');
+    if (im) im.addEventListener('error', () => im.remove());
     card.addEventListener('click', () => chooseMode(m));
     grid.appendChild(card);
   });
+}
+
+// Ảnh mẫu cho thẻ chọn kiểu + màn chờ: ghép KHUNG THẬT với ảnh minh hoạ, dựng 1 lần lúc mở app
+// (đổi PNG khung → ảnh mẫu tự đúng theo). Không đụng lượt chụp của khách nếu khách bấm vào giữa chừng.
+function placeholderFrame(w, h, i) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  const tones = [['#E9E1F3', '#C9BBDD'], ['#F6E3EC', '#DDBFCF'], ['#E6E7F4', '#C2C5DE'], ['#F3E8E1', '#D9C6B8']][i % 4];
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, tones[0]); g.addColorStop(1, tones[1]);
+  x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const u = Math.min(w, h);
+  x.fillStyle = 'rgba(92, 78, 116, .55)';
+  x.beginPath(); x.ellipse(w / 2, h * 1.02, u * 0.42, u * 0.30, 0, Math.PI, 0); x.fill();
+  x.beginPath(); x.ellipse(w / 2, h * 0.55, u * 0.17, u * 0.21, 0, 0, Math.PI * 2); x.fill();
+  return c;
+}
+async function buildModeThumbs() {
+  state.modeThumbs = state.modeThumbs || {};
+  const keep = { beauty: state.beauty, filter: state.filter };
+  const prev = { mode: state.mode, qrUrl: state.qrUrl, rawFrames: state.rawFrames };
+  let touched = false;
+  try {
+    state.beauty = false; state.filter = CFG.filters[0];
+    state.qrUrl = ((CFG.galleryQR && CFG.galleryQR.galleryBase) || '') + '#/';
+    for (const m of CFG.modes) {
+      if (!(m.slots && m.canvas)) continue;
+      state.mode = m;
+      const n = m.select || m.captureCount || 1;
+      state.rawFrames = Array.from({ length: n }, (_, i) => placeholderFrame(900, 1100, i));
+      let c;
+      try { c = await composeTemplate(m); } catch (e) { console.warn('[thumb]', m.id, e.message); continue; }
+      if (state.mode !== m) { touched = true; break; }   // khách đã bấm chọn kiểu → dừng, không ghi đè
+      const k = 560 / Math.max(c.width, c.height);
+      const t = document.createElement('canvas'); t.width = Math.round(c.width * k); t.height = Math.round(c.height * k);
+      t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+      state.modeThumbs[m.id] = t.toDataURL('image/jpeg', 0.86);
+    }
+  } finally {
+    state.beauty = keep.beauty; state.filter = keep.filter;
+    if (!touched) { state.mode = prev.mode; state.qrUrl = prev.qrUrl; state.rawFrames = prev.rawFrames; }
+  }
 }
 
 async function chooseMode(m) {
@@ -470,13 +557,28 @@ $('#pay-confirm').addEventListener('click', async () => {
   onPaid(state.mode);
 });
 
+const _shotThumbs = new WeakMap();
+function shotThumb(cv) {
+  let u = _shotThumbs.get(cv);
+  if (!u) {
+    const k = 240 / Math.max(cv.width, cv.height);
+    const t = document.createElement('canvas'); t.width = Math.round(cv.width * k); t.height = Math.round(cv.height * k);
+    t.getContext('2d').drawImage(cv, 0, 0, t.width, t.height);
+    u = t.toDataURL('image/jpeg', 0.7); _shotThumbs.set(cv, u);
+  }
+  return u;
+}
 function renderShotDots(done) {
   const total = state.mode.kind === 'photo' ? (state.mode.captureCount || state.mode.select || 1) : 1;
+  const lbl = $('#shot-count');
+  if (lbl) lbl.textContent = state.mode.kind !== 'photo' ? 'Ảnh động' : (total > 1 ? `Tấm ${Math.min(done + 1, total)} / ${total}` : 'Ảnh đơn');
   shotProgress.innerHTML = '';
   if (total <= 1) return;
   for (let i = 0; i < total; i++) {
     const d = document.createElement('div');
     d.className = 'shot-dot' + (i < done ? ' done' : '');
+    const cv = i < done && state.captured && state.captured[i];
+    if (cv) d.style.backgroundImage = `url(${shotThumb(cv)})`;
     shotProgress.appendChild(d);
   }
 }
@@ -599,7 +701,7 @@ function openReviewScreen() {
     cell.className = 'review-cell';
     const num = document.createElement('span'); num.className = 'review-num'; num.textContent = idx + 1;
     const img = document.createElement('img'); img.src = cv.toDataURL('image/jpeg', 0.7);
-    const btn = document.createElement('button'); btn.className = 'review-retake'; btn.textContent = '🔄 Chụp lại';
+    const btn = document.createElement('button'); btn.className = 'review-retake'; btn.innerHTML = '<svg><use href="#i-redo"/></svg>Chụp lại';
     btn.addEventListener('click', () => retakeShot(idx));
     cell.appendChild(num); cell.appendChild(img); cell.appendChild(btn);
     grid.appendChild(cell);
@@ -1357,10 +1459,10 @@ function pushSessionOnce() {
 }
 
 $('#btn-print').addEventListener('click', async () => {
-  const btn = $('#btn-print'); btn.disabled = true; const label = btn.textContent; btn.textContent = '🖨️ Đang in…';
+  const btn = $('#btn-print'); btn.disabled = true; setLbl(btn, 'Đang in…'); setStep(5);
   try { await doPrint(); }
-  catch (e) { alert('Lỗi khi in: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = label; }
+  catch (e) { setStep(4); alert('Lỗi khi in: ' + e.message); }
+  finally { btn.disabled = false; setLbl(btn, 'In ảnh'); }
 });
 
 // Xoay ảnh 90° (dọc → ngang) để in vừa giấy nằm ngang.
@@ -1405,6 +1507,7 @@ function makeDoubleStrip(stripDataUrl) {
 
 // ---- settings modal ----
 async function openSettings() {
+  buildSourceBar().catch(() => {});
   let printers = [];
   try { printers = await window.booth.listPrinters(); } catch {}
   const fillPrinterSelect = (sel, current) => {
@@ -1504,8 +1607,28 @@ function saveFrameTextFields() {
   try { localStorage.setItem('booth.frameText', JSON.stringify(store)); } catch (_e) {}
 }
 
-$('#btn-settings').addEventListener('click', openSettings);
-$('#btn-settings-capture').addEventListener('click', openSettings);
+// Cài đặt chỉ dành cho nhân viên: giữ góc phải-trên màn hình 3 giây → nhập PIN quản trị.
+(function setupStaffAccess() {
+  const corner = document.getElementById('staff-corner');
+  const modal = $('#pin-modal'), input = $('#pin-input'), err = $('#pin-err');
+  if (!corner || !modal) return;
+  let timer = null;
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  corner.addEventListener('pointerdown', () => {
+    cancel();
+    timer = setTimeout(() => { timer = null; err.textContent = ''; input.value = ''; modal.classList.add('show'); setTimeout(() => input.focus(), 50); }, 3000);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => corner.addEventListener(ev, cancel));
+  $('#pin-cancel').addEventListener('click', () => modal.classList.remove('show'));
+  $('#pin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const r = await window.booth.pay.verifyPin(input.value).catch(() => ({ ok: false }));
+    input.value = '';
+    if (!r.ok) { err.textContent = 'Sai PIN, thử lại.'; return; }
+    modal.classList.remove('show');
+    openSettings();
+  });
+})();
 $('#btn-settings-save').addEventListener('click', saveSettings);
 $('#btn-settings-close').addEventListener('click', () => $('#settings-modal').classList.remove('show'));
 
@@ -1577,8 +1700,10 @@ function openStickerEditor() {
   const img = new Image();
   img.onload = () => {
     SE.natW = img.naturalWidth; SE.natH = img.naturalHeight;
-    const maxW = Math.min(window.innerWidth * 0.6, 520);
-    const maxH = window.innerHeight * 0.4;
+    $('#sticker-editor').classList.add('show');          // hiện trước để đo vùng đặt ảnh
+    const box = document.querySelector('.se-stage-wrap').getBoundingClientRect();
+    const maxW = box.width * 0.96;
+    const maxH = box.height * 0.96;
     let w = maxW, h = w * SE.natH / SE.natW;
     if (h > maxH) { h = maxH; w = h * SE.natW / SE.natH; }
     SE.stageW = Math.round(w); SE.stageH = Math.round(h);
@@ -1736,27 +1861,27 @@ async function applyStickers() {
 }
 
 $('#se-print').addEventListener('click', async () => {
-  const btn = $('#se-print'); btn.disabled = true; const label = btn.textContent; btn.textContent = '🖨️ Đang in…';
+  const btn = $('#se-print'); btn.disabled = true; setLbl(btn, 'Đang in…'); setStep(5);
   try {
     await applyStickers();
     await doPrint();
     $('#sticker-editor').classList.remove('show');
   } catch (e) {
-    alert('Lỗi khi in: ' + e.message);
+    setStep(4); alert('Lỗi khi in: ' + e.message);
   } finally {
-    btn.disabled = false; btn.textContent = label;
+    btn.disabled = false; setLbl(btn, 'In ảnh');
   }
 });
 
 $('#se-done').addEventListener('click', async () => {
-  const btn = $('#se-done'); btn.disabled = true; btn.textContent = '⏳ Đang lưu…';
+  const btn = $('#se-done'); btn.disabled = true; setLbl(btn, 'Đang lưu…');
   try {
     await applyStickers();
     $('#sticker-editor').classList.remove('show');
   } catch (e) {
     alert('Lỗi khi gắn sticker: ' + e.message);
   } finally {
-    btn.disabled = false; btn.textContent = '✅ Xong';
+    btn.disabled = false; setLbl(btn, 'Xong');
   }
 });
 
@@ -1793,7 +1918,7 @@ async function ensureShare() {
 
 $('#btn-share').addEventListener('click', async () => {
   if (!state.lastOutput) return;
-  const btn = $('#btn-share'); btn.disabled = true; btn.textContent = '⏳ Đang tạo QR…';
+  const btn = $('#btn-share'); btn.disabled = true; setLbl(btn, 'Đang tạo QR…');
   try {
     const res = await ensureShare();
     $('#qr-img').src = res.qrDataUrl;
@@ -1807,7 +1932,7 @@ $('#btn-share').addEventListener('click', async () => {
   } catch (e) {
     alert('Lỗi tạo link chia sẻ: ' + e.message);
   } finally {
-    btn.disabled = false; btn.textContent = '📱 Chia sẻ / QR';
+    btn.disabled = false; setLbl(btn, 'Lấy ảnh qua QR');
   }
 });
 $('#btn-close-share').addEventListener('click', () => $('#share-modal').classList.remove('show'));
@@ -1817,7 +1942,7 @@ $('#btn-retake').addEventListener('click', () => { state._shareRes = null; state
 function goHome() {
   state._shareRes = null; state.sessionAnim = null; state.pushedOutput = null;
   // Đóng mọi lớp phủ (sticker / QR / cài đặt) — nếu không, khách sau sẽ thấy ảnh khách trước.
-  ['#sticker-editor', '#share-modal', '#settings-modal'].forEach((sel) => { const el = $(sel); if (el) el.classList.remove('show'); });
+  ['#sticker-editor', '#share-modal', '#settings-modal', '#pin-modal', '#notice-modal'].forEach((sel) => { const el = $(sel); if (el) el.classList.remove('show'); });
   SE.stickers.forEach((s) => s.el.remove()); SE.stickers = []; SE.selected = null;
   state.lastOutput = null;
   $('#result-img').removeAttribute('src');
@@ -1869,6 +1994,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   buildModeGrid();
   buildSourceBar(false); // don't power on the webcam just to read labels at startup
   buildHomeShowcase();
+  setStep(0);
+  buildModeThumbs().then(() => { buildModeGrid(); renderHomeFan(); }).catch(() => {});
   try { state.settings = await window.booth.getSettings(); } catch (_e) {}
 });
 
@@ -1876,60 +2003,36 @@ window.addEventListener('DOMContentLoaded', async () => {
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
-function promoCardHtml(p) {
-  const li = (arr) => (arr || []).map((x) => `<li>${esc(x)}</li>`).join('');
-  return `<div class="hs-card hs-promo">
-    <div class="promo-head"><div class="promo-title">${esc(p.title || 'ƯU ĐÃI & CHÍNH SÁCH')}</div><div class="promo-sub">${esc(p.brand || 'YOUNG BOOTH')}</div></div>
-    <div class="promo-body">
-      <div class="promo-sec"><div class="promo-h promo-h1">${esc(p.offersTitle || 'Ưu đãi')}</div><ul class="promo-list l1">${li(p.offers)}</ul></div>
-      <div class="promo-sec"><div class="promo-h promo-h2">${esc(p.policiesTitle || 'Chính sách')}</div><ul class="promo-list l2">${li(p.policies)}</ul></div>
-    </div>
-  </div>`;
+// Màn chờ: 3 ảnh mẫu khung xếp hình quạt + 1 dòng ưu đãi tự chuyển (chấm chỉ trang).
+function renderHomeFan() {
+  const fan = $('#home-fan');
+  if (!fan) return;
+  const t = state.modeThumbs || {};
+  const pick = ['A', 'C', 'F'].filter((id) => t[id]);
+  Object.keys(t).forEach((id) => { if (pick.length < 3 && !pick.includes(id)) pick.push(id); });
+  fan.innerHTML = pick.slice(0, 3).map((id) => `<img src="${t[id]}" alt="">`).join('');
 }
-function priceCardHtml(p) {
-  const rows = (p.packages || []).map((g) => {
-    const badge = g.popular ? `<span class="pkg-badge">${esc(g.popularLabel || 'PHỔ BIẾN')}</span>` : '';
-    const c = g.color || '#888';
-    return `<div class="pkg" style="--c:${esc(c)}">
-      <div class="pkg-top"><span class="pkg-name">${esc(g.name)}${badge}</span><span class="pkg-price">${esc(g.price)}</span></div>
-      ${g.note ? `<div class="pkg-note">${esc(g.note)}</div>` : ''}
-    </div>`;
-  }).join('');
-  return `<div class="hs-card hs-price">
-    <div class="price-head"><div class="price-title">${esc(p.title || 'BẢNG GIÁ')}</div><div class="price-sub">${esc(p.brand || 'YOUNG BOOTH')}</div></div>
-    <div class="price-body">${rows}</div>
-  </div>`;
-}
-function eventCardHtml(e) {
-  const nl = (s) => esc(s).replace(/\n/g, '<br>');
-  const periods = (e.periods || []).map((pr) => `
-    <div class="event-period">
-      <div class="event-range">${esc(pr.range)}</div>
-      <div class="event-items">${(pr.items || []).map(esc).join('&nbsp;·&nbsp;')}</div>
-    </div>`).join('');
-  return `<div class="hs-card hs-event">
-    <div class="event-pad">
-      <div class="event-top"><span>${nl(e.brandLeft || 'FANCLUB\nFRAME EVENT')}</span><span style="text-align:right">${nl(e.brandRight || 'YOUNG BOOTH\nVIỆT NAM')}</span></div>
-      <div class="event-title">${esc(e.month || 'Tháng 9')}</div>
-    </div>
-    <div class="event-body">${periods}</div>
-    <div class="event-note">${esc(e.note || '')}</div>
-  </div>`;
-}
+let _tickerTimer = null;
 function buildHomeShowcase() {
-  const cfg = (CFG.home && CFG.home.showcase) || {};
-  const promo = (CFG.home && CFG.home.promo) || {};
-  const pricing = (CFG.home && CFG.home.pricing) || {};
-  const event = (CFG.home && CFG.home.event) || {};
   const wrap = $('#home-showcase');
+  renderHomeFan();
   if (!wrap) return;
-  if (cfg.enabled === false) { wrap.style.display = 'none'; return; }
-  let cards = '';
-  if (promo.enabled) cards += promoCardHtml(promo);
-  if (pricing.enabled) cards += priceCardHtml(pricing);
-  if (event.enabled) cards += eventCardHtml(event);
-  const imgs = (cfg.images && cfg.images.length) ? cfg.images : null;
-  if (imgs) cards += imgs.map((src) => `<div class="hs-card"><img src="${src}" alt="mẫu khung"></div>`).join('');
-  else if (!promo.enabled && !pricing.enabled && !event.enabled) cards += [1, 2, 3].map((n) => `<div class="hs-card hs-ph">Khung ${n}</div>`).join('');
-  wrap.innerHTML = `<div class="hs-title">${esc(cfg.title || '')}</div><div class="hs-row">${cards}</div>`;
+  const promo = (CFG.home && CFG.home.promo) || {};
+  const event = (CFG.home && CFG.home.event) || {};
+  const items = promo.enabled === false ? [] : (promo.offers || []).filter(Boolean);
+  if (_tickerTimer) { clearInterval(_tickerTimer); _tickerTimer = null; }
+  if (!items.length) { wrap.innerHTML = ''; return; }
+  const title = (promo.offersTitle || 'Ưu đãi') + (event.enabled !== false && event.month ? ' ' + String(event.month).toLowerCase() : '');
+  wrap.innerHTML = `<div class="ticker"><strong>${esc(title)}</strong><span class="tk-text"></span>` +
+    `<span class="dots">${items.map(() => '<i></i>').join('')}</span></div>`;
+  const text = wrap.querySelector('.tk-text'), dots = [...wrap.querySelectorAll('.dots i')];
+  let n = 0;
+  const paint = () => { text.textContent = items[n]; dots.forEach((d, idx) => d.classList.toggle('on', idx === n)); };
+  paint();
+  if (items.length > 1) {
+    _tickerTimer = setInterval(() => {
+      text.classList.add('fade');
+      setTimeout(() => { n = (n + 1) % items.length; paint(); text.classList.remove('fade'); }, 350);
+    }, 5000);
+  }
 }

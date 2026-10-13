@@ -4,90 +4,141 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>YoungBooth</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Bộ icon nét mảnh dùng chung (thay emoji) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="13.3" r="3.4" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gif" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5H6.5v3H8v-1.4M11 10.5v3M14 13.5v-3h2.4M14 12h1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-loop" viewBox="0 0 24 24"><path d="M7 9h9a3 3 0 0 1 0 6h-1M17 15H8a3 3 0 0 1 0-6h1M14 6l3 3-3 3M10 12l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 10.5l5-3v9l-5-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
   <div id="app">
+    <div class="bg-grain" aria-hidden="true"></div>
+
+    <!-- Thanh 5 bước (ẩn ở màn chờ) -->
+    <nav class="stepbar" id="stepbar" aria-label="Các bước">
+      <span class="step" data-step="1"><b>1</b>Chọn kiểu</span><i></i>
+      <span class="step" data-step="2"><b>2</b>Chụp</span><i></i>
+      <span class="step" data-step="3"><b>3</b>Chọn ảnh</span><i></i>
+      <span class="step" data-step="4"><b>4</b>Trang trí</span><i></i>
+      <span class="step" data-step="5"><b>5</b>In</span>
+    </nav>
+
+    <!-- Góc bí mật cho nhân viên: giữ 3 giây → nhập PIN → Cài đặt -->
+    <div class="staff-corner" id="staff-corner" aria-hidden="true"></div>
 
     <!-- ============ HOME / ATTRACT ============ -->
     <section class="screen active" id="screen-home">
-      <div class="home-inner">
-        <div class="logo">📸</div>
-        <h1 class="brand-title">YOUNG <span>BOOTH</span></h1>
-        <p class="brand-sub">Chạm để bắt đầu chụp ảnh</p>
-        <button class="btn-primary big pulse" id="btn-start">BẮT ĐẦU</button>
+      <div class="home">
+        <div class="home-copy">
+          <img class="home-logo" id="home-logo" src="file:///C:/YoungBooth-Frames/logo.png" alt="YoungBooth" />
+          <h1 class="home-title" id="home-title">Bắt trọn<br><em>khoảnh khắc</em> của bạn</h1>
+          <p class="home-sub" id="home-sub">Chụp, chọn khung, in ngay tại chỗ và quét QR để lấy ảnh, GIF về điện thoại.</p>
+          <button class="btn btn-primary btn-cta" id="btn-start" type="button"><span class="lbl">Chạm để bắt đầu</span></button>
+        </div>
+        <div class="home-fan" id="home-fan" aria-hidden="true"></div>
       </div>
       <div class="home-showcase" id="home-showcase"></div>
     </section>
 
     <!-- ============ MODE SELECT ============ -->
     <section class="screen" id="screen-mode">
-      <button class="btn-back" data-goto="home">← Quay lại</button>
-      <button class="btn-settings" id="btn-settings">⚙️ Cài đặt</button>
-      <h2 class="screen-title">Chọn kiểu chụp</h2>
-      <div class="source-bar" id="source-bar"><!-- filled by JS --></div>
-      <div class="mode-grid" id="mode-grid"><!-- filled by JS --></div>
+      <button class="btn btn-soft btn-back" data-goto="home" type="button"><svg><use href="#i-back"/></svg><span class="lbl">Quay lại</span></button>
+      <div class="pick">
+        <h2 class="screen-title">Bạn muốn chụp kiểu nào?<span>Chạm vào một khung</span></h2>
+        <div class="mode-grid" id="mode-grid"><!-- filled by JS --></div>
+        <div class="mode-motion" id="mode-motion"><!-- GIF / Boomerang / Video --></div>
+      </div>
     </section>
 
     <!-- ============ PAYMENT ============ -->
     <section class="screen" id="screen-pay">
-      <button class="btn-back" data-goto="mode">← Đổi kiểu</button>
-      <h2 class="screen-title">Thanh toán</h2>
-      <div class="pay-box">
+      <button class="btn btn-soft btn-back" data-goto="mode" type="button"><svg><use href="#i-back"/></svg><span class="lbl">Đổi kiểu</span></button>
+      <div class="pay-box glass">
+        <h2 class="screen-title small">Thanh toán</h2>
         <div class="pay-amount" id="pay-amount"></div>
         <img id="pay-qr" class="pay-qr" alt="QR thanh toán" />
         <div class="pay-info" id="pay-info"></div>
         <div class="pay-status" id="pay-status"></div>
         <div class="pay-staff" id="pay-staff">
           <input type="password" id="pay-pin" class="set-text" inputmode="numeric" placeholder="PIN nhân viên" autocomplete="off" />
-          <button class="btn-primary" id="pay-confirm">✅ Đã thanh toán</button>
+          <button class="btn btn-primary" id="pay-confirm" type="button"><svg><use href="#i-check"/></svg><span class="lbl">Đã thanh toán</span></button>
         </div>
       </div>
     </section>
 
     <!-- ============ CAPTURE ============ -->
     <section class="screen" id="screen-capture">
-      <button class="btn-back" data-goto="mode">← Đổi kiểu</button>
-      <button class="btn-settings" id="btn-settings-capture">⚙️ Máy ảnh</button>
-      <div class="capture-stage">
-        <div class="video-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <img id="live-img" alt="live view" />
-          <div class="canon-guide" id="canon-guide">
-            <div class="cg-icon">📷</div>
-            <div class="cg-title">Nhìn vào máy ảnh</div>
-            <div class="cg-sub">Chuẩn bị tạo dáng — ảnh sẽ tự chụp sau khi đếm ngược</div>
+      <button class="btn btn-soft btn-back" data-goto="mode" type="button"><svg><use href="#i-back"/></svg><span class="lbl">Đổi kiểu</span></button>
+      <div class="cap">
+        <div class="capture-stage">
+          <div class="video-wrap">
+            <video id="video" autoplay playsinline muted></video>
+            <img id="live-img" alt="live view" />
+            <div class="canon-guide" id="canon-guide">
+              <svg class="cg-icon"><use href="#i-cam"/></svg>
+              <div class="cg-title">Nhìn vào máy ảnh</div>
+              <div class="cg-sub">Chuẩn bị tạo dáng, ảnh sẽ tự chụp sau khi đếm ngược</div>
+            </div>
+            <div class="safe-frame" id="safe-frame"><span class="safe-label">Đứng trong khung sáng để vào ảnh in</span></div>
+            <div class="countdown" id="countdown"></div>
+            <div class="flash" id="flash"></div>
           </div>
-          <div class="safe-frame" id="safe-frame"><span class="safe-label">Đứng trong khung để in đủ người</span></div>
-          <div class="countdown" id="countdown"></div>
-          <div class="flash" id="flash"></div>
-          <div class="shot-progress" id="shot-progress"></div>
         </div>
-      </div>
-      <div class="filter-bar" id="filter-bar-capture"></div>
-      <div class="capture-actions">
-        <button class="btn-primary big" id="btn-capture">📷 Chụp</button>
+        <aside class="cap-side">
+          <div class="panel glass">
+            <h4 id="shot-count">Tấm 1</h4>
+            <div class="shot-progress" id="shot-progress"></div>
+          </div>
+          <div class="panel glass">
+            <h4>Bộ lọc</h4>
+            <div class="filter-bar" id="filter-bar-capture"></div>
+          </div>
+          <div class="capture-actions">
+            <button class="shutter" id="btn-capture" type="button" aria-label="Chụp"><svg><use href="#i-cam"/></svg></button>
+            <div class="shut-cap">Chạm để chụp</div>
+          </div>
+        </aside>
       </div>
     </section>
 
     <!-- ============ SELECT PHOTOS ============ -->
     <section class="screen" id="screen-select">
-      <h2 class="screen-title" id="select-title">Chọn ảnh</h2>
-      <div class="select-grid" id="select-grid"></div>
-      <div class="select-bar">
-        <span class="select-count" id="select-count">Đã chọn 0/0</span>
-        <button class="btn-ghost" id="btn-select-retake">🔄 Chụp lại</button>
-        <button class="btn-primary" id="btn-select-continue" disabled>Tiếp tục →</button>
+      <div class="sel-wrap">
+        <h2 class="screen-title" id="select-title">Chọn ảnh</h2>
+        <div class="select-grid" id="select-grid"></div>
+        <div class="select-bar">
+          <span class="select-count" id="select-count">Đã chọn 0/0</span>
+          <button class="btn btn-soft" id="btn-select-retake" type="button"><svg><use href="#i-redo"/></svg><span class="lbl">Chụp lại</span></button>
+          <button class="btn btn-primary" id="btn-select-continue" type="button" disabled><span class="lbl">Tiếp tục</span><svg><use href="#i-right"/></svg></button>
+        </div>
       </div>
     </section>
 
     <!-- ============ REVIEW SHOTS ============ -->
     <section class="screen" id="screen-review">
-      <h2 class="screen-title">Xem lại ảnh — chạm 🔄 để chụp lại tấm chưa ưng</h2>
-      <div class="review-grid" id="review-grid"></div>
-      <div class="select-bar">
-        <button class="btn-ghost" id="btn-review-retakeall">🔄 Chụp lại tất cả</button>
-        <button class="btn-primary" id="btn-review-continue">Tiếp tục →</button>
+      <div class="sel-wrap">
+        <h2 class="screen-title">Xem lại ảnh<span>Chạm "Chụp lại" ở tấm chưa ưng</span></h2>
+        <div class="review-grid" id="review-grid"></div>
+        <div class="select-bar">
+          <button class="btn btn-soft" id="btn-review-retakeall" type="button"><svg><use href="#i-redo"/></svg><span class="lbl">Chụp lại tất cả</span></button>
+          <button class="btn btn-primary" id="btn-review-continue" type="button"><span class="lbl">Tiếp tục</span><svg><use href="#i-right"/></svg></button>
+        </div>
       </div>
     </section>
 
@@ -105,21 +156,27 @@
           <video id="result-video" style="display:none" autoplay loop muted playsinline></video>
         </div>
         <div class="result-side">
-          <h2 class="screen-title small">Ảnh của bạn 🎉</h2>
+          <h2 class="screen-title small">Ảnh của bạn đây!</h2>
+          <p class="result-sub">Chọn bộ lọc, thêm sticker rồi in nhé.</p>
 
-          <div class="filter-bar compact" id="filter-bar-result"></div>
+          <div class="filter-bar" id="filter-bar-result"></div>
 
           <label class="consent-row" id="consent-row">
             <input type="checkbox" id="consent-public" />
-            <span id="consent-text">Đồng ý đăng ảnh lên gallery công khai (tự xoá sau 3 ngày).</span>
+            <span class="switch" aria-hidden="true"></span>
+            <span id="consent-text">Cho phép đăng lên gallery chung (tự xoá sau 3 ngày).</span>
           </label>
 
           <div class="result-buttons">
-            <button class="btn-secondary" id="btn-sticker">🎨 Thêm sticker</button>
-            <button class="btn-primary" id="btn-print">🖨️ In ảnh</button>
-            <button class="btn-secondary" id="btn-share">📱 Chia sẻ / QR</button>
-            <button class="btn-ghost" id="btn-retake">🔄 Chụp lại</button>
-            <button class="btn-ghost" id="btn-home">🏠 Kết thúc</button>
+            <button class="btn btn-primary btn-big" id="btn-print" type="button"><svg><use href="#i-print"/></svg><span class="lbl">In ảnh</span></button>
+            <div class="row2">
+              <button class="btn btn-soft" id="btn-sticker" type="button"><svg><use href="#i-spark"/></svg><span class="lbl">Thêm sticker</span></button>
+              <button class="btn btn-soft" id="btn-share" type="button"><svg><use href="#i-qr"/></svg><span class="lbl">Lấy ảnh qua QR</span></button>
+            </div>
+            <div class="row3">
+              <button class="btn btn-ghost" id="btn-retake" type="button"><svg><use href="#i-redo"/></svg><span class="lbl">Chụp lại</span></button>
+              <button class="btn btn-ghost" id="btn-home" type="button"><svg><use href="#i-check"/></svg><span class="lbl">Xong</span></button>
+            </div>
           </div>
         </div>
       </div>
@@ -128,28 +185,55 @@
     <!-- ============ SHARE MODAL ============ -->
     <div class="modal-overlay" id="share-modal">
       <div class="modal">
-        <h3>Quét QR để tải ảnh về điện thoại</h3>
+        <h3>Quét QR để lấy ảnh về điện thoại</h3>
         <img id="qr-img" class="qr-img" alt="QR" />
         <p class="qr-url" id="qr-url"></p>
         <p class="qr-note">Điện thoại phải dùng chung Wi‑Fi với máy này.</p>
-        <button class="btn-secondary" id="btn-close-share">Đóng</button>
+        <button class="btn btn-soft" id="btn-close-share" type="button"><span class="lbl">Đóng</span></button>
       </div>
     </div>
 
-    <!-- ============ SETTINGS MODAL ============ -->
+    <!-- ============ PIN NHÂN VIÊN ============ -->
+    <div class="modal-overlay" id="pin-modal">
+      <form class="modal pin" id="pin-form" autocomplete="off">
+        <h3>Khu vực nhân viên</h3>
+        <p class="qr-note">Nhập PIN quản trị để mở Cài đặt.</p>
+        <input type="password" id="pin-input" class="set-text pin-input" inputmode="numeric" placeholder="PIN" />
+        <p class="pin-err" id="pin-err"></p>
+        <div class="modal-btn-row">
+          <button class="btn btn-primary" id="pin-ok" type="submit"><span class="lbl">Mở Cài đặt</span></button>
+          <button class="btn btn-ghost" id="pin-cancel" type="button"><span class="lbl">Huỷ</span></button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ============ THÔNG BÁO (thay alert) ============ -->
+    <div class="modal-overlay" id="notice-modal">
+      <div class="modal notice">
+        <p id="notice-text"></p>
+        <button class="btn btn-primary" id="notice-ok" type="button"><span class="lbl">Đã hiểu</span></button>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS MODAL (nhân viên) ============ -->
     <div class="modal-overlay" id="settings-modal">
       <div class="modal settings">
-        <h3>⚙️ Cài đặt in</h3>
+        <h3>Cài đặt</h3>
+        <div class="set-cam-head"><span>Nguồn ảnh</span></div>
+        <div class="source-bar" id="source-bar"><!-- filled by JS --></div>
+
+        <hr class="set-sep" />
+        <div class="set-cam-head"><span>In ảnh</span></div>
         <div class="set-row">
-          <label>Máy in (ảnh/lưới 4×6)</label>
+          <label for="set-printer">Máy in (ảnh/lưới 4×6)</label>
           <select id="set-printer" class="webcam-select"></select>
         </div>
         <div class="set-row">
-          <label>Máy in dải 2×6 (2inch cut)</label>
+          <label for="set-printer-strip">Máy in dải 2×6 (2inch cut)</label>
           <select id="set-printer-strip" class="webcam-select"></select>
         </div>
         <div class="set-row">
-          <label>Khổ giấy</label>
+          <label for="set-paper">Khổ giấy</label>
           <select id="set-paper" class="webcam-select">
             <option value="auto">Tự động (theo kiểu chụp)</option>
             <option value="4x6">4×6 inch (4R dọc)</option>
@@ -162,57 +246,57 @@
           </select>
         </div>
         <div class="set-row">
-          <label>Số bản mỗi lần in</label>
+          <label for="set-copies">Số bản mỗi lần in</label>
           <input type="number" id="set-copies" min="1" max="10" value="1" class="set-num" />
         </div>
         <div class="set-row">
-          <label>In tự động (không hiện hộp thoại)</label>
+          <label for="set-silent">In tự động (không hiện hộp thoại)</label>
           <input type="checkbox" id="set-silent" />
         </div>
         <div class="set-row">
-          <label>Dải 4 ảnh: in 2 bản/tờ 4×6 (cắt đôi)</label>
+          <label for="set-stripdouble">Dải 4 ảnh: in 2 bản/tờ 4×6 (cắt đôi)</label>
           <input type="checkbox" id="set-stripdouble" />
         </div>
         <div class="set-row">
-          <label>Xoay 90° cho giấy nằm ngang</label>
+          <label for="set-rotate">Xoay 90° cho giấy nằm ngang</label>
           <input type="checkbox" id="set-rotate" />
         </div>
 
         <hr class="set-sep" />
-        <div class="set-cam-head"><span>✏️ Nội dung trên ảnh</span></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:6px;">
-          <label>Dòng chữ (tagline)</label>
+        <div class="set-cam-head"><span>Nội dung trên ảnh</span></div>
+        <div class="set-row col">
+          <label for="set-tagline">Dòng chữ (tagline)</label>
           <input type="text" id="set-tagline" class="set-text" placeholder="Chụp ảnh theo phong cách của bạn" />
         </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:6px;">
-          <label>Ngày / dòng dưới (để trống = ngày hôm nay)</label>
+        <div class="set-row col">
+          <label for="set-subfooter">Ngày / dòng dưới (để trống = ngày hôm nay)</label>
           <input type="text" id="set-subfooter" class="set-text" placeholder="vd: Sinh nhật Minh Anh · 28/09/2026" />
         </div>
 
         <div id="frame-text-wrap" style="display:none;">
           <hr class="set-sep" />
-          <div class="set-cam-head"><span>✒️ Chữ trên khung</span></div>
+          <div class="set-cam-head"><span>Chữ trên khung</span></div>
           <div id="frame-text-fields"></div>
         </div>
 
         <div id="canon-panel" style="display:none;">
           <hr class="set-sep" />
           <div class="set-cam-head">
-            <span>📸 Máy ảnh Canon</span>
-            <button class="btn-ghost btn-cam-refresh" id="cam-refresh">↻ Làm mới</button>
+            <span>Máy ảnh Canon</span>
+            <button class="btn btn-ghost btn-cam-refresh" id="cam-refresh" type="button"><svg><use href="#i-redo"/></svg><span class="lbl">Làm mới</span></button>
           </div>
           <div class="cam-readout" id="cam-readout"></div>
-          <div class="set-row"><label>ISO</label><select id="cam-ISOSpeed" class="webcam-select cam-ctl"></select></div>
-          <div class="set-row"><label>Khẩu độ (Av)</label><select id="cam-Av" class="webcam-select cam-ctl"></select></div>
-          <div class="set-row"><label>Tốc độ (Tv)</label><select id="cam-Tv" class="webcam-select cam-ctl"></select></div>
-          <div class="set-row"><label>Bù sáng (EV)</label><select id="cam-ExposureCompensation" class="webcam-select cam-ctl"></select></div>
-          <div class="set-row"><label>Cân bằng trắng</label><select id="cam-WhiteBalance" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label for="cam-ISOSpeed">ISO</label><select id="cam-ISOSpeed" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label for="cam-Av">Khẩu độ (Av)</label><select id="cam-Av" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label for="cam-Tv">Tốc độ (Tv)</label><select id="cam-Tv" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label for="cam-ExposureCompensation">Bù sáng (EV)</label><select id="cam-ExposureCompensation" class="webcam-select cam-ctl"></select></div>
+          <div class="set-row"><label for="cam-WhiteBalance">Cân bằng trắng</label><select id="cam-WhiteBalance" class="webcam-select cam-ctl"></select></div>
           <p class="cam-note" id="cam-note"></p>
         </div>
 
         <div class="modal-btn-row">
-          <button class="btn-primary" id="btn-settings-save">Lưu</button>
-          <button class="btn-ghost" id="btn-settings-close">Đóng</button>
+          <button class="btn btn-primary" id="btn-settings-save" type="button"><span class="lbl">Lưu</span></button>
+          <button class="btn btn-ghost" id="btn-settings-close" type="button"><span class="lbl">Đóng</span></button>
         </div>
       </div>
     </div>
@@ -220,27 +304,32 @@
     <!-- ============ STICKER EDITOR ============ -->
     <div class="sticker-editor" id="sticker-editor">
       <div class="se-head">
-        <span class="se-title">✽ Chọn Sticker và di chuyển đến vị trí mong muốn ✽</span>
+        <span class="se-title">Chọn sticker rồi kéo tới vị trí bạn thích</span>
       </div>
-      <div class="se-stage-wrap">
-        <div class="se-stage" id="se-stage">
-          <img id="se-base" alt="ảnh" />
+      <div class="se-body">
+        <div class="se-stage-wrap">
+          <div class="se-stage" id="se-stage">
+            <img id="se-base" alt="ảnh" />
+          </div>
         </div>
-      </div>
-      <div class="se-picker">
-        <button class="se-arrow" id="se-prev" aria-label="Trang trước">‹</button>
-        <div class="se-grid" id="se-grid"></div>
-        <button class="se-arrow" id="se-next" aria-label="Trang sau">›</button>
-      </div>
-      <div class="se-links">
-        <button class="se-link" id="se-undo">Xóa bản trước đó</button>
-        <button class="se-link" id="se-clear">Xóa toàn bộ</button>
-      </div>
-      <p class="se-hint">Trang trí ảnh rồi ấn <b>PRINT</b> để in ảnh bạn nhé! ^^</p>
-      <div class="se-actions">
-        <button class="btn-ghost" id="se-cancel">Huỷ</button>
-        <button class="btn-secondary" id="se-done">✅ Xong</button>
-        <button class="btn-primary" id="se-print">🖨️ PRINT</button>
+        <div class="se-side glass">
+          <div class="se-picker">
+            <button class="se-arrow" id="se-prev" type="button" aria-label="Trang trước"><svg><use href="#i-left"/></svg></button>
+            <div class="se-grid" id="se-grid"></div>
+            <button class="se-arrow" id="se-next" type="button" aria-label="Trang sau"><svg><use href="#i-right"/></svg></button>
+          </div>
+          <div class="se-links">
+            <button class="btn btn-ghost se-link" id="se-undo" type="button"><svg><use href="#i-undo"/></svg><span class="lbl">Bỏ sticker vừa thêm</span></button>
+            <button class="btn btn-ghost se-link" id="se-clear" type="button"><svg><use href="#i-trash"/></svg><span class="lbl">Xoá tất cả</span></button>
+          </div>
+          <div class="se-actions">
+            <button class="btn btn-primary btn-big" id="se-print" type="button"><svg><use href="#i-print"/></svg><span class="lbl">In ảnh</span></button>
+            <div class="row2">
+              <button class="btn btn-soft" id="se-done" type="button"><svg><use href="#i-check"/></svg><span class="lbl">Xong</span></button>
+              <button class="btn btn-ghost" id="se-cancel" type="button"><svg><use href="#i-close"/></svg><span class="lbl">Huỷ</span></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
