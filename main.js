@@ -554,6 +554,10 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
     );
   } catch (_e) {}
 
+  // Luôn in vào máy in ĐÍCH DANH (thiếu tên → máy in mặc định của Windows) để dùng đúng khổ trang của driver.
+  if (!opts.printerName) {
+    try { const def = (await mainWindow.webContents.getPrintersAsync()).find((p) => p.isDefault); if (def) opts.printerName = def.name; } catch (_e) {}
+  }
   const printOpts = {
     silent: !!opts.silent,
     printBackground: true,
@@ -593,6 +597,15 @@ ipcMain.handle('booth:print', async (_evt, { dataUrl, opts }) => {
     printWin.webContents.print(printOpts, (success, reason) => {
       printWin.close();
       try { fs.unlinkSync(tmpHtml); } catch (_e) {}
+      // Nhật ký in (userData/print-log.txt): máy in, khổ trang driver, có xoay không → dò lỗi in sai khổ.
+      try {
+        const line = [new Date().toISOString(), success ? 'OK' : 'LOI ' + (reason || ''), 'may=' + (printOpts.deviceName || '(mac dinh)'),
+          'kho=' + (opts.paper || ''), 'trang=' + (opts.pageIn ? opts.pageIn.w + 'x' + opts.pageIn.h + 'in' : '?'),
+          'xoay=' + (opts.rotated ? 'co' : 'khong'), 'ban=' + printOpts.copies].join(' | ');
+        const lf = path.join(app.getPath('userData'), 'print-log.txt');
+        fs.appendFileSync(lf, line + '\r\n');
+        if (fs.statSync(lf).size > 512 * 1024) fs.writeFileSync(lf, fs.readFileSync(lf, 'utf8').split('\r\n').slice(-500).join('\r\n'));
+      } catch (_e) {}
       resolve({ success, reason });
     });
   });

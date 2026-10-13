@@ -1758,7 +1758,8 @@ async function doPrint() {
   // (dọc ↔ ngang) thì ảnh bị phóng/cắt và có mảng đen. Vì vậy app KHÔNG ép khổ giấy mà hỏi
   // driver trang đang dọc hay ngang rồi xoay ảnh cho khớp (giấy 4×6 và 6×4 là cùng một loại).
   let paper;
-  let pageIn = null;   // kích thước trang driver cấp (inch) → ảnh được đặt đúng khung trang
+  let pageIn = null;
+  let rotated = false;   // ghi vào nhật ký in   // kích thước trang driver cấp (inch) → ảnh được đặt đúng khung trang
   const manual = state.printCfg.paper && state.printCfg.paper !== 'auto';
   if (manual) {
     // Chế độ nâng cao: người dùng tự chọn khổ trong Cài đặt → giữ hành vi cũ (xoay tay).
@@ -1772,9 +1773,14 @@ async function doPrint() {
 
   // Dải (và khung đã có sẵn 2 dải, vd Nhật Ký C) dùng máy in có 2inch cut; ảnh/lưới dùng máy in thường.
   const useStripPrinter = isStrip || !!(em.cut2inch || em.stripCut);
-  const printerName = useStripPrinter
+  let printerName = useStripPrinter
     ? (state.printCfg.stripPrinterName || state.printCfg.printerName)
     : state.printCfg.printerName;
+  // "(Máy in mặc định)" → lấy TÊN máy in mặc định của Windows. Không gửi tên thì Electron in theo trang mặc định
+  // của riêng nó (không theo khổ 4×6 DỌC của driver DNP) → ra tờ ngang, ảnh bị cắt (lỗi 13/10/2026).
+  if (!printerName) {
+    try { const def = (await window.booth.listPrinters()).find((p) => p.isDefault); if (def) printerName = def.name; } catch (_e) {}
+  }
 
   if (!manual) {
     // AUTO (mặc định): in theo đúng khổ mặc định của hàng in, xoay ảnh cho CÙNG HƯỚNG với trang
@@ -1784,7 +1790,7 @@ async function doPrint() {
     const shape = await window.booth.pageShape(printerName).catch(() => null);
     const pageLandscape = !!(shape && shape.ok && shape.landscape);   // không đọc được → coi như dọc
     const designLandscape = !!(em.canvas && em.canvas.w > em.canvas.h);
-    if (designLandscape !== pageLandscape) dataUrl = await rotate90(dataUrl);
+    if (designLandscape !== pageLandscape) { dataUrl = await rotate90(dataUrl); rotated = true; }
     if (shape && shape.ok) pageIn = { w: shape.width / 100, h: shape.height / 100 };  // 1/100 inch → inch
     paper = '4x6';   // = dùng khổ mặc định của driver, không ép kích thước
   }
@@ -1795,6 +1801,7 @@ async function doPrint() {
     silent: state.printCfg.silent,
     paper,
     pageIn,
+    rotated,
   });
   if (res && res.success === false) {
     // Người dùng tự bấm Huỷ trong hộp thoại in → không phải lỗi.
