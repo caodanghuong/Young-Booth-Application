@@ -5,3 +5,7 @@ captures/*
 booth-settings.json
 cleanup.bat
 cleanup.log
+
+# Không đưa lên git: bản sao lưu có khoá Cloudinary, ảnh chụp thật của khách
+cleanup.bat.bak-*
+UsersLenovoAppDataLocalTempedsdk-cap/

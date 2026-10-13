@@ -1,0 +1,801 @@
+<title>Young Booth Frame Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&family=Great+Vibes&family=Cormorant+Garamond:wght@500;600&family=Dancing+Script:wght@600;700&family=Oswald:wght@500;600&family=Baloo+2:wght@700&family=Noto+Serif:wght@700&display=swap">
+<style>
+/* Layout: booth simulator (left) + admin panel (right), frame catalogue below. */
+:root {
+  --bg: #f5f4f8; --surface: #ffffff; --surface-2: #eeecf3; --fg: #1d1a24; --muted: #6a6577;
+  --line: #dcd8e4; --accent: #c2185b; --accent-ink: #ffffff; --select: #6d4ad8; --ok: #1f8a5b;
+  --ui: "Be Vietnam Pro", system-ui, "Segoe UI", sans-serif;
+  --mark: "Great Vibes", "Segoe Script", cursive;
+  --shadow: 0 1px 2px rgba(29,26,36,.06), 0 8px 24px rgba(29,26,36,.08);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #131118; --surface: #1d1a24; --surface-2: #26222f; --fg: #ece9f2; --muted: #a39db1;
+  --line: #36313f; --accent: #f06292; --accent-ink: #1b0a12; --select: #a48bff; --ok: #4cc38a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #131118; --surface: #1d1a24; --surface-2: #26222f; --fg: #ece9f2; --muted: #a39db1;
+  --line: #36313f; --accent: #f06292; --accent-ink: #1b0a12; --select: #a48bff; --ok: #4cc38a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 15px; line-height: 1.5; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 28px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+header.top .mark { font-family: var(--mark); font-size: 40px; line-height: 1; color: var(--accent); }
+header.top h1 { font-size: 20px; margin: 0; font-weight: 700; text-wrap: balance; }
+header.top p { margin: 0; color: var(--muted); flex-basis: 100%; max-width: 70ch; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0,1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+.booth { padding: 18px; display: grid; gap: 16px; }
+.steps { display: flex; flex-wrap: wrap; gap: 8px; }
+.steps span { font-size: 12.5px; font-weight: 600; letter-spacing: .02em; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.steps span.on { background: var(--accent); color: var(--accent-ink); }
+.screen-title { margin: 0; font-size: 22px; font-weight: 800; text-wrap: balance; }
+.hint { margin: 0; color: var(--muted); font-size: 13.5px; }
+.modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.mode-card { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 12px; padding: 12px; text-align: left; cursor: pointer; display: grid; gap: 8px; font: inherit; }
+.mode-card:hover { border-color: var(--select); }
+.mode-card:focus-visible, button:focus-visible, input:focus-visible, .thumb:focus-visible { outline: 3px solid var(--select); outline-offset: 2px; }
+.mode-card canvas { width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: contain; background: var(--bg); border-radius: 8px; }
+.mode-card b { font-size: 15px; } .mode-card small { color: var(--muted); font-size: 12.5px; }
+.capture { display: grid; gap: 14px; justify-items: center; padding-block: 10px; }
+.shots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.shots canvas { width: 92px; height: 62px; border-radius: 6px; background: var(--surface-2); }
+.flash { animation: flash .35s ease-out; }
+@keyframes flash { from { filter: brightness(3); } to { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
+.result { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 18px; align-items: start; }
+@media (max-width: 640px) { .result { grid-template-columns: minmax(0,1fr); } }
+.preview { background: repeating-conic-gradient(var(--surface-2) 0 25%, var(--surface) 0 50%) 0 0 / 18px 18px; border-radius: 12px; padding: 14px; display: grid; place-items: center; min-height: 300px; }
+.preview canvas { max-width: 100%; max-height: 560px; width: auto; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.side { display: grid; gap: 10px; align-content: start; }
+.side .frame-name { font-size: 13px; color: var(--muted); }
+.side .frame-name b { color: var(--fg); display: block; font-size: 15px; }
+.btn { appearance: none; font: inherit; font-weight: 600; border-radius: 10px; padding: 11px 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; text-align: left; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.pick { border-color: var(--select); color: var(--select); background: transparent; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.big { font-size: 18px; padding: 14px 26px; text-align: center; }
+.admin { padding: 16px; display: grid; gap: 14px; }
+.admin h2, .catalog h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.admin .group { display: grid; gap: 8px; }
+.admin .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.toggle { display: flex; gap: 10px; align-items: center; font-size: 14px; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--select); }
+.field { display: grid; gap: 4px; }
+.field label { font-size: 13px; color: var(--muted); }
+.field input, .field textarea { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; }
+.field textarea { min-height: 64px; resize: vertical; }
+.note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.modal { position: fixed; inset: 0; background: rgba(10,8,14,.55); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.modal-card { background: var(--surface); border-radius: 16px; width: min(980px, 100%); max-height: 88vh; overflow-y: auto; overflow-x: hidden; padding: 18px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+.modal-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.modal-head h3 { margin: 0; font-size: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 14px; }
+.thumb { min-width: 0; }
+.thumb { appearance: none; font: inherit; color: var(--fg); background: var(--surface-2); border: 2px solid transparent; border-radius: 12px; padding: 8px; cursor: pointer; display: grid; gap: 6px; text-align: left; position: relative; }
+.thumb:hover { border-color: var(--line); }
+.thumb.on { border-color: var(--select); }
+.thumb.on::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--select); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.thumb .cv { display: grid; place-items: center; height: 210px; background: var(--bg); border-radius: 8px; overflow: hidden; min-width: 0; }
+.thumb canvas { max-width: 100%; max-height: 200px; width: auto; height: auto; display: block; }
+.thumb .nm { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.thumb .meta { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.tag.holiday { color: var(--accent); border-color: var(--accent); }
+.tag.event { color: var(--select); border-color: var(--select); }
+.catalog { padding: 18px; display: grid; gap: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button { appearance: none; font: inherit; font-size: 14px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+.tabs button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tabs .n { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 4px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 20; max-width: calc(100% - 32px); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="mark">Young Booth</span>
+    <h1>Demo luồng “Chọn khung” và danh mục khung</h1>
+    <p>Mô phỏng đúng luồng trong app: chọn kiểu chụp → chụp → màn kết quả → bấm <b>Chọn khung</b> → chỉ hiện khung của kiểu đã chọn. Khung ở đây được vẽ minh hoạ bằng canvas từ bản mô tả; ảnh là ảnh mẫu. Ô nét đứt là chỗ đặt hình minh hoạ / logo do bạn cung cấp.</p>
+  </header>
+
+  <div class="cols">
+    <section class="panel booth" aria-label="Màn hình booth">
+      <div class="steps" id="steps"><span>1 · Chọn kiểu chụp</span><span>2 · Chụp ảnh</span><span>3 · Kết quả &amp; chọn khung</span></div>
+
+      <div id="s1">
+        <h2 class="screen-title">Chọn kiểu chụp</h2>
+        <p class="hint">Mỗi kiểu có danh sách khung riêng.</p>
+        <div class="modes" id="modes" style="margin-top:12px"></div>
+      </div>
+
+      <div id="s2" hidden>
+        <div class="capture">
+          <h2 class="screen-title" id="cap-title">Chụp ảnh</h2>
+          <div class="shots" id="shots"></div>
+          <button class="btn primary big" id="btn-shoot">📷 Chụp</button>
+          <button class="btn" id="btn-back1">← Đổi kiểu chụp</button>
+        </div>
+      </div>
+
+      <div id="s3" hidden>
+        <div class="result">
+          <div class="preview"><canvas id="result-cv" width="10" height="10"></canvas></div>
+          <div class="side">
+            <h2 class="screen-title" style="font-size:19px">Ảnh của bạn 🎉</h2>
+            <div class="frame-name">Khung đang dùng<b id="cur-frame"></b></div>
+            <button class="btn pick" id="btn-pick">🖼️ Chọn khung</button>
+            <button class="btn primary" id="btn-print">🖨️ In ảnh</button>
+            <button class="btn" id="btn-retake">🔄 Chụp lại</button>
+            <button class="btn" id="btn-home">🏠 Kết thúc</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel admin" aria-label="Cài đặt admin">
+      <h2>⚙️ Cài đặt (admin)</h2>
+      <div class="group">
+        <span class="label">Khung dịp lễ / sự kiện</span>
+        <label class="toggle"><input type="checkbox" id="tg-quockhanh"> Khung Quốc Khánh 2/9</label>
+        <label class="toggle"><input type="checkbox" id="tg-trungthu"> Khung Trung Thu</label>
+        <label class="toggle"><input type="checkbox" id="tg-event"> Khung sự kiện Orientation Day</label>
+        <p class="note">Mặc định tắt. Bật lên thì khung xuất hiện trong danh sách “Chọn khung”.</p>
+      </div>
+      <div class="group" id="text-group">
+        <span class="label">Chữ trên khung đang dùng</span>
+        <div id="text-fields" class="group"></div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel catalog" aria-label="Danh mục khung">
+    <h2>Danh mục khung theo kiểu chụp</h2>
+    <p class="note" style="margin-top:-6px">Tất cả khung đã tổng hợp, kể cả khung đang ẩn. Bấm vào khung để thử ngay trong booth phía trên.</p>
+    <div class="tabs" id="cat-tabs"></div>
+    <div class="grid" id="cat-grid"></div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h3 id="modal-title">Chọn khung</h3>
+      <button class="btn" id="btn-close">Đóng</button>
+    </div>
+    <div class="grid" id="pick-grid"></div>
+    <p class="note" id="pick-note"></p>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const F = {
+  script: '"Great Vibes", "Segoe Script", cursive',
+  serif: '"Cormorant Garamond", Georgia, serif',
+  hand: '"Dancing Script", cursive',
+  sans: '"Be Vietnam Pro", "Segoe UI", sans-serif',
+  cond: '"Oswald", "Arial Narrow", sans-serif',
+  round: '"Baloo 2", "Segoe UI", sans-serif',
+  nserif: '"Noto Serif", Georgia, serif',
+};
+
+/* ---------------- modes ---------------- */
+const MODES = [
+  { id: 'A', name: 'Khoảnh Khắc', desc: '4×6 · 1 ảnh', n: 1 },
+  { id: 'B', name: 'Ngọt Ngào', desc: '6×4 · 2 ảnh', n: 2 },
+  { id: 'C', name: 'Nhật Ký', desc: '2 dải 2×6 · 4 ảnh', n: 4 },
+  { id: 'D', name: 'Chia Đôi', desc: '6×4 · 2 ảnh, cắt đôi', n: 2 },
+  { id: 'F', name: 'Dịu Dàng', desc: '4×6 · 4 ảnh', n: 4 },
+];
+
+/* ---------------- text groups (admin editable) ---------------- */
+const GROUPS = {
+  'std-white': { name: 'Save The Date', f: [['line1','Tên dòng 1','Minh Thư'],['line2','Tên dòng 2','Kuan Hsun'],['date','Ngày','09.07.2026'],['tagline','Dòng dưới ngày','SAVE THE DATE']] },
+  'clover-sage': { name: 'Cỏ Bốn Lá', f: [['line1','Tên người thứ nhất','Tấn Nhã'],['sep','Ký tự nối','+'],['line2','Tên người thứ hai','Huỳnh Như'],['date','Ngày','05.07.2026']] },
+  'event-orientation': { name: 'Orientation Day', f: [['title','Tên sự kiện','ORIENTATION'],['title2','Chữ phụ','day'],['tagline','Khẩu hiệu','Future Starts Here']] },
+  'quockhanh': { name: 'Quốc Khánh 02.09', f: [['date','Ngày lễ','02.09'],['title','Dòng chữ dưới','VIỆT NAM']] },
+  'qk-motto': { name: 'Độc Lập (Xanh Nhạt / Đỏ Bóng)', f: [['header','Khẩu hiệu trên','ĐỘC LẬP — TỰ DO — HẠNH PHÚC'],['title','Chữ dưới trái','VIỆT NAM'],['years','Chữ dưới phải','1945 - 2026']] },
+  'qk-29': { name: 'Quốc Khánh 2.9 – Đỏ Trắng', f: [['badge','Số lớn','2.9'],['header','Dòng trên','MỪNG QUỐC KHÁNH'],['footer','Dòng dưới','VIỆT NAM TỰ HÀO']] },
+  'qk-white-flags': { name: 'Trắng Cờ Hoa', f: [['kicker','Dòng nhỏ','Còn gì vui hơn ?'],['header','Dòng chính','Độc lập - Tự do']] },
+  'qk-maroon': { name: 'Đỏ Thẫm Hoa Văn', f: [['header','Khẩu hiệu','ĐỘC LẬP - TỰ DO']] },
+  'qk-bronze': { name: 'Đồng', f: [['quote','Câu trích','“Không có gì quý hơn độc lập, tự do.”'],['kicker','Dòng 1','CHÀO MỪNG'],['header','Dòng 2','QUỐC KHÁNH'],['title','Dòng 3','VIỆT NAM'],['badge','Số lớn','2-9']] },
+  'qk-airmail': { name: 'Thư Bưu Chính', f: [['para1','Đoạn ngắn','2/9 – Ngày Quốc khánh nước Việt Nam.', true],['para2','Đoạn dài','Chúc mừng ngày Quốc khánh 2/9 – cùng nhau lưu giữ khoảnh khắc tự hào.', true]] },
+  'trungthu': { name: 'Trung Thu', f: [['title','Tiêu đề','Happy Mid Autumn']] },
+};
+const VALS = {};
+for (const [g, d] of Object.entries(GROUPS)) { VALS[g] = {}; d.f.forEach(([k,,v]) => VALS[g][k] = v); }
+try { const saved = JSON.parse(localStorage.getItem('yb-demo-vals') || '{}'); for (const g in saved) Object.assign(VALS[g] || {}, saved[g]); } catch (_e) {}
+
+/* ---------------- slot helpers (same formulas as the spec) ---------------- */
+const stripSlots = (top, bottom, side, gap, radius = 0) => {
+  const w = 600 - 2 * side, h = Math.floor((1800 - top - bottom - 3 * gap) / 4), out = [];
+  for (const ox of [0, 600]) for (let i = 0; i < 4; i++) out.push({ x: ox + side, y: top + i * (h + gap), w, h, r: radius });
+  return out;
+};
+const grid2 = (top, bottom, side, gap, radius = 0) => {
+  const w = Math.floor((1200 - 2 * side - gap) / 2), h = Math.floor((1800 - top - bottom - gap) / 2);
+  return [[0,0],[1,0],[0,1],[1,1]].map(([c, r]) => ({ x: side + c * (w + gap), y: top + r * (h + gap), w, h, r: radius }));
+};
+const wideRow = (x0, step, w, h, ys) => { const o = []; for (const y of ys) for (let i = 0; i < 4; i++) o.push({ x: x0 + i * step, y, w, h, r: 0 }); return o; };
+const S = (x, y, w, h, r = 0) => ({ x, y, w, h, r });
+const P = 1200, W = 1800;
+
+/* ---------------- frame catalogue ---------------- */
+const FR = [];
+const add = (o) => FR.push(Object.assign({ w: P, h: W, texts: [], qr: [] }, o));
+const brandT = (o) => Object.assign({ v: 'YOUNG BOOTH', font: F.serif, weight: 600, color: '#9a9a9a', ls: 7 }, o);
+
+// defaults that already exist in the app
+add({ id: 'A-default', mode: 'A', name: 'Khung mặc định (đang có)', set: 'default', style: 'plain', bg: '#dde5ec', slots: [S(40,140,1120,1540)], texts: [brandT({ x: 600, y: 95, size: 44, color: '#3b4654' })], qr: [{ x: 990, y: 1600, s: 120 }] });
+add({ id: 'B-default', mode: 'B', name: 'Khung mặc định (đang có)', set: 'default', style: 'plain', w: W, h: P, bg: '#f3ede1', slots: [S(46,122,808,928), S(946,122,808,928)], texts: [{ v: 'Young Booth', xs: [450,1350], y: 1110, size: 46, font: F.script, color: '#4b4030' }] });
+add({ id: 'C-default', mode: 'C', name: 'Khung mặc định (đang có)', set: 'default', style: 'plain', bg: '#ffffff', border: '#1f2b4a', slots: [0,1,2,3,4,5,6,7].map(i => S(i < 4 ? 42 : 642, 124 + (i % 4) * 354, 516, 340)), texts: [{ v: 'Young Booth', xs: [300,900], y: 1592, size: 54, font: F.script, color: '#2b2b2b' }] });
+add({ id: 'D-default', mode: 'D', name: 'Khung mặc định (đang có)', set: 'default', style: 'plain', w: W, h: P, bg: '#f7f1ea', slots: [S(48,122,804,928), S(948,122,804,928)], cut: 'x', texts: [{ v: 'Young Booth', xs: [450,1350], y: 1110, size: 46, font: F.script, color: '#4a3f38' }] });
+add({ id: 'F-default', mode: 'F', name: 'Khung mặc định (đang có)', set: 'default', style: 'plain', bg: '#f1e4de', slots: [S(40,118,550,771), S(610,118,550,771), S(40,909,550,771), S(610,909,550,771)], texts: [brandT({ x: 600, y: 80, size: 40, color: '#6e5f57' })] });
+
+// #01 Save The Date
+const stdT = (L) => [
+  { k: 'line1', ...L.l1, font: F.script, color: '#1a1a1a' }, { k: 'line2', ...L.l2, font: F.script, color: '#1a1a1a' },
+  { k: 'date', ...L.d, font: F.serif, weight: 600, color: '#333', ls: 2 }, { k: 'tagline', ...L.t, font: F.serif, weight: 600, color: '#333', ls: 4 },
+  brandT(L.b)];
+add({ id: 'C-std-white', mode: 'C', set: '#01', name: 'Save The Date – Trắng', group: 'std-white', style: 'plain', bg: '#fff',
+  slots: [0,1,2,3,4,5,6,7].map(i => S(i < 4 ? 40 : 640, 40 + (i % 4) * 344, 520, 328)),
+  texts: stdT({ l1: { xs: [270,870], y: 1490, size: 72, fit: 480 }, l2: { xs: [330,930], y: 1570, size: 72, fit: 480 }, d: { xs: [300,900], y: 1625, size: 24 }, t: { xs: [300,900], y: 1662, size: 22 }, b: { xs: [300,900], y: 1712, size: 16 } }),
+  qr: [{ x: 460, y: 1660, s: 110 }, { x: 1060, y: 1660, s: 110 }] });
+add({ id: 'B-std-white', mode: 'B', set: '#01', name: 'Save The Date – Trắng (dọc)', group: 'std-white', style: 'plain', bg: '#fff',
+  slots: [S(50,50,1100,650), S(50,740,1100,650)],
+  texts: stdT({ l1: { x: 560, y: 1500, size: 100, fit: 900 }, l2: { x: 640, y: 1610, size: 100, fit: 900 }, d: { x: 600, y: 1680, size: 32 }, t: { x: 600, y: 1728, size: 30 }, b: { x: 600, y: 1772, size: 22 } }),
+  qr: [{ x: 1010, y: 1610, s: 120 }] });
+add({ id: 'D-std-white', mode: 'D', set: '#01', name: 'Save The Date – Trắng', group: 'std-white', style: 'plain', bg: '#fff', w: W, h: P, cut: 'y',
+  slots: [S(30,30,700,540), S(754,30,700,540), S(30,630,700,540), S(754,630,700,540)],
+  texts: stdT({ l1: { x: 1612, ys: [150,750], size: 46, fit: 300 }, l2: { x: 1642, ys: [220,820], size: 46, fit: 300 }, d: { x: 1627, ys: [280,880], size: 20 }, t: { x: 1627, ys: [315,915], size: 18 }, b: { x: 1627, ys: [352,952], size: 14 } }),
+  qr: [{ x: 1567, y: 420, s: 120 }, { x: 1567, y: 1020, s: 120 }] });
+
+// #02 Clover sage
+const clvT = (L) => [
+  { k: 'line1', ...L.l1, font: F.serif, weight: 600, color: '#fff' }, { k: 'sep', ...L.s, font: F.serif, weight: 600, color: '#fff' },
+  { k: 'line2', ...L.l2, font: F.serif, weight: 600, color: '#fff' }, { k: 'date', ...L.d, font: F.serif, weight: 600, color: '#f2f6ef', ls: 2 },
+  brandT({ ...L.b, color: 'rgba(255,255,255,.85)' })];
+add({ id: 'C-clover-sage', mode: 'C', set: '#02', name: 'Cỏ Bốn Lá – Sage', group: 'clover-sage', style: 'clover', band: 1417,
+  slots: stripSlots(45, 383, 45, 24, 36),
+  texts: clvT({ l1: { xs: [220,820], y: 1500, size: 52, fit: 360 }, s: { xs: [290,890], y: 1552, size: 36 }, l2: { xs: [370,970], y: 1612, size: 52, fit: 360 }, d: { xs: [370,970], y: 1660, size: 20 }, b: { xs: [300,900], y: 1765, size: 16 } }),
+  deco: [[40,40,110,.6],[520,1400,170,1],[640,40,110,.6],[1120,1400,170,1]], leaves: [[60,1470,.7],[660,1470,.7]],
+  qr: [{ x: 40, y: 1675, s: 110 }, { x: 640, y: 1675, s: 110 }] });
+add({ id: 'A-clover-sage', mode: 'A', set: '#02', name: 'Cỏ Bốn Lá – Sage', group: 'clover-sage', style: 'clover', band: 1380,
+  slots: [S(80,80,1040,1300,40)],
+  texts: clvT({ l1: { x: 470, y: 1530, size: 64, fit: 520 }, s: { x: 600, y: 1600, size: 40 }, l2: { x: 720, y: 1680, size: 64, fit: 520 }, d: { x: 720, y: 1735, size: 22 }, b: { x: 600, y: 1782, size: 18 } }),
+  deco: [[60,60,160,.6],[1090,1380,260,1]], leaves: [[110,1600,1.3]],
+  qr: [{ x: 1040, y: 1640, s: 120 }] });
+add({ id: 'A-clover-sage-wide', mode: 'A', set: '#02', name: 'Cỏ Bốn Lá – Sage (ngang)', group: 'clover-sage', style: 'clover', w: W, h: P, band: 973,
+  slots: [S(85,63,1630,910,40)],
+  texts: clvT({ l1: { x: 840, y: 1090, size: 64, fit: 620, align: 'right' }, s: { x: 900, y: 1088, size: 44 }, l2: { x: 960, y: 1090, size: 64, fit: 620, align: 'left' }, d: { x: 900, y: 1140, size: 22 }, b: { x: 900, y: 1184, size: 16 } }),
+  deco: [[70,60,160,.6],[1690,870,240,1]], leaves: [[100,1080,1.1]],
+  qr: [{ x: 1650, y: 1050, s: 120 }] });
+
+// #03 crystal / #04 black stars / #07 night sky share geometry
+const CRY_C = stripSlots(30, 214, 30, 12), CRY_F = grid2(36, 230, 36, 14);
+const scriptT = (o) => Object.assign({ v: 'Young Booth', font: F.script, color: '#2a2a2a' }, o);
+add({ id: 'C-crystal-white', mode: 'C', set: '#03', name: 'Pha Lê Trắng', style: 'gems', pink: .6, count: 16, slots: CRY_C, texts: [scriptT({ xs: [250,850], y: 1715, size: 64 })], qr: [{ x: 460, y: 1660, s: 110 }, { x: 1060, y: 1660, s: 110 }] });
+add({ id: 'C-crystal-white-wide', mode: 'C', set: '#03', name: 'Pha Lê Trắng – Ngang', style: 'gems', pink: .6, count: 18, w: W, h: P, cut: 'y', slots: wideRow(24, 441, 427, 476, [24, 624]), texts: [scriptT({ x: 900, ys: [568,1168], size: 48 })], qr: [{ x: 1660, y: 476, s: 110 }, { x: 1660, y: 1076, s: 110 }] });
+add({ id: 'F-crystal-white', mode: 'F', set: '#03', name: 'Pha Lê Trắng', style: 'gems', pink: .3, count: 14, slots: CRY_F, texts: [scriptT({ x: 600, y: 1715, size: 90 })], qr: [{ x: 1044, y: 1640, s: 120 }] });
+add({ id: 'F-crystal-pink', mode: 'F', set: '#03', name: 'Pha Lê Hồng', style: 'gems', pink: .85, count: 20, big: 3, slots: CRY_F, texts: [scriptT({ x: 600, y: 1715, size: 90 })], qr: [{ x: 1044, y: 1640, s: 120 }] });
+
+const BS_W = wideRow(24, 441, 427, 486, [90, 690]);
+add({ id: 'C-black-stars', mode: 'C', set: '#04', name: 'Ngôi Sao Đen', style: 'bstars', count: 30, slots: CRY_C, texts: [scriptT({ xs: [300,900], y: 1715, size: 56, starY: true, color: '#111' })], qr: [{ x: 460, y: 1660, s: 110 }, { x: 1060, y: 1660, s: 110 }] });
+add({ id: 'C-black-stars-wide', mode: 'C', set: '#04', name: 'Ngôi Sao Đen – Ngang', style: 'bstars', count: 30, w: W, h: P, cut: 'y', slots: BS_W, texts: [scriptT({ x: 40, ys: [66,666], size: 44, align: 'left', starY: true, color: '#111' })], qr: [{ x: 1660, y: 462, s: 110 }, { x: 1660, y: 1062, s: 110 }] });
+add({ id: 'F-black-stars', mode: 'F', set: '#04', name: 'Ngôi Sao Đen', style: 'bstars', count: 20, slots: CRY_F, texts: [scriptT({ x: 560, y: 1715, size: 90, starY: true, color: '#111' })], qr: [{ x: 1044, y: 1640, s: 120 }] });
+add({ id: 'F-black-stars-dense', mode: 'F', set: '#04', name: 'Ngôi Sao Dày', style: 'bstars', count: 34, big: 4, slots: CRY_F, texts: [scriptT({ x: 560, y: 1715, size: 90, starY: true, color: '#111' })], qr: [{ x: 1044, y: 1640, s: 120 }] });
+
+add({ id: 'C-gold-stars', mode: 'C', set: '#05', name: 'Sao Kim Tuyến', style: 'gstars', bg: '#fff', gold: .5, count: 16, outline: '#222', slots: stripSlots(150, 42, 40, 16), texts: [scriptT({ xs: [44,644], y: 112, size: 52, align: 'left', color: '#333' })], qr: [{ x: 450, y: 1648, s: 110 }, { x: 1050, y: 1648, s: 110 }] });
+add({ id: 'C-gold-stars-wide', mode: 'C', set: '#05', name: 'Sao Kim Tuyến – Ngang', style: 'gstars', bg: '#fff', gold: .5, count: 18, outline: '#222', w: W, h: P, cut: 'y', slots: wideRow(30, 438, 424, 476, [100, 700]), texts: [scriptT({ x: 900, ys: [72,672], size: 44, color: '#333' })], qr: [{ x: 1658, y: 466, s: 110 }, { x: 1658, y: 1066, s: 110 }] });
+add({ id: 'F-gold-stars', mode: 'F', set: '#05', name: 'Sao Kim Tuyến', style: 'gstars', bg: '#fff', gold: .5, count: 16, outline: '#222', slots: grid2(160, 160, 60, 14), texts: [scriptT({ x: 600, y: 115, size: 80, color: '#333' })], qr: [{ x: 1020, y: 1660, s: 120 }] });
+add({ id: 'F-gold-stars-blush', mode: 'F', set: '#05', name: 'Sao Kim Tuyến Hồng', style: 'gstars', bg: '#fdeef0', gold: .8, count: 18, outline: '#3a2a2e', slots: grid2(160, 160, 60, 14), texts: [scriptT({ x: 600, y: 115, size: 80, color: '#3a2a2e' })], qr: [{ x: 1020, y: 1660, s: 120 }] });
+
+// #06 Orientation (event)
+const oriT = (L) => [
+  { k: 'title', ...L.t, font: F.sans, weight: 800, italic: true, color: '#fff', stroke: '#1d3a8a', sw: 5, rot: -6 },
+  { k: 'title2', ...L.t2, font: F.hand, weight: 700, color: '#fff', stroke: '#1d3a8a', sw: 4, rot: -6 },
+  { k: 'tagline', ...L.g, font: F.sans, weight: 700, color: '#fff', stroke: '#1d3a8a', sw: 3, rot: -6 },
+  brandT({ ...L.b, color: '#fff', ls: 4 })];
+add({ id: 'C-event-orientation', mode: 'C', set: '#06', name: 'Orientation Day', tag: 'event', group: 'event-orientation', style: 'orient', bg: '#3fb6e8', band: 1420,
+  slots: stripSlots(130, 380, 36, 18),
+  texts: oriT({ t: { xs: [330,930], y: 1500, size: 52 }, t2: { xs: [480,1080], y: 1515, size: 36 }, g: { xs: [320,920], y: 1552, size: 22 }, b: { xs: [300,900], y: 1790, size: 14 } }),
+  qr: [{ x: 460, y: 1660, s: 110 }, { x: 1060, y: 1660, s: 110 }] });
+add({ id: 'B-event-orientation', mode: 'B', set: '#06', name: 'Orientation Day (dọc)', tag: 'event', group: 'event-orientation', style: 'orient', bg: '#3fb6e8', band: 1380,
+  slots: [S(50,150,1100,600), S(50,780,1100,600)],
+  texts: oriT({ t: { x: 600, y: 1540, size: 84 }, t2: { x: 850, y: 1560, size: 56 }, g: { x: 590, y: 1606, size: 34 }, b: { x: 600, y: 1788, size: 16 } }),
+  qr: [{ x: 1040, y: 1640, s: 120 }] });
+
+// #07 night sky
+add({ id: 'C-night-sky', mode: 'C', set: '#07', name: 'Bầu Trời Sao', style: 'night', bg: '#0b0b0d', count: 60, slots: CRY_C, texts: [scriptT({ v: '✦ Young Booth', xs: [560,1160], y: 1700, size: 52, align: 'right', color: '#f5f5f5' })], qr: [{ x: 40, y: 1660, s: 110 }, { x: 640, y: 1660, s: 110 }] });
+add({ id: 'C-night-sky-wide', mode: 'C', set: '#07', name: 'Bầu Trời Sao – Ngang', style: 'night', bg: '#0b0b0d', count: 60, w: W, h: P, cut: 'y', slots: BS_W, texts: [scriptT({ v: '✦ Young Booth', x: 40, ys: [66,666], size: 44, align: 'left', color: '#f5f5f5' })], qr: [{ x: 1660, y: 462, s: 110 }, { x: 1660, y: 1062, s: 110 }] });
+add({ id: 'F-night-sky', mode: 'F', set: '#07', name: 'Bầu Trời Sao', style: 'night', bg: '#0b0b0d', count: 60, slots: CRY_F, texts: [scriptT({ v: '✦ Young Booth', x: 1160, y: 1650, size: 80, align: 'right', color: '#f5f5f5' })], qr: [{ x: 40, y: 1640, s: 120 }] });
+add({ id: 'F-night-sky-violet', mode: 'F', set: '#07', name: 'Bầu Trời Sao – Tím Đêm', style: 'night', violet: true, count: 60, slots: CRY_F, texts: [scriptT({ v: '✦ Young Booth', x: 1160, y: 1650, size: 80, align: 'right', color: '#f5f5f5' })], qr: [{ x: 40, y: 1640, s: 120 }] });
+
+// #08 Quốc Khánh 02.09
+const qkT = (L) => [
+  { k: 'date', ...L.d, align: 'left', font: F.sans, weight: 800, italic: true, color: '#d42a2a', stroke: '#fff', sw: 6, rot: -4 },
+  { k: 'title', ...L.t, font: F.sans, weight: 800, color: '#d42a2a' }];
+add({ id: 'C-quoc-khanh', mode: 'C', set: '#08', name: 'Quốc Khánh 02.09', tag: 'quockhanh', group: 'quockhanh', style: 'qk08', slots: stripSlots(50, 170, 50, 12),
+  texts: qkT({ d: { xs: [40,640], y: 862, size: 48 }, t: { xs: [390,990], y: 1740, size: 48 } }),
+  vbrand: [[575,600,'#b5523b',22],[25,1400,'#b5523b',22],[1175,600,'#b5523b',22],[625,1400,'#b5523b',22]],
+  qr: [{ x: 40, y: 1668, s: 110 }, { x: 640, y: 1668, s: 110 }] });
+add({ id: 'F-quoc-khanh', mode: 'F', set: '#08', name: 'Quốc Khánh 02.09', tag: 'quockhanh', group: 'quockhanh', style: 'qk08', slots: grid2(70, 190, 70, 14),
+  texts: qkT({ d: { x: 40, y: 868, size: 64 }, t: { x: 600, y: 1730, size: 72 } }),
+  vbrand: [[1165,520,'#b5523b',24],[35,1300,'#b5523b',24]],
+  qr: [{ x: 40, y: 1650, s: 120 }] });
+
+// #09 / #11 motto
+const mottoT = (L, col) => [
+  { k: 'header', ...L.h, align: 'left', font: F.cond, weight: 600, color: col },
+  { k: 'title', ...L.t, align: 'left', font: F.cond, weight: 600, color: col },
+  { k: 'years', ...L.y, align: 'right', font: F.cond, weight: 600, color: col }];
+const mottoC = { h: { xs: [100,700], y: 80, size: 24, fit: 440 }, t: { xs: [100,700], y: 1760, size: 26 }, y: { xs: [540,1140], y: 1700, size: 24 } };
+const mottoF = { h: { x: 130, y: 92, size: 34, fit: 980 }, t: { x: 140, y: 1730, size: 34 }, y: { x: 1090, y: 1730, size: 34 } };
+add({ id: 'C-qk-blue', mode: 'C', set: '#09', name: 'Độc Lập – Xanh Nhạt', tag: 'quockhanh', group: 'qk-motto', style: 'motto', tone: 'blue', slots: stripSlots(110, 150, 40, 24), texts: mottoT(mottoC, '#1f2a44'),
+  vbrand: [[575,520,'#1f2a44',18],[25,1300,'#1f2a44',18],[1175,520,'#1f2a44',18],[625,1300,'#1f2a44',18]], qr: [{ x: 245, y: 1668, s: 110 }, { x: 845, y: 1668, s: 110 }] });
+add({ id: 'F-qk-blue', mode: 'F', set: '#09', name: 'Độc Lập – Xanh Nhạt', tag: 'quockhanh', group: 'qk-motto', style: 'motto', tone: 'blue', slots: grid2(120, 150, 50, 24), texts: mottoT(mottoF, '#1f2a44'),
+  vbrand: [[1175,420,'#1f2a44',22],[25,1250,'#1f2a44',22]], qr: [{ x: 540, y: 1665, s: 120 }] });
+add({ id: 'C-qk-red-gloss', mode: 'C', set: '#11', name: 'Độc Lập – Đỏ Bóng', tag: 'quockhanh', group: 'qk-motto', style: 'motto', tone: 'red', slots: stripSlots(110, 150, 40, 24), texts: mottoT(mottoC, '#ffffff'),
+  vbrand: [[575,520,'#fff',18],[25,1300,'#fff',18],[1175,520,'#fff',18],[625,1300,'#fff',18]], qr: [{ x: 245, y: 1668, s: 110 }, { x: 845, y: 1668, s: 110 }] });
+add({ id: 'F-qk-red-gloss', mode: 'F', set: '#11', name: 'Độc Lập – Đỏ Bóng', tag: 'quockhanh', group: 'qk-motto', style: 'motto', tone: 'red', slots: grid2(120, 150, 50, 24), texts: mottoT(mottoF, '#ffffff'),
+  vbrand: [[1175,420,'#fff',22],[25,1250,'#fff',22]], qr: [{ x: 540, y: 1665, s: 120 }] });
+
+// #10 2.9 red white
+const q29T = (L) => [
+  { k: 'badge', ...L.b, align: 'left', font: F.sans, weight: 800, color: '#d42a2a' },
+  { k: 'header', ...L.h, font: F.sans, weight: 800, color: '#d42a2a', ls: 1 },
+  { k: 'footer', ...L.f, font: F.sans, weight: 800, color: '#d42a2a', ls: 1 }];
+add({ id: 'C-qk-29', mode: 'C', set: '#10', name: 'Quốc Khánh 2.9 – Đỏ Trắng', tag: 'quockhanh', group: 'qk-29', style: 'q29', slots: stripSlots(110, 110, 40, 14),
+  texts: q29T({ b: { xs: [50,650], y: 82, size: 44 }, h: { xs: [340,940], y: 76, size: 20, fit: 300 }, f: { xs: [300,900], y: 1760, size: 20, fit: 260 } }),
+  vbrand: [[580,900,'#c62828',16],[1180,900,'#c62828',16]], qr: [{ x: 460, y: 1680, s: 110 }, { x: 1060, y: 1680, s: 110 }] });
+add({ id: 'F-qk-29', mode: 'F', set: '#10', name: 'Quốc Khánh 2.9 – Đỏ Trắng', tag: 'quockhanh', group: 'qk-29', style: 'q29', slots: grid2(130, 130, 50, 12),
+  texts: q29T({ b: { x: 70, y: 100, size: 64 }, h: { x: 720, y: 96, size: 28, fit: 600 }, f: { x: 640, y: 1722, size: 28, fit: 520 } }),
+  vbrand: [[1182,900,'#c62828',20]], qr: [{ x: 1040, y: 1660, s: 120 }] });
+
+// #12 white flags
+const wfT = (L) => [{ k: 'kicker', ...L.k, font: F.hand, weight: 600, color: '#1a1a1a' }, { k: 'header', ...L.h, font: F.hand, weight: 700, color: '#1a1a1a' }];
+add({ id: 'C-qk-white-flags', mode: 'C', set: '#12', name: 'Độc Lập – Trắng Cờ Hoa', tag: 'quockhanh', group: 'qk-white-flags', style: 'wflags', slots: stripSlots(170, 150, 40, 14),
+  texts: [...wfT({ k: { xs: [300,900], y: 62, size: 22 }, h: { xs: [300,900], y: 122, size: 40, fit: 380 } }), brandT({ xs: [470,1070], y: 1790, size: 13, color: '#555', ls: 4 })],
+  qr: [{ x: 245, y: 1676, s: 110 }, { x: 845, y: 1676, s: 110 }] });
+add({ id: 'F-qk-white-flags', mode: 'F', set: '#12', name: 'Độc Lập – Trắng Cờ Hoa', tag: 'quockhanh', group: 'qk-white-flags', style: 'wflags', slots: grid2(170, 150, 50, 16),
+  texts: [...wfT({ k: { x: 600, y: 70, size: 30 }, h: { x: 600, y: 134, size: 56, fit: 800 } }), brandT({ x: 960, y: 1770, size: 18, color: '#555', ls: 6 })],
+  qr: [{ x: 540, y: 1660, s: 120 }] });
+
+// #13 maroon
+add({ id: 'C-qk-maroon', mode: 'C', set: '#13', name: 'Độc Lập – Đỏ Thẫm Hoa Văn', tag: 'quockhanh', group: 'qk-maroon', style: 'maroon', slots: stripSlots(110, 120, 40, 30, 36),
+  texts: [{ k: 'header', xs: [560,1160], y: 76, size: 24, align: 'right', font: F.sans, weight: 800, color: '#ffd21f' }, brandT({ xs: [300,900], y: 1790, size: 13, color: '#f6d9a8', ls: 4 })],
+  qr: [{ x: 450, y: 1676, s: 110 }, { x: 1050, y: 1676, s: 110 }] });
+add({ id: 'F-qk-maroon', mode: 'F', set: '#13', name: 'Độc Lập – Đỏ Thẫm Hoa Văn', tag: 'quockhanh', group: 'qk-maroon', style: 'maroon', slots: grid2(110, 110, 40, 20, 40),
+  texts: [{ k: 'header', x: 1150, y: 82, size: 34, align: 'right', font: F.sans, weight: 800, color: '#ffd21f' }, brandT({ x: 760, y: 1782, size: 16, color: '#f6d9a8', ls: 5 })],
+  qr: [{ x: 1040, y: 1660, s: 120 }] });
+
+// #14 bronze
+const gold = '#f1d58a';
+add({ id: 'C-qk-bronze', mode: 'C', set: '#14', name: 'Không Gì Quý Hơn Độc Lập Tự Do', tag: 'quockhanh', group: 'qk-bronze', style: 'bronze', slots: stripSlots(40, 240, 40, 14),
+  texts: [{ k: 'quote', xs: [300,900], y: 1640, size: 32, fit: 300, font: F.script, color: gold }],
+  stars: [[110,1650,60],[710,1650,60]], vscript: [[578,500],[1178,500],[22,1250],[622,1250]],
+  qr: [{ x: 450, y: 1676, s: 110 }, { x: 1050, y: 1676, s: 110 }] });
+add({ id: 'F-qk-bronze', mode: 'F', set: '#14', name: 'Không Gì Quý Hơn Độc Lập Tự Do', tag: 'quockhanh', group: 'qk-bronze', style: 'bronze', slots: grid2(40, 330, 40, 14),
+  texts: [{ k: 'quote', x: 560, y: 1600, w: 360, lh: 46, size: 34, font: F.script, color: gold },
+    { k: 'kicker', x: 1150, y: 1560, size: 18, align: 'right', font: F.sans, weight: 700, color: gold, ls: 2 },
+    { k: 'header', x: 1150, y: 1592, size: 22, align: 'right', font: F.sans, weight: 700, color: gold, ls: 2 },
+    { k: 'title', x: 1150, y: 1630, size: 30, align: 'right', font: F.sans, weight: 800, color: gold },
+    { k: 'badge', x: 1150, y: 1730, size: 90, align: 'right', font: F.sans, weight: 800, color: gold }],
+  stars: [[230,1560,100]], vscript: [[1178,500],[22,1200]],
+  qr: [{ x: 60, y: 1680, s: 110 }] });
+
+// #16 airmail
+add({ id: 'C-qk-airmail', mode: 'C', set: '#16', name: 'Thư Bưu Chính 2/9', tag: 'quockhanh', group: 'qk-airmail', style: 'airmail', slots: stripSlots(40, 420, 40, 16),
+  texts: [{ k: 'para2', xs: [44,644], y: 1440, w: 300, lh: 30, size: 22, align: 'left', font: F.nserif, color: '#c8252b' }],
+  stamps: [[380,1420,170,150],[980,1420,170,150]], logos: [[170,1752,22],[770,1752,22]],
+  qr: [{ x: 40, y: 1640, s: 110 }, { x: 640, y: 1640, s: 110 }] });
+add({ id: 'F-qk-airmail', mode: 'F', set: '#16', name: 'Thư Bưu Chính 2/9 (3 ảnh)', tag: 'quockhanh', group: 'qk-airmail', style: 'airmail', note3: true,
+  slots: [S(60,60,528,693), S(612,60,528,693), S(60,777,528,693)],
+  texts: [{ k: 'para1', x: 640, y: 830, w: 480, lh: 42, size: 32, align: 'left', font: F.nserif, color: '#c8252b' },
+    { k: 'para2', x: 60, y: 1545, w: 1080, lh: 42, size: 30, align: 'left', font: F.nserif, color: '#c8252b' }],
+  stamps: [[680,1080,440,360]], logos: [[70,1745,30]],
+  qr: [{ x: 1040, y: 1660, s: 120 }] });
+
+// #17 Trung Thu
+add({ id: 'C-trungthu', mode: 'C', set: '#17', name: 'Trung Thu', tag: 'trungthu', group: 'trungthu', style: 'moon', slots: stripSlots(60, 200, 30, 14),
+  texts: [{ k: 'title', xs: [300,900], y: 1690, size: 30, fit: 380, font: F.round, weight: 700, color: '#fff' }, { v: 'Young Booth', xs: [300,900], y: 1736, size: 22, font: F.round, weight: 700, color: '#fff' }],
+  qr: [{ x: 460, y: 1676, s: 110 }, { x: 1060, y: 1676, s: 110 }] });
+add({ id: 'F-trungthu', mode: 'F', set: '#17', name: 'Trung Thu', tag: 'trungthu', group: 'trungthu', style: 'moon', slots: grid2(70, 200, 50, 6),
+  texts: [{ k: 'title', x: 640, y: 1690, size: 42, fit: 560, font: F.round, weight: 700, color: '#fff' }, { v: 'Young Booth', x: 640, y: 1742, size: 28, font: F.round, weight: 700, color: '#fff' }],
+  qr: [{ x: 1040, y: 1660, s: 120 }] });
+
+/* ---------------- drawing utils ---------------- */
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rr(ctx, x, y, w, h, r) { r = Math.min(r || 0, w / 2, h / 2); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function starPath(ctx, cx, cy, r, rot = 0, pts = 5, inner = .45) {
+  ctx.beginPath();
+  for (let i = 0; i < pts * 2; i++) { const a = rot + i * Math.PI / pts - Math.PI / 2, rad = i % 2 ? r * inner : r; ctx.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad); }
+  ctx.closePath();
+}
+function star(ctx, cx, cy, r, fill, rot = 0) { starPath(ctx, cx, cy, r, rot); ctx.fillStyle = fill; ctx.fill(); }
+function deepInside(f, x, y, allow) { return f.slots.some(s => x > s.x + allow && x < s.x + s.w - allow && y > s.y + allow && y < s.y + s.h - allow); }
+function scatter(f, R, n, allow, fn) {
+  let k = 0, tries = 0;
+  while (k < n && tries < n * 80) { tries++; const x = R() * f.w, y = R() * f.h; if (deepInside(f, x, y, allow)) continue; if (inQR(f, x, y)) continue; fn(x, y, k++); }
+}
+function inQR(f, x, y) { return f.qr.some(q => x > q.x - 10 && x < q.x + q.s + 10 && y > q.y - 10 && y < q.y + q.s + 10); }
+function placeholder(ctx, x, y, w, h, label) {
+  ctx.save(); ctx.setLineDash([14, 10]); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = `600 ${Math.max(14, Math.min(26, w / 9))}px ${F.sans}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  label.split('\n').forEach((ln, i, a) => ctx.fillText(ln, x + w / 2, y + h / 2 + (i - (a.length - 1) / 2) * 28));
+  ctx.restore();
+}
+function flagVN(ctx, x, y, w) { const h = w * 2 / 3; ctx.fillStyle = '#da251d'; ctx.fillRect(x, y, w, h); star(ctx, x + w / 2, y + h / 2, h * .3, '#ffff00'); }
+function heartPath(ctx, cx, cy, s) {
+  ctx.beginPath(); ctx.moveTo(cx, cy + s * .35);
+  ctx.bezierCurveTo(cx - s * .9, cy - s * .2, cx - s * .45, cy - s * .85, cx, cy - s * .35);
+  ctx.bezierCurveTo(cx + s * .45, cy - s * .85, cx + s * .9, cy - s * .2, cx, cy + s * .35); ctx.closePath();
+}
+function heartFlag(ctx, cx, cy, s) { heartPath(ctx, cx, cy, s); ctx.fillStyle = '#da251d'; ctx.fill(); ctx.lineWidth = s * .06; ctx.strokeStyle = '#fff'; ctx.stroke(); star(ctx, cx, cy - s * .1, s * .22, '#ffff00'); }
+function fireworks(ctx, cx, cy, r, cols, R) {
+  ctx.save(); ctx.lineCap = 'round';
+  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, c = cols[i % cols.length], l = r * (.7 + R() * .3);
+    ctx.strokeStyle = c; ctx.lineWidth = Math.max(2, r * .03); ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * .2, cy + Math.sin(a) * r * .2); ctx.lineTo(cx + Math.cos(a) * l, cy + Math.sin(a) * l); ctx.stroke();
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * (l + r * .07), cy + Math.sin(a) * (l + r * .07), r * .035, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function cloud(ctx, x, y, s, col = '#fff') { ctx.fillStyle = col; [[0,0,.5],[.45,-.18,.42],[.85,0,.45],[.4,.15,.45],[-.35,.12,.35],[1.2,.15,.32]].forEach(([dx,dy,r]) => { ctx.beginPath(); ctx.arc(x + dx * s, y + dy * s, r * s, 0, 7); ctx.fill(); }); }
+function skyline(ctx, x, y, w, h, col, R) {
+  ctx.fillStyle = col; let cx = x;
+  while (cx < x + w) { const bw = 20 + R() * 50, bh = h * (.3 + R() * .7); ctx.fillRect(cx, y - bh, bw, bh); if (R() > .8) { ctx.beginPath(); ctx.moveTo(cx + bw / 2, y - bh - h * .3); ctx.lineTo(cx + bw * .35, y - bh); ctx.lineTo(cx + bw * .65, y - bh); ctx.fill(); } cx += bw + 4; }
+}
+function cloverDraw(ctx, cx, cy, size, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy);
+  ctx.strokeStyle = '#5b8f45'; ctx.lineWidth = size * .04; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(size * .1, size * .35, size * .05, size * .55); ctx.stroke();
+  for (let i = 0; i < 4; i++) { ctx.save(); ctx.rotate(i * Math.PI / 2 + .3); const g = ctx.createLinearGradient(0, 0, 0, -size * .5); g.addColorStop(0, '#5f9e4c'); g.addColorStop(1, '#a6d47f');
+    ctx.fillStyle = g; heartPath(ctx, 0, -size * .26, size * .44); ctx.save(); ctx.translate(0, 0); ctx.restore(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = size * .012; ctx.beginPath(); ctx.moveTo(0, -size * .05); ctx.lineTo(0, -size * .38); ctx.stroke(); ctx.restore(); }
+  ctx.restore();
+}
+function leaf(ctx, x, y, s, rot) { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); const g = ctx.createLinearGradient(-60 * s, 0, 60 * s, 0); g.addColorStop(0, '#3e6b3a'); g.addColorStop(1, '#6f9a5c'); ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 70 * s, 26 * s, 0, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-60 * s, 0); ctx.lineTo(60 * s, 0); ctx.stroke(); ctx.restore(); }
+function gem(ctx, x, y, r, pink) {
+  const g = ctx.createRadialGradient(x - r * .3, y - r * .3, r * .1, x, y, r);
+  if (pink) { g.addColorStop(0, '#ffd1e0'); g.addColorStop(.5, '#e8618c'); g.addColorStop(1, '#b8325f'); } else { g.addColorStop(0, '#ffffff'); g.addColorStop(.55, '#e2e6ea'); g.addColorStop(1, '#9aa0a6'); }
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = Math.max(1, r * .08);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r * .45, y + Math.sin(a) * r * .45); ctx.lineTo(x + Math.cos(a + .4) * r * .95, y + Math.sin(a + .4) * r * .95); ctx.stroke(); }
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - r * .35, y - r * .35, r * .18, 0, 7); ctx.fill(); ctx.restore();
+}
+function metalStar(ctx, x, y, r, isGold, rot) {
+  const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  if (isGold) { g.addColorStop(0, '#c99a2e'); g.addColorStop(.5, '#f5dc8c'); g.addColorStop(1, '#b8892a'); } else { g.addColorStop(0, '#a9adb2'); g.addColorStop(.5, '#f0f2f4'); g.addColorStop(1, '#9ca1a7'); }
+  starPath(ctx, x, y, r, rot); ctx.fillStyle = g; ctx.fill();
+}
+function glowStar(ctx, x, y, r, col, four) {
+  ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.9)'; ctx.shadowBlur = r * 1.2;
+  if (four) starPath(ctx, x, y, r, 0, 4, .28); else starPath(ctx, x, y, r, 0, 5, .45);
+  ctx.fillStyle = col; ctx.fill(); ctx.restore();
+}
+function lantern(ctx, x, y, r) {
+  starPath(ctx, x, y, r, 0); const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, '#fff3a6'); g.addColorStop(1, '#e8b923');
+  ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = r * .1; ctx.strokeStyle = '#d0452f'; ctx.stroke();
+  ctx.strokeStyle = '#7ac74f'; ctx.lineWidth = r * .06; ctx.beginPath(); ctx.arc(x, y, r * .35, 0, 7); ctx.stroke();
+}
+function fakeQR(ctx, x, y, s, seed) {
+  const pad = s * .08; ctx.save(); ctx.fillStyle = '#fff'; rr(ctx, x - pad, y - pad, s + pad * 2, s + pad * 2, s * .1); ctx.fill();
+  const n = 25, m = s / n, R = rng(seed); ctx.fillStyle = '#111';
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const fz = (i < 8 && j < 8) || (i > n - 9 && j < 8) || (i < 8 && j > n - 9); if (!fz && R() > .52) ctx.fillRect(x + i * m, y + j * m, m + .3, m + .3); }
+  for (const [fx, fy] of [[0,0],[n-7,0],[0,n-7]]) { ctx.fillRect(x + fx * m, y + fy * m, 7 * m, 7 * m); ctx.fillStyle = '#fff'; ctx.fillRect(x + (fx + 1) * m, y + (fy + 1) * m, 5 * m, 5 * m); ctx.fillStyle = '#111'; ctx.fillRect(x + (fx + 2) * m, y + (fy + 2) * m, 3 * m, 3 * m); }
+  ctx.restore();
+}
+
+/* text with fit / wrap / stroke / rotate / letter-spacing */
+function text(ctx, str, x, y, o) {
+  ctx.save(); ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot * Math.PI / 180);
+  let size = o.size; const setF = () => { ctx.font = `${o.italic ? 'italic ' : ''}${o.weight || 400} ${size}px ${o.font || F.sans}`; };
+  setF(); try { ctx.letterSpacing = (o.ls || 0) + 'px'; } catch (_e) {}
+  if (o.fit && !o.w) while (ctx.measureText(str).width > o.fit && size > o.size * .55) { size -= 2; setF(); }
+  ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'alphabetic';
+  let lines = [str];
+  if (o.w) { lines = []; let line = ''; for (const wd of String(str).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (ctx.measureText(t).width > o.w && line) { lines.push(line); line = wd; } else line = t; } if (line) lines.push(line); }
+  const lh = o.lh || size * 1.25;
+  lines.forEach((ln, i) => {
+    if (o.stroke) { ctx.lineJoin = 'round'; ctx.lineWidth = (o.sw || 3) * 2; ctx.strokeStyle = o.stroke; ctx.strokeText(ln, 0, i * lh); }
+    ctx.fillStyle = o.color || '#000'; ctx.fillText(ln, 0, i * lh);
+  });
+  ctx.restore();
+}
+function brandStarY(ctx, str, x, y, o) {
+  ctx.save(); ctx.font = `400 ${o.size}px ${o.font}`; ctx.textBaseline = 'alphabetic';
+  const full = ctx.measureText(str).width, yW = ctx.measureText('Y').width;
+  let sx = o.align === 'left' ? x : o.align === 'right' ? x - full : x - full / 2;
+  star(ctx, sx + yW * .5, y - o.size * .32, o.size * .78, '#111', .2);
+  ctx.textAlign = 'left'; ctx.lineWidth = Math.max(2, o.size * .05); ctx.strokeStyle = '#111'; ctx.strokeText('Y', sx, y);
+  ctx.fillStyle = '#fff'; ctx.fillText('Y', sx, y); ctx.fillStyle = o.color || '#111'; ctx.fillText(str.slice(1), sx + yW, y);
+  ctx.restore();
+}
+function vtext(ctx, str, x, y, col, size, font = F.serif, weight = 600) { text(ctx, str, x, y, { rot: -90, size, color: col, font, weight, ls: size * .35 }); }
+
+/* ---------------- sample photos ---------------- */
+const PHOTOS = [];
+function makePhoto(i) {
+  const c = document.createElement('canvas'); c.width = 900; c.height = 640; const x = c.getContext('2d');
+  const hues = [340, 205, 38, 160, 275, 12]; const h = hues[i % hues.length];
+  const g = x.createLinearGradient(0, 0, 900, 640); g.addColorStop(0, `hsl(${h} 60% 82%)`); g.addColorStop(1, `hsl(${h + 35} 50% 64%)`); x.fillStyle = g; x.fillRect(0, 0, 900, 640);
+  const R = rng(i * 99 + 7); for (let k = 0; k < 14; k++) { x.fillStyle = `hsla(${h + 60} 80% 92% / ${0.15 + R() * .25})`; x.beginPath(); x.arc(R() * 900, R() * 300, 20 + R() * 60, 0, 7); x.fill(); }
+  const people = 1 + (i % 3); const skin = ['#f2c9a5', '#e0ac85', '#c98e66'];
+  for (let p = 0; p < people; p++) {
+    const cx = 900 * (p + 1) / (people + 1) + (R() - .5) * 60, top = 230 + R() * 40;
+    x.fillStyle = `hsl(${h + 170 + p * 40} 45% ${35 + p * 8}%)`; rr(x, cx - 120, top + 150, 240, 400, 110); x.fill();
+    x.fillStyle = skin[(i + p) % 3]; x.beginPath(); x.arc(cx, top + 70, 85, 0, 7); x.fill();
+    x.fillStyle = '#2b2220'; x.beginPath(); x.arc(cx, top + 40, 88, Math.PI * 1.05, Math.PI * 1.95); x.fill();
+    x.fillStyle = '#2b2220'; x.beginPath(); x.arc(cx - 30, top + 72, 7, 0, 7); x.arc(cx + 30, top + 72, 7, 0, 7); x.fill();
+    x.strokeStyle = '#7a3b2e'; x.lineWidth = 6; x.beginPath(); x.arc(cx, top + 92, 28, .2, Math.PI - .2); x.stroke();
+  }
+  return c;
+}
+for (let i = 0; i < 6; i++) PHOTOS.push(makePhoto(i));
+let shotSet = 0;
+function drawPhoto(ctx, img, s) {
+  ctx.save(); rr(ctx, s.x, s.y, s.w, s.h, s.r); ctx.clip();
+  const k = Math.max(s.w / img.width, s.h / img.height), w = img.width * k, h = img.height * k;
+  ctx.drawImage(img, s.x + (s.w - w) / 2, s.y + (s.h - h) / 2, w, h); ctx.restore();
+}
+
+/* ---------------- background + decoration per style ---------------- */
+const STYLE = {
+  plain: { bg(ctx, f) { ctx.fillStyle = f.bg; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f) { if (f.border) { ctx.strokeStyle = f.border; ctx.lineWidth = 14; ctx.strokeRect(7, 7, f.w - 14, f.h - 14); } } },
+  clover: {
+    bg(ctx, f, R) { ctx.fillStyle = '#c3d1ba'; ctx.fillRect(0, 0, f.w, f.h);
+      const g = ctx.createLinearGradient(0, f.band, 0, f.h); g.addColorStop(0, '#a9bfa0'); g.addColorStop(1, '#8fab88'); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(0, f.band + 10); for (let x = 0; x <= f.w; x += 60) ctx.lineTo(x, f.band + Math.sin(x / 90) * 10 - 6); ctx.lineTo(f.w, f.h); ctx.lineTo(0, f.h); ctx.fill();
+      ctx.save(); ctx.filter = 'blur(30px)'; for (let i = 0; i < 10; i++) { ctx.fillStyle = R() > .5 ? 'rgba(255,255,255,.14)' : 'rgba(90,130,80,.18)'; ctx.beginPath(); ctx.arc(R() * f.w, f.band + R() * (f.h - f.band), 60 + R() * 90, 0, 7); ctx.fill(); } ctx.restore(); },
+    over(ctx, f) { (f.leaves || []).forEach(([x, y, s]) => { leaf(ctx, x, y, s, -.6); leaf(ctx, x + 40 * s, y + 50 * s, s * .85, .3); }); (f.deco || []).forEach(([x, y, s, a]) => cloverDraw(ctx, x, y, s, a)); } },
+  gems: { bg(ctx, f) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f, R) { scatter(f, R, f.count, 10, (x, y, i) => gem(ctx, x, y, i < (f.big || 0) ? 30 + R() * 6 : 9 + R() * 8, R() < f.pink)); } },
+  bstars: { bg(ctx, f) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f, R) { scatter(f, R, f.count, 20, (x, y, i) => { const q = R(); const r = i < (f.big || 0) ? 38 + R() * 10 : q < .6 ? 7 + R() * 5 : q < .9 ? 14 + R() * 8 : 25 + R() * 10; star(ctx, x, y, r, '#111', R() * 1.2); }); } },
+  gstars: { bg(ctx, f) { ctx.fillStyle = f.bg; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f, R) { ctx.strokeStyle = f.outline; ctx.lineWidth = 3; f.slots.forEach(s => ctx.strokeRect(s.x - 1.5, s.y - 1.5, s.w + 3, s.h + 3));
+      let n = 0; for (const s of f.slots) { if (n >= f.count) break; const corners = [[s.x, s.y], [s.x + s.w, s.y], [s.x, s.y + s.h], [s.x + s.w, s.y + s.h]]; const pick = corners[Math.floor(R() * 4)]; metalStar(ctx, pick[0] + (R() - .5) * 20, pick[1] + (R() - .5) * 20, 8 + R() * 8, R() < f.gold, R()); n++; }
+      scatter(f, R, Math.max(0, f.count - n), 8, (x, y) => metalStar(ctx, x, y, 5 + R() * 6, R() < f.gold, R())); } },
+  night: { bg(ctx, f) { if (f.violet) { const g = ctx.createLinearGradient(0, 0, 0, f.h); g.addColorStop(0, '#1b1035'); g.addColorStop(1, '#0d0a1f'); ctx.fillStyle = g; } else ctx.fillStyle = f.bg; ctx.fillRect(0, 0, f.w, f.h); },
+    over() {} },
+  orient: { bg(ctx, f) { ctx.fillStyle = f.bg; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f, R) {
+      const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : f.w;
+      for (const ox of strips) {
+        const cx = ox + W2 / 2, top = f.mode === 'C' ? 30 : 40, lh = f.mode === 'C' ? 70 : 80;
+        placeholder(ctx, cx - lh * 2.3, top, lh * 2.1, lh, 'LOGO 1'); placeholder(ctx, cx + lh * .2, top, lh * 2.1, lh, 'LOGO 2');
+        const by = f.band; const sc = W2 / 1200;
+        for (let i = 0; i < 7; i++) cloud(ctx, ox + (i / 6) * W2, f.h - 40 * sc - R() * 60 * sc, (90 + R() * 50) * sc);
+        cloud(ctx, ox + W2 * .15, by + 40 * sc, 60 * sc, 'rgba(255,255,255,.9)');
+        placeholder(ctx, ox + W2 * .12, f.h - 360 * sc * (f.mode === 'C' ? 1.6 : 1), W2 * .34, 330 * sc * (f.mode === 'C' ? 1.6 : 1), 'Tòa nhà\n(file khách)');
+        const dx = ox + W2 * .07, dy = f.h - 240 * sc * (f.mode === 'C' ? 1.5 : 1), ds = 70 * sc * (f.mode === 'C' ? 1.6 : 1);
+        ctx.fillStyle = '#8a97a6'; ctx.fillRect(dx - 3, dy, 6, ds * 2.2);
+        ctx.save(); ctx.translate(dx, dy); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#2f6fd6'; ctx.fillRect(-ds / 2, -ds / 2, ds, ds); ctx.strokeStyle = '#fff'; ctx.lineWidth = ds * .07; ctx.strokeRect(-ds / 2 + 4, -ds / 2 + 4, ds - 8, ds - 8); ctx.restore();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = ds * .08; ctx.beginPath(); ctx.moveTo(dx - ds * .2, dy + ds * .2); ctx.lineTo(dx, dy - ds * .05); ctx.lineTo(dx - ds * .05, dy + ds * .05); ctx.lineTo(dx + ds * .2, dy - ds * .2); ctx.stroke();
+        ctx.fillStyle = '#23a38a'; ctx.fillRect(dx - ds * .55, dy + ds * .9, ds * 1.1, ds * .45); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(dx - ds * .5, dy + ds * .94, ds, ds * .37);
+        for (let i = 0; i < 5; i++) glowStar(ctx, ox + R() * W2, by + R() * (f.h - by) * .5, 8 * sc + R() * 8, '#fff', true);
+      } } },
+  qk08: { bg(ctx, f) { ctx.fillStyle = '#f8eedb'; ctx.fillRect(0, 0, f.w, f.h); const cx = f.w / 2, cy = f.h / 2, R = 2400;
+      for (let i = 0; i < 24; i++) { if (i % 2) continue; const a = i / 24 * Math.PI * 2, b = (i + 1) / 24 * Math.PI * 2; ctx.fillStyle = '#f2e0bd'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(b) * R, cy + Math.sin(b) * R); ctx.fill(); }
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 24; ctx.strokeRect(12, 12, f.w - 24, f.h - 24); },
+    over(ctx, f, R) {
+      const cols = ['#d7261e', '#f2b632', '#e8743b'];
+      if (f.mode === 'C') for (const ox of [0, 600]) {
+        fireworks(ctx, ox + 70, 70, 60, cols, R); fireworks(ctx, ox + 320, 1720, 45, cols, R); fireworks(ctx, ox + 520, 1770, 35, cols, R);
+        heartFlag(ctx, ox + 540, 440, 70); placeholder(ctx, ox + 520, 1210, 80, 70, 'Nón lá');
+        f.vbrand.filter(v => v[0] >= ox && v[0] < ox + 600).forEach(v => vtext(ctx, 'YOUNG BOOTH', v[0], v[1], v[2], v[3]));
+      } else {
+        fireworks(ctx, 110, 100, 90, cols, R); fireworks(ctx, 300, 1730, 60, cols, R); fireworks(ctx, 880, 1740, 55, cols, R);
+        heartFlag(ctx, 1110, 110, 100); placeholder(ctx, 170, 1520, 150, 100, 'Nón lá'); placeholder(ctx, 980, 1440, 190, 330, 'Em bé\ncầm cờ');
+        f.vbrand.forEach(v => vtext(ctx, 'YOUNG BOOTH', v[0], v[1], v[2], v[3]));
+      } } },
+  motto: { bg(ctx, f, R) {
+      if (f.tone === 'blue') { const g = ctx.createLinearGradient(0, 0, f.w, f.h); g.addColorStop(0, '#d6e6f1'); g.addColorStop(1, '#c4d9ea'); ctx.fillStyle = g; ctx.fillRect(0, 0, f.w, f.h);
+        ctx.save(); ctx.filter = 'blur(40px)'; for (let i = 0; i < 8; i++) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(R() * f.w, R() * f.h, 120 + R() * 120, 0, 7); ctx.fill(); } ctx.restore(); }
+      else { ctx.fillStyle = '#d7261e'; ctx.fillRect(0, 0, f.w, f.h); ctx.save(); ctx.translate(f.w / 2, f.h / 2); ctx.rotate(-Math.PI / 6);
+        [[-500, 160, .75], [80, 90, .6], [420, 220, .85]].forEach(([o, w, a]) => { const g = ctx.createLinearGradient(o - w, 0, o + w, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, `rgba(255,255,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(o - w, -2000, w * 2, 4000); }); ctx.restore(); } },
+    over(ctx, f) { const col = f.tone === 'blue' ? '#d42a2a' : '#ffd21f';
+      const pts = f.mode === 'C' ? [[40,48,40],[640,48,40],[570,870,34],[1170,870,34],[40,1700,30],[640,1700,30]] : [[56,64,62],[1150,925,54],[70,1690,56]];
+      pts.forEach(([x, y, r]) => { star(ctx, x, y, r, col, .1); star(ctx, x + r * .9, y + r * .55, r * .38, col, .3); });
+      f.vbrand.forEach(v => vtext(ctx, 'YOUNG BOOTH', v[0], v[1], v[2], v[3])); } },
+  q29: { bg(ctx, f) { const g = ctx.createRadialGradient(f.w / 2, f.h / 2, f.w * .2, f.w / 2, f.h / 2, f.h * .75); g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#fbe3e1'); g.addColorStop(1, '#e03a3a'); ctx.fillStyle = g; ctx.fillRect(0, 0, f.w, f.h);
+      ctx.save(); ctx.filter = 'blur(6px)'; ctx.strokeStyle = 'rgba(200,30,30,.55)'; ctx.lineWidth = 10; f.slots.forEach(s => ctx.strokeRect(s.x - 2, s.y - 2, s.w + 4, s.h + 4)); ctx.restore(); },
+    over(ctx, f, R) { const red = '#d42a2a'; ctx.fillStyle = red;
+      const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : 1200, k = W2 / 1200;
+      for (const ox of strips) {
+        ctx.font = `800 ${Math.round(34 * k + 10)}px ${F.sans}`; ctx.textAlign = 'left'; ctx.fillText('› › › ›', ox + 330 * k, 98 * k + 10); ctx.fillText('‹ ‹ ‹ ‹', ox + 860 * k, f.h - 40 * k - 10);
+        flagVN(ctx, ox + 1080 * k, 50 * k + 6, 70 * k + 10); skyline(ctx, ox + 40 * k, f.h - 22, 260 * k, 90 * k + 20, red, R);
+        if (f.mode !== 'C') heartFlag(ctx, 960, 1730, 70);
+        for (let i = 0; i < 3; i++) { ctx.fillText('^', ox + 12, 1000 + i * 34); ctx.fillText('^', ox + W2 - 30, 300 + i * 34); }
+      }
+      f.vbrand.forEach(v => vtext(ctx, 'YOUNG BOOTH', v[0], v[1], v[2], v[3], F.sans, 700)); } },
+  wflags: { bg(ctx, f) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, f.w, f.h); },
+    over(ctx, f, R) {
+      const ribbon = (x, y, rot, len) => { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = '#d42a2a'; ctx.fillRect(-len / 2, -22, len, 44); star(ctx, 0, 0, 16, '#ffd21f'); ctx.restore(); };
+      const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : 1200;
+      for (const ox of strips) {
+        ctx.save(); ctx.beginPath(); ctx.rect(ox, 0, W2, f.h); ctx.clip(); ribbon(ox + 40, 40, -Math.PI / 4, 220); ribbon(ox + W2 - 40, f.h - 40, -Math.PI / 4, 220); ctx.restore();
+        flagVN(ctx, ox + W2 - 120, 150 - (f.mode === 'C' ? 70 : 50), 80);
+        const tops = f.slots.filter(s => s.x >= ox && s.x < ox + W2).filter((_, i) => i % 3 === 0);
+        tops.forEach(s => { const x1 = s.x + s.w * .45, x2 = s.x + s.w - 10, y0 = s.y + 8; ctx.strokeStyle = '#7a3b2e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y0); ctx.quadraticCurveTo((x1 + x2) / 2, y0 + 40, x2, y0); ctx.stroke();
+          for (let i = 1; i < 6; i++) { const t = i / 6, px = x1 + (x2 - x1) * t, py = y0 + 40 * 2 * t * (1 - t); ctx.fillStyle = '#d42a2a'; ctx.beginPath(); ctx.moveTo(px - 14, py); ctx.lineTo(px + 14, py); ctx.lineTo(px, py + 30); ctx.fill(); star(ctx, px, py + 9, 5, '#ffd21f'); } });
+        placeholder(ctx, ox + (f.mode === 'C' ? 40 : 60), f.h - (f.mode === 'C' ? 150 : 150) + 10, f.mode === 'C' ? 190 : 400, f.mode === 'C' ? 120 : 130, 'Lăng Bác\n(file bản quyền)');
+      } } },
+  maroon: { bg(ctx, f, R) { ctx.fillStyle = '#8e1717'; ctx.fillRect(0, 0, f.w, f.h); ctx.strokeStyle = 'rgba(70,5,5,.45)'; ctx.lineWidth = 5;
+      for (let i = 0; i < 26; i++) { const x = R() * f.w, y = R() * f.h, r = 30 + R() * 50; ctx.beginPath(); ctx.arc(x, y, r, Math.PI, Math.PI * 2.2); ctx.stroke(); ctx.beginPath(); ctx.arc(x + r * .7, y + r * .1, r * .55, Math.PI * .9, Math.PI * 2.1); ctx.stroke(); } },
+    over(ctx, f, R) { const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : 1200, k = W2 / 1200;
+      for (const ox of strips) {
+        for (let i = 0; i < 6; i++) { const x = ox + R() * 160 * k + 10, y = R() * 160 * k + 10, r = (20 + R() * 30) * k + 6; ctx.strokeStyle = i % 2 ? '#e8b04a' : '#c23b2a'; ctx.lineWidth = 4; for (let j = 1; j <= 3; j++) { ctx.beginPath(); ctx.arc(x, y, r * j / 3, 0, 7); ctx.stroke(); } }
+        skyline(ctx, ox + 20, f.h - 10, 340 * k + 80, 70 * k + 30, '#1c1c1c', R);
+        const fx = ox + 40, fy = f.h - (f.mode === 'C' ? 150 : 250), fw = (f.mode === 'C' ? 190 : 330);
+        ctx.fillStyle = '#da251d'; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.bezierCurveTo(fx + fw * .3, fy - fw * .12, fx + fw * .6, fy + fw * .12, fx + fw, fy); ctx.lineTo(fx + fw, fy + fw * .55); ctx.bezierCurveTo(fx + fw * .6, fy + fw * .67, fx + fw * .3, fy + fw * .43, fx, fy + fw * .55); ctx.fill();
+        star(ctx, fx + fw * .5, fy + fw * .28, fw * .14, '#ffff00'); ctx.fillStyle = '#ddd'; ctx.fillRect(fx - 6, fy - 10, 6, fw * .9);
+      } } },
+  bronze: { bg(ctx, f, R) { const g = ctx.createLinearGradient(0, 0, 0, f.h); g.addColorStop(0, '#8a6a35'); g.addColorStop(1, '#6d5226'); ctx.fillStyle = g; ctx.fillRect(0, 0, f.w, f.h);
+      ctx.save(); ctx.globalAlpha = .15; skyline(ctx, 0, f.h, f.w, 260, '#2e2211', R); ctx.restore(); },
+    over(ctx, f) { (f.stars || []).forEach(([x, y, r]) => { starPath(ctx, x, y, r, 0); ctx.lineWidth = r * .06; ctx.strokeStyle = '#f1d58a'; ctx.stroke(); star(ctx, x, y, r * .55, '#e9c46a'); });
+      (f.vscript || []).forEach(([x, y]) => text(ctx, 'Young Booth', x, y, { rot: -90, size: 30, font: F.script, color: 'rgba(241,213,138,.85)' })); } },
+  airmail: { bg(ctx, f) { ctx.fillStyle = '#f3ece0'; ctx.fillRect(0, 0, f.w, f.h);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, f.w, f.h); ctx.rect(22, 22, f.w - 44, f.h - 44); ctx.clip('evenodd');
+      const cols = ['#c8252b', '#f3ece0', '#1a1a1a', '#f3ece0']; for (let i = -80; i < (f.w + f.h) / 28 + 80; i++) { ctx.fillStyle = cols[((i % 4) + 4) % 4]; ctx.beginPath(); const x = i * 28; ctx.moveTo(x, 0); ctx.lineTo(x + 28, 0); ctx.lineTo(x + 28 - f.h, f.h); ctx.lineTo(x - f.h, f.h); ctx.fill(); }
+      ctx.restore(); },
+    over(ctx, f) { ctx.strokeStyle = '#1a1a1a'; f.slots.forEach(s => { ctx.lineWidth = 6; ctx.strokeRect(s.x - 3, s.y - 3, s.w + 6, s.h + 6); ctx.lineWidth = 2; ctx.strokeRect(s.x - 7, s.y - 1, s.w + 10, s.h + 4); });
+      (f.stamps || []).forEach(([x, y, w, h]) => { ctx.fillStyle = '#efe6d6'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#f3ece0'; const d = Math.max(6, w / 24); for (let i = 0; i <= w; i += d * 2) { ctx.beginPath(); ctx.arc(x + i, y, d / 2, 0, 7); ctx.arc(x + i, y + h, d / 2, 0, 7); ctx.fill(); } for (let j = 0; j <= h; j += d * 2) { ctx.beginPath(); ctx.arc(x, y + j, d / 2, 0, 7); ctx.arc(x + w, y + j, d / 2, 0, 7); ctx.fill(); }
+        ctx.strokeStyle = '#c8252b'; ctx.lineWidth = 3; ctx.strokeRect(x + w * .08, y + h * .08, w * .84, h * .84); flagVN(ctx, x + w * .14, y + h * .16, w * .38);
+        text(ctx, '2·9', x + w * .74, y + h * .38, { size: h * .2, font: F.nserif, weight: 700, color: '#c8252b' }); text(ctx, 'VIỆT NAM', x + w * .5, y + h * .74, { size: h * .13, font: F.nserif, weight: 700, color: '#c8252b' });
+        text(ctx, 'BƯU CHÍNH', x + w * .5, y + h * .88, { size: h * .08, font: F.sans, weight: 700, color: '#1a1a1a', ls: 2 }); });
+      (f.logos || []).forEach(([x, y, s]) => { flagVN(ctx, x - s * 3.2, y - s * 1.1, s * 2.2); text(ctx, 'Young Booth', x, y, { align: 'left', size: s, font: F.nserif, weight: 700, color: '#1a1a1a' }); }); } },
+  moon: { bg(ctx, f) { const g = ctx.createLinearGradient(0, 0, 0, f.h); g.addColorStop(0, '#4a2a9e'); g.addColorStop(1, '#3a1f86'); ctx.fillStyle = g; ctx.fillRect(0, 0, f.w, f.h);
+      const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : 1200;
+      for (const ox of strips) { const gt = ctx.createLinearGradient(0, 0, 0, 70); gt.addColorStop(0, '#f5ecd2'); gt.addColorStop(1, 'rgba(245,236,210,.0)'); ctx.fillStyle = gt; ctx.fillRect(ox + W2 * .35, 0, W2 * .65, 70);
+        const gr = ctx.createLinearGradient(ox + W2, 0, ox + W2 - 60, 0); gr.addColorStop(0, '#f5ecd2'); gr.addColorStop(1, 'rgba(245,236,210,0)'); ctx.fillStyle = gr; ctx.fillRect(ox + W2 - 60, 0, 60, f.h - 220); } },
+    over(ctx, f, R) { const strips = f.mode === 'C' ? [0, 600] : [0]; const W2 = f.mode === 'C' ? 600 : 1200, k = W2 / 1200;
+      ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; f.slots.forEach(s => ctx.strokeRect(s.x, s.y, s.w, s.h));
+      for (const ox of strips) {
+        ctx.save(); ctx.strokeStyle = '#dbeafe'; ctx.lineWidth = 10 * k + 4; ctx.lineCap = 'round'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(ox + 60 + i * 30 * k, 40 + i * 14, 40 * k + 14, Math.PI * .1, Math.PI * 1.2); ctx.stroke(); } ctx.restore();
+        ctx.fillStyle = '#2f7d3a'; for (const [dx, dy, r] of [[0, 0, 90], [80, -30, 80], [150, 10, 70], [40, -80, 70]]) { ctx.beginPath(); ctx.arc(ox + 60 * k + dx * k + 10, f.h - 90 + dy * k, r * k + 10, 0, 7); ctx.fill(); }
+        scatter({ ...f, slots: f.slots }, R, 7, 10, (x, y) => { if (x >= ox && x < ox + W2) lantern(ctx, x, y, 14 + R() * 14); });
+        for (let i = 0; i < 12; i++) glowStar(ctx, ox + R() * W2, R() * f.h, 3 + R() * 4, '#fff', true);
+      } } },
+};
+STYLE.night.over = (ctx, f, R) => scatter(f, R, f.count, 8, (x, y) => { const q = R(); glowStar(ctx, x, y, 4 + Math.pow(q, 2.2) * 18, f.violet && R() < .3 ? '#d9ccff' : '#ffffff', R() < .4); });
+
+/* ---------------- render ---------------- */
+function vals(f) { return f.group ? VALS[f.group] : {}; }
+function render(f, cv, maxW, maxH) {
+  const k = Math.min(maxW / f.w, maxH / f.h);
+  cv.width = Math.round(f.w * k); cv.height = Math.round(f.h * k);
+  const ctx = cv.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0);
+  const st = STYLE[f.style] || STYLE.plain; const R = rng(hash(f.id));
+  st.bg(ctx, f, R);
+  const n = MODES.find(m => m.id === f.mode).n;
+  f.slots.forEach((s, i) => drawPhoto(ctx, PHOTOS[(shotSet + (i % n)) % PHOTOS.length], s));
+  st.over && st.over(ctx, f, rng(hash(f.id) + 1));
+  const v = vals(f);
+  for (const t of f.texts) {
+    const str = t.k ? v[t.k] : t.v; if (!str) continue;
+    for (const x of (t.xs || [t.x])) for (const y of (t.ys || [t.y])) t.starY ? brandStarY(ctx, str, x, y, t) : text(ctx, str, x, y, t);
+  }
+  f.qr.forEach((q, i) => fakeQR(ctx, q.x, q.y, q.s, hash(f.id) + i));
+}
+
+/* ---------------- state + UI ---------------- */
+const state = { mode: null, frame: {}, holiday: { quockhanh: false, trungthu: false, event: false }, cat: 'C' };
+try { const h = JSON.parse(localStorage.getItem('yb-demo-holiday') || 'null'); if (h) Object.assign(state.holiday, h); } catch (_e) {}
+const visible = (f) => !f.tag || state.holiday[f.tag];
+const framesFor = (m, all) => FR.filter(f => f.mode === m && (all || visible(f)));
+const curFrame = () => FR.find(f => f.id === state.frame[state.mode]) || framesFor(state.mode)[0];
+const tagLabel = { quockhanh: ['Dịp lễ 2/9', 'holiday'], trungthu: ['Dịp lễ Trung Thu', 'holiday'], event: ['Sự kiện', 'event'] };
+
+function showStep(n) { ['#s1', '#s2', '#s3'].forEach((s, i) => $(s).hidden = i !== n - 1); [...$('#steps').children].forEach((el, i) => el.classList.toggle('on', i === n - 1)); }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2200); }
+
+function buildModes() {
+  const box = $('#modes'); box.innerHTML = '';
+  MODES.forEach(m => {
+    const b = document.createElement('button'); b.className = 'mode-card'; b.type = 'button';
+    const cv = document.createElement('canvas'); render(FR.find(f => f.id === m.id + '-default'), cv, 260, 260);
+    const cnt = framesFor(m.id).length;
+    b.append(cv); b.insertAdjacentHTML('beforeend', `<b>${m.name}</b><small>${m.desc} · ${cnt} khung</small>`);
+    b.addEventListener('click', () => { state.mode = m.id; startCapture(); });
+    box.append(b);
+  });
+}
+function startCapture() {
+  const m = MODES.find(x => x.id === state.mode);
+  $('#cap-title').textContent = `Chụp ${m.n} ảnh – ${m.name}`;
+  const shots = $('#shots'); shots.innerHTML = '';
+  for (let i = 0; i < m.n; i++) shots.append(document.createElement('canvas'));
+  $('#btn-shoot').disabled = false; showStep(2);
+}
+$('#btn-shoot').addEventListener('click', async () => {
+  const btn = $('#btn-shoot'); btn.disabled = true; shotSet = (shotSet + 1) % PHOTOS.length;
+  const m = MODES.find(x => x.id === state.mode); const cvs = [...$('#shots').children];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  for (let i = 0; i < m.n; i++) {
+    const c = cvs[i]; c.width = 184; c.height = 124; const ctx = c.getContext('2d'); const img = PHOTOS[(shotSet + i) % PHOTOS.length];
+    ctx.drawImage(img, 0, 0, 184, 124); c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+    if (!reduce) await new Promise(r => setTimeout(r, 380));
+  }
+  showResult();
+});
+function showResult() { showStep(3); drawResult(); buildTextFields(); }
+function drawResult() {
+  const f = curFrame(); render(f, $('#result-cv'), 1200 * .5, 1800 * .5);
+  $('#cur-frame').textContent = f.name + (f.set && f.set !== 'default' ? ` (${f.set})` : '');
+}
+function thumbButton(f, onClick, active) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'thumb' + (active ? ' on' : '');
+  const box = document.createElement('div'); box.className = 'cv'; const cv = document.createElement('canvas'); box.append(cv); b.append(box);
+  const tags = []; if (f.set) tags.push(`<span class="tag">${f.set === 'default' ? 'Đang có' : f.set}</span>`);
+  if (f.tag) { const [l, c] = tagLabel[f.tag]; tags.push(`<span class="tag ${c}">${l}${visible(f) ? '' : ' · đang ẩn'}</span>`); }
+  if (f.note3) tags.push('<span class="tag">3 ảnh</span>');
+  b.insertAdjacentHTML('beforeend', `<span class="nm">${f.name}</span><span class="meta">${tags.join('')}</span>`);
+  b.addEventListener('click', onClick);
+  requestAnimationFrame(() => render(f, cv, 300, 300));
+  return b;
+}
+function openPicker() {
+  const m = MODES.find(x => x.id === state.mode), list = framesFor(state.mode), cur = curFrame();
+  $('#modal-title').textContent = `Chọn khung — ${m.name}`;
+  const g = $('#pick-grid'); g.innerHTML = '';
+  list.forEach(f => g.append(thumbButton(f, () => { state.frame[state.mode] = f.id; $('#modal').hidden = true; drawResult(); buildTextFields(); toast(`Đã đổi sang khung “${f.name}”`); }, f.id === cur.id)));
+  const hidden = framesFor(state.mode, true).length - list.length;
+  $('#pick-note').textContent = hidden ? `${hidden} khung dịp lễ / sự kiện đang ẩn. Admin bật trong ⚙️ Cài đặt để hiện thêm.` : '';
+  $('#modal').hidden = false; $('#btn-close').focus();
+}
+$('#btn-pick').addEventListener('click', openPicker);
+$('#btn-close').addEventListener('click', () => $('#modal').hidden = true);
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('#modal').hidden = true; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#modal').hidden = true; });
+$('#btn-print').addEventListener('click', () => toast('Demo: in ra đúng khung đang chọn (không in thật).'));
+$('#btn-retake').addEventListener('click', () => startCapture());
+$('#btn-home').addEventListener('click', () => { state.mode = null; state.frame = {}; showStep(1); buildModes(); });
+$('#btn-back1').addEventListener('click', () => { showStep(1); });
+
+function buildTextFields() {
+  const box = $('#text-fields'); box.innerHTML = '';
+  const f = state.mode ? curFrame() : null;
+  if (!f || !f.group) { box.innerHTML = '<p class="note">Khung đang dùng không có chữ cho admin nhập (chỉ có chữ thương hiệu cố định).</p>'; return; }
+  const g = GROUPS[f.group];
+  box.insertAdjacentHTML('beforeend', `<p class="note">Bộ chữ <b>${g.name}</b> — dùng chung cho mọi khung cùng bộ.</p>`);
+  g.f.forEach(([k, label, , long]) => {
+    const id = `tf-${f.group}-${k}`; const wrap = document.createElement('div'); wrap.className = 'field';
+    wrap.innerHTML = `<label for="${id}">${label}</label>` + (long ? `<textarea id="${id}"></textarea>` : `<input id="${id}" type="text">`);
+    const inp = wrap.querySelector(long ? 'textarea' : 'input'); inp.value = VALS[f.group][k];
+    inp.addEventListener('input', () => { VALS[f.group][k] = inp.value; try { localStorage.setItem('yb-demo-vals', JSON.stringify(VALS)); } catch (_e) {} drawResult(); clearTimeout(buildTextFields._t); buildTextFields._t = setTimeout(buildCatalog, 400); });
+    box.append(wrap);
+  });
+}
+['quockhanh', 'trungthu', 'event'].forEach(k => {
+  const el = $('#tg-' + k); el.checked = state.holiday[k];
+  el.addEventListener('change', () => { state.holiday[k] = el.checked; try { localStorage.setItem('yb-demo-holiday', JSON.stringify(state.holiday)); } catch (_e) {}
+    if (state.mode && !visible(curFrame())) delete state.frame[state.mode];
+    if (!$('#s1').hidden) buildModes(); if (!$('#s3').hidden) drawResult(); buildCatalog(); });
+});
+
+function buildCatalog() {
+  const tabs = $('#cat-tabs'); tabs.innerHTML = '';
+  MODES.forEach(m => { const b = document.createElement('button'); b.type = 'button'; b.className = state.cat === m.id ? 'on' : '';
+    b.innerHTML = `${m.name}<span class="n">${framesFor(m.id, true).length}</span>`; b.addEventListener('click', () => { state.cat = m.id; buildCatalog(); }); tabs.append(b); });
+  const g = $('#cat-grid'); g.innerHTML = '';
+  framesFor(state.cat, true).forEach(f => g.append(thumbButton(f, () => {
+    if (f.tag && !visible(f)) { state.holiday[f.tag] = true; $('#tg-' + f.tag).checked = true; }
+    state.mode = f.mode; state.frame[f.mode] = f.id; showResult(); buildCatalog(); $('.booth').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, state.mode === f.mode && curFrame().id === f.id)));
+}
+
+const FONT_LOADS = ['400 40px "Great Vibes"', '600 40px "Cormorant Garamond"', '700 40px "Dancing Script"', '800 40px "Be Vietnam Pro"', 'italic 800 40px "Be Vietnam Pro"', '700 40px "Be Vietnam Pro"', '600 40px "Oswald"', '700 40px "Baloo 2"', '700 40px "Noto Serif"'];
+function boot() { showStep(1); buildModes(); buildCatalog(); buildTextFields(); }
+boot();
+Promise.all(FONT_LOADS.map(f => document.fonts.load(f, 'Thư Huỳnh Như ĐỘC LẬP Ệ ấ ư').catch(() => null))).then(() => { buildModes(); buildCatalog(); if (!$('#s3').hidden) drawResult(); });
+})();
+</script>
