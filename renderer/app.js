@@ -1343,16 +1343,26 @@ function updatePrintBtn() {
   });
 }
 
-// Font tiếng Việt nhúng sẵn — nạp 1 lần trước khi vẽ chữ lên canvas.
-let _fontsReady = null;
+// Font tiếng Việt nhúng sẵn — nạp trước khi vẽ chữ lên canvas (canvas không tự đợi font → vẽ bằng font dự phòng).
+// Danh sách lấy từ CHÍNH chữ của mọi khung (font + độ đậm + nghiêng), gồm cả khung sự kiện nạp từ frames.json;
+// mỗi kiểu chỉ nạp 1 lần, gọi lại sau khi có khung mới thì nạp thêm phần còn thiếu.
+const _fontLoads = new Map();
 function ensureFrameFonts() {
-  if (!_fontsReady) {
-    const specs = ['400 48px "YB Script"', '400 32px "YB Serif"', '600 32px "YB Serif"', '700 32px "YB Serif"',
-      '700 48px "Dancing Script"', '400 48px "Great Vibes"', '700 32px "Oswald"', '800 32px "Baloo 2"',
-      '700 32px "Noto Serif"', '800 32px "Be Vietnam Pro"', 'italic 800 32px "Be Vietnam Pro"'];
-    _fontsReady = Promise.all(specs.map((f) => document.fonts.load(f, 'Thư Huỳnh Như ĐỘC LẬP Ệ ấ ư').catch(() => null)));
-  }
-  return _fontsReady;
+  const specs = new Set(['400 48px "YB Script"', '400 32px "YB Serif"', '600 32px "YB Serif"', '700 32px "YB Serif"',
+    '700 48px "Dancing Script"', '400 48px "Great Vibes"', '700 32px "Oswald"', '800 32px "Baloo 2"',
+    '700 32px "Noto Serif"', '800 32px "Be Vietnam Pro"', 'italic 800 32px "Be Vietnam Pro"']);
+  const addTexts = (texts) => (texts || []).forEach((t) => {
+    if (t && t.ff) specs.add((t.italic ? 'italic ' : '') + (t.weight || '400') + ' 32px ' + t.ff);
+  });
+  (CFG.modes || []).forEach((m) => {
+    addTexts(m.texts);
+    (Array.isArray(m.frames) ? m.frames : []).forEach((f) => addTexts(f.texts));
+  });
+  (CFG.eventFrames || []).forEach((f) => addTexts(f.texts));
+  specs.forEach((s) => {
+    if (!_fontLoads.has(s)) _fontLoads.set(s, document.fonts.load(s, 'Thư Huỳnh Như ĐỘC LẬP Ệ ấ ư <3').catch(() => null));
+  });
+  return Promise.all(_fontLoads.values());
 }
 
 // Ảnh xem trước = ảnh THẬT của khách ghép vào khung đó (cache theo frameId trong lượt).
