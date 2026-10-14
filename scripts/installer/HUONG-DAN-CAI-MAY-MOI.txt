@@ -1,5 +1,5 @@
 ﻿==========================================================
-   YOUNGBOOTH 0.2.2 — HƯỚNG DẪN CÀI TRÊN MÁY MỚI
+   YOUNGBOOTH 0.2.4 — HƯỚNG DẪN CÀI TRÊN MÁY MỚI
 ==========================================================
 
 Yêu cầu: Windows 10/11 64-bit · máy ảnh Canon (cáp USB) · máy in DNP DS-RX1 (cáp USB, nếu in).
@@ -24,7 +24,7 @@ MÁY CÀI TRẮNG: KHÔNG cần cài thêm gì (không cần Node.js, .NET, Visu
   4. Làm tiếp 3 việc ở mục "SAU KHI CÀI" bên dưới.
 
 Bộ cài gồm:
-  YoungBooth Setup 0.2.2.exe   ← app (có thể chạy tay nếu không dùng CAI-DAT.bat)
+  YoungBooth Setup 0.2.4.exe   ← app (có thể chạy tay nếu không dùng CAI-DAT.bat)
   YoungBooth-Frames\           ← toàn bộ khung ảnh (luồng thường + luồng sự kiện), logo
   Du-lieu-cai-dat\             ← booth-settings.json: sự kiện, giá, thanh toán, PIN
   May-in-DNP\                  ← driver DNP DS-RX1 + setup-dnp.ps1 (thiết lập hàng in)
@@ -37,15 +37,30 @@ SAU KHI CÀI (bắt buộc, ~3 phút)
 [ ] 1. MÁY ẢNH CANON: cắm cáp USB, BẬT máy, chế độ chụp ảnh, tắt tự ngủ (Auto power off),
        nên cắm điện cho máy ảnh. KHÔNG mở EOS Utility / EOS Webcam Utility / digiCamControl
        (chúng giành máy ảnh với YoungBooth). App mới KHÔNG cần digiCamControl nữa.
-[ ] 2. CHỌN MÁY IN TRONG APP: giữ góc PHẢI-TRÊN màn hình 3 giây → nhập PIN → Cài đặt:
+[ ] 2. KIỂM TRA CÀI ĐẶT IN (app TỰ NẠP từ Du-lieu-cai-dat\booth-settings.json khi mở lần đầu,
+       giống máy cũ — chỉ cần xem lại): giữ góc PHẢI-TRÊN màn hình 3 giây → nhập PIN → Cài đặt:
          - Máy in (ảnh/lưới 4×6)        = DS-RX1
          - Máy in dải 2×6 (2inch cut)   = DS-RX1 (2inch cut)
          - Khổ giấy = Tự động · bỏ tick "Xoay 90°"
          - TICK "In tự động (không hiện hộp thoại)"  ← app in bằng Windows: tự hỏi khổ giấy thật của máy DNP,
            tự xoay ảnh, phủ kín tờ (không bị lệch / mất 1 góc ảnh). → Lưu.
        Mỗi lần in app ghi 1 dòng vào %APPDATA%\YoungBooth\print-log.txt (máy in, khổ giấy driver báo, có xoay không).
-       (Cài đặt máy in lưu theo từng máy nên phải chọn lại trên máy mới.)
+       Cũng được nạp sẵn: nguồn ảnh = máy ảnh Canon, chữ trên khung, khung bật/tắt (Quốc Khánh,
+       Trung Thu, Trường cấp 3, Orientation), sự kiện, PIN, thanh toán. Nếu thấy khác thì chọn lại → Lưu.
 [ ] 3. IN THỬ 1 tấm Khoảnh Khắc (4×6) và 1 tấm Nhật Ký (dải) để kiểm tra chiều in + màu.
+
+----------------------------------------------------------
+MỚI TRONG 0.2.4
+----------------------------------------------------------
+- Khoảnh Khắc có thêm khung: Music Player (Xám, Đêm Tím) và Polaroid "i love you <3"
+  → khách chọn ở nút "Chọn khung" màn kết quả. Chữ trên khung sửa trong Cài đặt → Chữ trên khung.
+- KHUNG TRƯỜNG CẤP 3 — bộ "Tết Trường – Đỏ Son" cho cả 5 kiểu chụp. Mặc định ẨN. Khi chụp cho trường:
+    Cài đặt → "Khung dịp lễ / sự kiện" → tick "Khung Trường cấp 3" → Lưu.
+    Cài đặt → "Chữ trên khung" → nhóm "Khung Trường cấp 3": Tên trường, Khóa, Năm, Ngày (trống = hôm nay),
+    Khẩu hiệu lớn (mặc định THANH XUÂN) → Lưu. Nhập 1 lần, áp cho cả 5 khung.
+    Logo trường: khung dùng huy hiệu vẽ sẵn. Muốn in logo thật của trường → gửi file PNG cho người
+    làm app để sinh lại khung (không cần cài lại app, chỉ chép đè PNG vào C:\YoungBooth-Frames).
+- Sửa lỗi: tờ in đầu tiên sau khi mở app có thể ra sai kiểu chữ (font chưa kịp nạp).
 
 ----------------------------------------------------------
 NÊN LÀM
