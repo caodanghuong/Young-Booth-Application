@@ -45,6 +45,9 @@ Một khung có thể ghi đè bố cục của kiểu chụp:
 - **Font có tiếng Việt, nhúng sẵn** (chạy offline): `YB Script` (Great Vibes), `YB Serif` (Cormorant Garamond), `Dancing Script`,
   `Be Vietnam Pro`, `Oswald`, `Baloo 2`, `Noto Serif`, `Patrick Hand` (chữ tay in rời). Không dùng Segoe Script / Georgia (thiếu "ư", "ấ").
 - Khung **dịp lễ** (`holiday: 'quockhanh'` / `'trungthu'`) mặc định ẩn → bật trong ⚙️ Cài đặt → "Khung dịp lễ / sự kiện".
+- Khung **Trường cấp 3** (`holiday: 'truong'`, `textGroup: 'truong'` — preset `TR` trong `frame_sets.py`) cũng mặc định ẩn → bật ở cùng chỗ ("Khung Trường cấp 3").
+  Mọi khung trường dùng chung ô chữ **Tên trường / Khóa / Năm / Ngày / Khẩu hiệu** (id `school` / `khoa` / `nam` / `date` / `slogan`) → nhập 1 lần trong Cài đặt, áp cho cả bộ.
+  Bộ có sẵn: **Tết Trường – Đỏ Son** (`*-tet-truong`, đủ 5 kiểu chụp) — chi tiết ở `SPEC-KHUNG-TR-TET-TRUONG.md`, sinh lại: `py scripts/make-frames.py setTR`.
 
 ### 17 bộ khung có sẵn — sinh bằng script
 Toạ độ + hình vẽ các bộ khung nằm trong `scripts/frame_sets.py` (cùng nguồn cho PNG và `config.js`):

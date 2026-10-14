@@ -55,6 +55,15 @@ const FRAME_SETS = {
         texts: [
           { id: 'caption', label: 'Chữ viết tay dưới ảnh', value: 'i love you <3', x: 600, y: 1590, size: 128, fit: 820, color: '#161616', ff: '"Patrick Hand", "Baloo 2", cursive', weight: '400', ls: 2 },
         ] },
+      { id: 'A-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/A-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/A-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
+        slots: [{ x: 70, y: 196, w: 1060, h: 1196 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 196, y: 1492, size: 38, fit: 546, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 196, y: 1530, size: 27, fit: 546, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 70, y: 158, size: 118, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1758, size: 24, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1660, size: 76, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 5, align: 'left' },
+        ] },
   ],
   B: [
       { id: 'B-std-white', name: 'Save The Date – Trắng (dọc)', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/B-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/B-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 130, label: false, at: [{ x: 1024, y: 1624 }] },
@@ -64,6 +73,15 @@ const FRAME_SETS = {
           { id: 'line2', label: 'Dòng chữ 2', value: 'Đáng Nhớ', x: 640, y: 1610, size: 100, fit: 760, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 600, y: 1680, size: 32, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
           { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 600, y: 1728, size: 30, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 5 },
+        ] },
+      { id: 'B-tet-truong', name: 'Tết Trường – Đỏ Son (dọc)', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/B-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/B-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
+        slots: [{ x: 70, y: 176, w: 1060, h: 620 }, { x: 70, y: 836, w: 1060, h: 620 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 182, y: 1541, size: 34, fit: 520, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 182, y: 1575, size: 24, fit: 520, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 70, y: 146, size: 108, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1764, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1680, size: 64, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
         ] },
   ],
   C: [
@@ -163,6 +181,19 @@ const FRAME_SETS = {
         texts: [
           { id: 'title', label: 'Tiêu đề', value: 'Happy Mid Autumn', xs: [300, 900], y: 1690, size: 30, fit: 290, color: '#ffffff', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '700' },
         ] },
+      { id: 'C-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/C-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/C-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 44, y: 1622 }, { x: 644, y: 1622 }] },
+        slots: [{ x: 44, y: 96, w: 512, h: 321 }, { x: 44, y: 451, w: 512, h: 321 }, { x: 44, y: 806, w: 512, h: 321 }, { x: 44, y: 1161, w: 512, h: 321 }, { x: 644, y: 96, w: 512, h: 321 }, { x: 644, y: 451, w: 512, h: 321 }, { x: 644, y: 806, w: 512, h: 321 }, { x: 644, y: 1161, w: 512, h: 321 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 140, y: 1552, size: 28, fit: 398, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 140, y: 1580, size: 19, fit: 398, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 48, y: 80, size: 58, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', xs: [556, 1156], y: 1750, size: 18, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'right' },
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 740, y: 1552, size: 28, fit: 398, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 740, y: 1580, size: 19, fit: 398, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 648, y: 80, size: 58, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 556, y: 1676, size: 44, fit: 360, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1156, y: 1676, size: 44, fit: 360, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
+        ] },
   ],
   D: [
       { id: 'D-std-white', name: 'Save The Date – Trắng', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/D-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/D-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, noRotate: false, qr: { size: 120, label: false, at: [{ x: 1567, y: 420 }, { x: 1567, y: 1020 }] },
@@ -172,6 +203,19 @@ const FRAME_SETS = {
           { id: 'line2', label: 'Dòng chữ 2', value: 'Đáng Nhớ', x: 1642, ys: [220, 820], size: 46, fit: 300, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1627, ys: [280, 880], size: 20, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
           { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 1627, ys: [315, 915], size: 18, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
+        ] },
+      { id: 'D-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/D-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/D-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 716, y: 1012 }, { x: 1616, y: 1012 }] },
+        slots: [{ x: 60, y: 112, w: 780, h: 800 }, { x: 960, y: 112, w: 780, h: 800 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 150, y: 995, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 150, y: 1022, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 62, y: 92, size: 64, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', xs: [62, 962], y: 1164, size: 18, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 1050, y: 995, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 1050, y: 1022, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 962, y: 92, size: 64, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 62, y: 1098, size: 44, fit: 630, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 962, y: 1098, size: 44, fit: 630, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'left' },
         ] },
   ],
   F: [
@@ -256,6 +300,15 @@ const FRAME_SETS = {
         slots: [{ x: 50, y: 70, w: 547, h: 762 }, { x: 603, y: 70, w: 547, h: 762 }, { x: 50, y: 838, w: 547, h: 762 }, { x: 603, y: 838, w: 547, h: 762 }],
         texts: [
           { id: 'title', label: 'Tiêu đề', value: 'Happy Mid Autumn', x: 640, y: 1690, size: 42, fit: 560, color: '#ffffff', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '700' },
+        ] },
+      { id: 'F-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/F-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/F-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
+        slots: [{ x: 60, y: 186, w: 523, h: 625 }, { x: 617, y: 186, w: 523, h: 625 }, { x: 60, y: 845, w: 523, h: 625 }, { x: 617, y: 845, w: 523, h: 625 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 180, y: 1556, size: 34, fit: 562, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 180, y: 1590, size: 24, fit: 562, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 64, y: 150, size: 112, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1766, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1690, size: 62, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
         ] },
   ],
 };
@@ -365,6 +418,7 @@ const FRAME_TEXT_GROUPS = {
   'pl': 'Khung Polaroid (khung sự kiện)',
   'music': 'Khung Music Player (Khoảnh Khắc)',
   'polaroid-love': 'Khung Polaroid Giấy Cũ (Khoảnh Khắc)',
+  'truong': 'Khung Trường cấp 3 (Khoảnh Khắc · Nhật Ký · Chia Đôi · Ngọt Ngào · Dịu Dàng)',
 };
 // ==== HẾT KHUNG MỚI (tự sinh)
 
@@ -737,6 +791,7 @@ const BOOTH_CONFIG = {
   frameGroups: {
     quockhanh: 'Khung Quốc Khánh 2/9',
     trungthu: 'Khung Trung Thu',
+    truong: 'Khung Trường cấp 3',
   },
   // Tên nhóm chữ (frames[].textGroup) trong Cài đặt → admin nhập 1 lần cho cả bộ khung.
   textGroups: FRAME_TEXT_GROUPS,

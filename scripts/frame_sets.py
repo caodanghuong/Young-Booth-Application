@@ -404,7 +404,7 @@ def text_box(fonts, t, s, x, y):
     if t.get('w'):
         w = t['w']; n = max(1, math.ceil(text_width(s, fl, ls) / w)); h0, h1 = t['size'] * .9, (n - 1) * (t.get('lh') or t['size'] * 1.3) + t['size'] * .3
     else:
-        w = min(text_width(s, fl, ls), t.get('fit') or 1e9); h0, h1 = t['size'] * .9, t['size'] * .3
+        w = max(min(text_width(s, fl, ls), t.get('fit') or 1e9), t.get('_minw', 0)); h0, h1 = t['size'] * .9, t['size'] * .3
     if t.get('vcenter'):
         return (x - t['size'] * .6, y - w / 2, x + t['size'] * .6, y + w / 2)
     a = t.get('align', 'center')
@@ -421,6 +421,9 @@ def keepouts(f, fonts):
         k += [(p['x'] - 8, p['y'] - 8, p['x'] + tile + 8, p['y'] + tile + 8) for p in q['at']]
     for t in f['texts'] + f['fixed']:
         s = t.get('value', t.get('text', ''))
+        if f.get('keepFit') and 'text' not in t:   # chữ động: giữ chỗ cho chữ DÀI NHẤT admin có thể nhập (đủ fit), ô ngày trống = ngày mẫu
+            if t['id'] == 'date' and not s: s = '00 . 00 . 0000'
+            if t.get('fit') and not t.get('w'): s = s or 'M'; t = dict(t, _minw=t['fit'])
         for x, y in _instances(t):
             b = text_box(fonts, dict(t, w=t.get('w')), s, x, y)
             k.append((b[0] - 10, b[1] - 10, b[2] + 10, b[3] + 10))
@@ -1040,7 +1043,7 @@ def select(names):
     for n in names:
         nl = n.lower()
         if nl in ('sets', 'all-sets'): out += FR
-        elif nl.startswith('set') and nl[3:].zfill(2) in {f['set'] for f in FR}: out += [f for f in FR if f['set'] == nl[3:].zfill(2)]
+        elif nl.startswith('set') and nl[3:].zfill(2) in {f['set'].lower() for f in FR}: out += [f for f in FR if f['set'].lower() == nl[3:].zfill(2)]
         else: out += [f for f in FR if f['id'].lower() == nl]
     seen, res = set(), []
     for f in out:
@@ -1591,3 +1594,351 @@ add(id='A-polaroid-love', mode='A', name='Polaroid – I Love You', set='20', st
     background='#efebe6', slots=[S(92, 92, 1016, 1290)],
     texts=[T('polaroid-love', 'caption', x=600, y=1590, size=128, fit=820, ff=HANDP, weight='400', color='#161616', ls=2)],
     qr=qr(120, (1014, 1622)))
+
+
+# ================================================================ Khung TRƯỜNG CẤP 3 (giống Quốc Khánh: mặc định ẨN, bật trong ⚙️ Cài đặt → "Khung Trường cấp 3")
+# Mọi khung trường dùng CHUNG nhóm chữ 'truong' → admin nhập Tên trường / Khóa / Năm 1 lần, áp cho cả bộ.
+# Thêm khung:  add(id='A-truong-<tên>', mode='A', name='Trường – <tên>', set='TR', style=..., **TR, texts=[T('truong', 'school', ...), ...])
+# Khung cần thêm ô chữ riêng (lớp, khẩu hiệu…) → thêm vào danh sách GROUPS['truong'] bên dưới.
+GROUPS['truong'] = ('Khung Trường cấp 3', [('school', 'Tên trường', 'TRƯỜNG THPT YOUNG BOOTH'),
+                                         ('khoa', 'Khóa', 'Khóa 2023 – 2026'),
+                                         ('nam', 'Năm', '2026'),
+                                         ('date', 'Ngày (trống = hôm nay)', ''),
+                                         ('slogan', 'Khẩu hiệu lớn (thay Photo Time)', 'THANH XUÂN')])
+TR = dict(hidden=True, holiday='truong', textGroup='truong')
+
+
+# ================================================================ Bộ TR "Tết Trường" — theo mẫu dải Tết đỏ (Lê Quý Đôn 2025)
+# Nền đỏ son hoa văn sóng (seigaiha), viền kem mảnh quanh mỗi tấm, ô ảnh hình mây / bo / sóng có viền kem + bóng hồng lệch,
+# thẻ trường (logo + Tên trường + Khóa), sticker vẽ tay: lì xì, áo đồng phục, huy chương, cành mai, máy ảnh, dưa hấu, bánh chưng, sách.
+# Chữ động (Cài đặt → "Khung Trường cấp 3"): school / khoa / nam / date.  Logo trường: C:\YoungBooth-Frames\assets\truong\logo.png
+# (vuông, nền trong suốt) → chạy lại "py scripts/make-frames.py setTR" để in logo thật; thiếu file → vẽ huy hiệu vector.
+from PIL import ImageFilter as _IF
+TR_RED, TR_RED_D = '#a3192b', '#8a1225'
+TR_CREAM, TR_PINK, TR_GOLD, TR_GOLD_D = '#fdf0e2', '#f4a39b', '#f5c443', '#c98a17'
+TR_INK, TR_BLUE = '#4a0c14', '#1f4fa3'
+
+
+def tr_panels(c):
+    """Các tấm hoàn chỉnh trên tờ: Nhật Ký cắt x=600, Chia Đôi cắt x=900, còn lại 1 tấm."""
+    if c.f['mode'] == 'C': return [(0, 0, 600, c.H), (600, 0, 600, c.H)]
+    if c.f['mode'] == 'D': return [(0, 0, 900, c.H), (900, 0, 900, c.H)]
+    return [(0, 0, c.W, c.H)]
+
+
+def st_tr_bg(img, c, R):
+    W, H, k = c.W, c.H, 2
+    L = Image.new('RGBA', (W * k, H * k), rgba(TR_RED)); d = ImageDraw.Draw(L)
+    r = 44 * k; row = 0; y = -r
+    while y < H * k + r:                       # hoa văn sóng: hàng sau đè hàng trước
+        x = -r + (row % 2) * r
+        while x < W * k + r:
+            d.ellipse([x - r, y - r, x + r, y + r], fill=rgba(TR_RED))
+            for f in (1.0, .7, .42):
+                rr = r * f; d.ellipse([x - rr, y - rr, x + rr, y + rr], outline=rgba(TR_RED_D), width=4 * k)
+            x += 2 * r
+        y += r // 2; row += 1
+    img.alpha_composite(L.resize((W, H), Image.LANCZOS))
+    rect(img, 0, 0, W, H, lambda w, h, x0, y0: lin_grad(w, h, (0, 0), (0, h), [(0, (255, 255, 255, 14)), (.5, (0, 0, 0, 0)), (1, (60, 0, 10, 40))]))
+    for ox, oy, w, h in tr_panels(c):          # viền kem mảnh quanh từng tấm (không vắt qua đường cắt)
+        stroke_rect(img, ox + 14, oy + 14, ox + w - 14, oy + h - 14, rgba(TR_CREAM, .85), 4, radius=22)
+    c.tr_bg = img.copy()
+
+
+def tr_shape_mask(W, H, s, kind):
+    """Mặt nạ (L, cả tờ) của ô ảnh hình mây / bo / sóng nằm GỌN trong ô chữ nhật s."""
+    k = 3; x, y, w, h = s['x'] * k, s['y'] * k, s['w'] * k, s['h'] * k
+    m = Image.new('L', (W * k, H * k), 0); d = ImageDraw.Draw(m)
+    if kind in ('cloud', 'cloudtop'):
+        full = kind == 'cloud'
+        b = min(min(w, h) * (.055 if full else .075), (34 if full else 44) * k)
+        top, bot = y + b, y + h - (b if full else 0)
+        lft, rgt = x + (b if full else 0), x + w - (b if full else 0)
+        d.rounded_rectangle([lft, top, rgt, bot], radius=b * (1.2 if full else 2), fill=255)
+        n = max(3, round((rgt - lft) / (b * 2.6)))
+        for i in range(n + 1):
+            cx = lft + b + (rgt - lft - 2 * b) * i / n
+            d.ellipse([cx - b, top - b, cx + b, top + b], fill=255)
+            if full: d.ellipse([cx - b, bot - b, cx + b, bot + b], fill=255)
+        if full:
+            n = max(2, round((bot - top) / (b * 2.6)))
+            for i in range(n + 1):
+                cy = top + b + (bot - top - 2 * b) * i / n
+                d.ellipse([lft - b, cy - b, lft + b, cy + b], fill=255); d.ellipse([rgt - b, cy - b, rgt + b, cy + b], fill=255)
+    elif kind in ('wave', 'notch'):
+        n = 60
+        if kind == 'wave':                      # mép trên/dưới lượn 2 sóng
+            a = h * .07; e = lambda i: a * (1 - abs(math.sin(2 * math.pi * i / n)))
+            d.polygon([(x + w * i / n, y + e(i)) for i in range(n + 1)] + [(x + w * i / n, y + h - e(i)) for i in range(n, -1, -1)], fill=255)
+        else:                                   # mép trên lõm nhẹ ở giữa (như ô 2 của mẫu)
+            a = h * .06
+            d.polygon([(x + w * i / n, y + a * math.sin(math.pi * i / n) ** 2) for i in range(n + 1)] + [(x + w, y + h), (x, y + h)], fill=255)
+        r = Image.new('L', m.size, 0); ImageDraw.Draw(r).rounded_rectangle([x, y, x + w, y + h], radius=min(w, h) * .13, fill=255)
+        m = Image.fromarray(np.minimum(np.asarray(m), np.asarray(r)))
+    else:
+        d.rounded_rectangle([x, y, x + w, y + h], radius=min(w, h) * .12, fill=255)
+    return m.resize((W, H), Image.LANCZOS)
+
+
+def _shift(m, dx, dy):
+    out = Image.new('L', m.size, 0); out.paste(m, (dx, dy)); return out
+
+
+def _mx(a, b): return Image.fromarray(np.maximum(np.asarray(a), np.asarray(b)))
+
+
+def tr_windows(img, c):
+    """Ô ảnh: phủ nền đỏ phần ô chữ nhật nằm ngoài hình mây, viền kem 9px + bóng hồng lệch; lòng ô trong suốt."""
+    W, H = c.W, c.H
+    z = lambda: Image.new('L', (W, H), 0)
+    inner, ring, pink, cover = z(), z(), z(), z()
+    shapes = c.f['shapes']
+    for i, s in enumerate(c.f['slots']):
+        m = tr_shape_mask(W, H, s, shapes[i % len(shapes)])
+        box = z(); ImageDraw.Draw(box).rectangle([s['x'], s['y'], s['x'] + s['w'] - 1, s['y'] + s['h'] - 1], fill=255)
+        cover = _mx(cover, Image.fromarray(np.minimum(np.asarray(box), 255 - np.asarray(m))))
+        dil = m.filter(_IF.MaxFilter(19))
+        ring = _mx(ring, dil); pink = _mx(pink, _shift(dil, 9, 10)); inner = _mx(inner, m)
+    layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    layer.paste(c.tr_bg, (0, 0), cover)
+    layer.paste(Image.new('RGBA', (W, H), rgba(TR_PINK)), (0, 0), pink)
+    layer.paste(Image.new('RGBA', (W, H), rgba(TR_CREAM)), (0, 0), ring)
+    a = np.asarray(layer.getchannel('A')).astype(np.int32) * (255 - np.asarray(inner).astype(np.int32)) // 255
+    layer.putalpha(Image.fromarray(a.astype(np.uint8)))
+    img.alpha_composite(layer)
+
+
+# ---------------------------------------------------------------- sticker vẽ tay (vẽ trên lớp riêng rồi thêm viền trắng)
+def _oc(L, cx, cy, r, fill, w): circle(L, cx, cy, r + w, TR_INK); circle(L, cx, cy, r, fill)
+def _or(L, x0, y0, x1, y1, fill, w, rad=0): rect(L, x0 - w, y0 - w, x1 + w, y1 + w, TR_INK, radius=rad + w); rect(L, x0, y0, x1, y1, fill, radius=rad)
+def _op(L, pts, fill, w): fill_poly(L, pts, fill); stroke_poly(L, pts, TR_INK, w)
+
+
+def ic_lixi(L, s):
+    w = s * .06
+    for dx, dy, col in ((-.22, .04, '#c8202b'), (.2, -.04, '#e0333a')):
+        cx, cy, ew, eh = s + dx * s, s + dy * s, s * .62, s * .9
+        _or(L, cx - ew / 2, cy - eh / 2, cx + ew / 2, cy + eh / 2, col, w, ew * .08)
+        _op(L, [(cx - ew / 2, cy - eh / 2), (cx + ew / 2, cy - eh / 2), (cx, cy - eh * .1)], '#b31822', w * .7)
+        _oc(L, cx, cy - eh * .08, ew * .18, TR_GOLD, w * .7)
+        rect(L, cx - ew * .06, cy - eh * .08 - ew * .06, cx + ew * .06, cy - eh * .08 + ew * .06, TR_GOLD_D)
+        rect(L, cx - ew * .28, cy + eh * .22, cx + ew * .28, cy + eh * .27, TR_GOLD, radius=3)
+
+
+def ic_shirt(L, s):
+    u = s * .95; w = s * .05
+    P = lambda pts: [(s + x * u, s + y * u) for x, y in pts]
+    _op(L, P([(-.28, -.44), (-.1, -.48), (0, -.36), (.1, -.48), (.28, -.44), (.56, -.2), (.4, -.02), (.28, -.12), (.28, .48),
+              (-.28, .48), (-.28, -.12), (-.4, -.02), (-.56, -.2)]), '#ffffff', w)
+    stroke_poly(L, P([(-.1, -.48), (0, -.28), (.1, -.48)]), TR_BLUE, w * 1.2, closed=False)
+    stroke_poly(L, P([(0, -.28), (0, .44)]), TR_BLUE, w * .6, closed=False)
+    for yy in (-.12, .06, .24): circle(L, s + .05 * u, s + yy * u, w * .7, TR_BLUE)
+    stroke_rect(L, s - .22 * u, s - .14 * u, s - .08 * u, s, TR_BLUE, w * .6)
+    for sx in (-1, 1): stroke_poly(L, P([(sx * .44, -.16), (sx * .52, -.24)]), TR_BLUE, w * 1.6, closed=False)
+
+
+def ic_medal(L, s):
+    w = s * .05; u = s
+    _op(L, [(s - .34 * u, s - .7 * u), (s - .1 * u, s - .7 * u), (s + .1 * u, s - .02 * u), (s - .12 * u, s - .02 * u)], '#d8262f', w)
+    _op(L, [(s + .34 * u, s - .7 * u), (s + .1 * u, s - .7 * u), (s - .1 * u, s - .02 * u), (s + .12 * u, s - .02 * u)], '#2f6fd0', w)
+    _oc(L, s, s + .26 * u, .32 * u, TR_GOLD, w)
+    circle(L, s, s + .26 * u, .23 * u, '#f8d36a')
+    draw_star(L, s, s + .27 * u, .15 * u, TR_GOLD_D, rot=-math.pi / 2)
+
+
+def ic_camera(L, s):
+    w = s * .05; u = s
+    _or(L, s - .22 * u, s - .44 * u, s + .06 * u, s - .28 * u, '#f5c542', w, 6)
+    _or(L, s - .56 * u, s - .3 * u, s + .56 * u, s + .38 * u, '#f5c542', w, .1 * u)
+    rect(L, s - .56 * u, s - .08 * u, s + .56 * u, s + .02 * u, '#3a3a3a')
+    _oc(L, s, s + .04 * u, .26 * u, '#3a3a3a', w)
+    circle(L, s, s + .04 * u, .17 * u, '#7c93b3'); circle(L, s - .06 * u, s - .02 * u, .05 * u, '#ffffff')
+    rect(L, s + .3 * u, s - .24 * u, s + .46 * u, s - .14 * u, '#ffffff', radius=3)
+    circle(L, s - .42 * u, s - .36 * u, .06 * u, '#e33b3b')
+
+
+def ic_melon(L, s):
+    u = s
+    arc = lambda r: [(s + r * math.cos(math.radians(a)), s - .15 * u + r * math.sin(math.radians(a))) for a in range(0, 181, 6)]
+    _op(L, arc(.62 * u), '#3e9b3e', s * .05)
+    fill_poly(L, arc(.55 * u), '#bfe39a'); fill_poly(L, arc(.49 * u), '#ef4b4b')
+    for a, rr in ((40, .3), (70, .36), (100, .3), (130, .36), (60, .18), (115, .18), (90, .42)):
+        x = s + rr * u * math.cos(math.radians(a)); y = s - .15 * u + rr * u * math.sin(math.radians(a))
+        fill_poly(L, ellipse_rot(x, y, .022 * u, .04 * u, math.radians(a - 90), 12), '#2a1a1a')
+
+
+def ic_banhchung(L, s):
+    u = s; w = s * .05
+    for dx, dy, side in ((-.16, .14, .66), (.14, -.12, .62)):
+        x0, y0 = s + dx * u - side * u / 2, s + dy * u - side * u / 2; x1, y1 = x0 + side * u, y0 + side * u
+        _or(L, x0, y0, x1, y1, '#3f8f3a', w, 6)
+        for t in (.06, .14): stroke_rect(L, x0 + t * side * u, y0 + t * side * u, x1 - t * side * u, y1 - t * side * u, (30, 90, 30, 120), 2)
+        for t in (.33, .66):
+            rect(L, x0 + side * u * t - 4, y0, x0 + side * u * t + 4, y1, '#e8e1b0')
+            rect(L, x0, y0 + side * u * t - 4, x1, y0 + side * u * t + 4, '#e8e1b0')
+
+
+def ic_book(L, s):
+    u = s; w = s * .045
+    _op(L, [(s - .62 * u, s - .26 * u), (s, s - .18 * u), (s + .62 * u, s - .26 * u), (s + .62 * u, s + .36 * u), (s, s + .44 * u),
+            (s - .62 * u, s + .36 * u)], '#c0612d', w)
+    for sx in (-1, 1):
+        _op(L, [(s, s - .26 * u), (s + sx * .56 * u, s - .36 * u), (s + sx * .56 * u, s + .28 * u), (s, s + .36 * u)], '#fff6e4', w * .8)
+        for k in range(4):
+            yy = -.2 + k * .12
+            stroke_poly(L, [(s + sx * .1 * u, s + (yy + .02) * u), (s + sx * .46 * u, s + (yy - .04) * u)], (120, 80, 60, 150), 3, closed=False)
+
+
+def ic_mai(L, s, flip=False):
+    """Cành mai: cành nâu cong + nhánh phụ + hoa 5 cánh vàng + nụ. Cành chạy từ góc trái-trên xuống phải-dưới."""
+    u = s; br = '#6b3a22'
+    main = cubic((s - .95 * u, s - .7 * u), (s - .3 * u, s - .5 * u), (s + .1 * u, s + .1 * u), (s + .9 * u, s + .55 * u), 30)
+    stroke_poly(L, main, br, s * .07, closed=False)
+    twigs = []
+    for t, ang, ln in ((.25, 75, .38), (.5, -75, .34), (.72, 80, .3)):
+        p = main[int(t * 29)]; q = (p[0] + ln * u * math.cos(math.radians(ang)), p[1] + ln * u * math.sin(math.radians(ang)))
+        stroke_poly(L, [p, q], br, s * .04, closed=False); twigs.append(q)
+    flowers = [(main[int(t * 29)], r) for t, r in ((.12, .13), (.36, .15), (.6, .14), (.86, .12))] + [(q, .11) for q in twigs]
+    for p, r in flowers:
+        for j in range(5):
+            a = j / 5 * 2 * math.pi - math.pi / 2
+            px, py = p[0] + r * u * .62 * math.cos(a), p[1] + r * u * .62 * math.sin(a)
+            circle(L, px, py, r * u * .52, '#e0a100'); circle(L, px, py, r * u * .44, '#ffd84a')
+        circle(L, p[0], p[1], r * u * .28, '#e8731a')
+    for t, dx, dy in ((.05, .05, -.1), (.47, -.1, .12), (.95, .06, -.08), (.7, .1, .1)):
+        p = main[min(29, int(t * 29))]; circle(L, p[0] + dx * u, p[1] + dy * u, .05 * u, '#ffc62e')
+    if flip: L.paste(L.transpose(Image.FLIP_LEFT_RIGHT))
+
+
+ICONS = dict(lixi=ic_lixi, shirt=ic_shirt, medal=ic_medal, camera=ic_camera, melon=ic_melon, banhchung=ic_banhchung, book=ic_book,
+             mai=ic_mai, mai_r=lambda L, s: ic_mai(L, s, True))
+
+
+def tr_sticker(img, kind, cx, cy, size, rot=0, border=7):
+    """Sticker cắt dán: icon + viền trắng + bóng mềm."""
+    size = int(size); pad = size // 3 + 30
+    L = Image.new('RGBA', (size + 2 * pad, size + 2 * pad), (0, 0, 0, 0))
+    tmp = Image.new('RGBA', (size, size), (0, 0, 0, 0)); ICONS[kind](tmp, size / 2); L.alpha_composite(tmp, (pad, pad))
+    if rot: L = L.rotate(rot, resample=Image.BICUBIC)
+    a = L.getchannel('A').filter(_IF.MaxFilter(border * 2 + 1))
+    sh = Image.new('RGBA', L.size, (60, 0, 10, 0)); sh.putalpha(a.point(lambda v: v * 70 // 255).filter(_IF.GaussianBlur(5)))
+    wh = Image.new('RGBA', L.size, (255, 255, 255, 0)); wh.putalpha(a)
+    out = Image.new('RGBA', L.size, (0, 0, 0, 0)); out.alpha_composite(sh, (3, 5)); out.alpha_composite(wh); out.alpha_composite(L)
+    comp(img, out, cx - L.width / 2, cy - L.height / 2)
+
+
+def tr_badge(img, c, x0, y0, x1, y1):
+    """Thẻ trường: nhãn trắng viền xanh + bóng hồng; logo tròn bên trái (file logo.png hoặc huy hiệu vector)."""
+    h = y1 - y0; r = h * .2
+    rect(img, x0 + 8, y0 + 9, x1 + 8, y1 + 9, TR_PINK, radius=r)
+    rect(img, x0, y0, x1, y1, '#ffffff', radius=r)
+    stroke_rect(img, x0 + 5, y0 + 5, x1 - 5, y1 - 5, TR_BLUE, 3, radius=r - 3)
+    lr = h * .36; lx, ly = x0 + h * .5, (y0 + y1) / 2
+    if not c.asset('truong/logo.png', img, (lx - lr, ly - lr, lr * 2, lr * 2), 'Logo trường', vector=True):
+        circle(img, lx, ly, lr, TR_BLUE); circle(img, lx, ly, lr * .8, '#ffffff'); circle(img, lx, ly, lr * .66, '#e9f0fb')
+        draw_star(img, lx, ly - lr * .2, lr * .3, TR_GOLD, rot=-math.pi / 2)
+        fill_poly(img, [(lx - lr * .45, ly + lr * .12), (lx, ly + lr * .22), (lx + lr * .45, ly + lr * .12), (lx + lr * .45, ly + lr * .42),
+                        (lx, ly + lr * .52), (lx - lr * .45, ly + lr * .42)], TR_BLUE)
+    c.keep.append((x0 - 12, y0 - 12, x1 + 20, y1 + 20))
+
+
+def tr_sparkle(img, x, y, r, i):
+    if i % 3 == 2: fill_poly(img, [(x, y - r * .7), (x + r * .45, y), (x, y + r * .7), (x - r * .45, y)], TR_GOLD)
+    else: fill_poly(img, twinkle_pts(x, y, r, 0), TR_GOLD if i % 3 else '#ffe7a3')
+
+
+def st_tr_over(img, c, R):
+    f = c.f
+    tr_windows(img, c)
+    for b in f['badges']: tr_badge(img, c, *b)
+    for kind, x, y, size, rot in f['deco']:
+        size *= 1.35                            # sticker to như mẫu (toạ độ trong deco = tâm)
+        tr_sticker(img, kind, x, y, size, rot)
+        c.keep.append((x - size * .45, y - size * .45, x + size * .45, y + size * .45))
+    for ox, oy, w, h in tr_panels(c):
+        scatter(c, R, f.get('sparkles', 12), lambda i: 9 + R.random() * 12, 0, lambda x, y, r, i: tr_sparkle(img, x, y, r, i),
+                region=(ox + 30, oy + 30, ox + w - 30, oy + h - 30), edge=1.2, spread=3)
+
+
+STYLES['tet-truong'] = (st_tr_bg, st_tr_over)
+
+
+def tr_texts(badge, nam, date=None):
+    """Chữ động: Tên trường + Khóa trong thẻ (căn trái sau logo), Năm (vàng viền đỏ, nghiêng), Ngày."""
+    G = 'truong'; x0, y0, x1, y1 = badge; h = y1 - y0; tx = x0 + h + 4; fit = x1 - tx - 18
+    out = [T(G, 'school', x=tx, y=round(y0 + h * .5), size=round(h * .3), fit=fit, ff=SANS, weight='800', color=TR_BLUE, align='left'),
+           T(G, 'khoa', x=tx, y=round(y0 + h * .8), size=round(h * .21), fit=fit, ff=SANS, weight='600', color='#b3202e', align='left'),
+           T(G, 'nam', **nam, ff=ROUND, weight='800', color=TR_GOLD, stroke=TR_INK, strokeW=8, rotate=-6, align='left')]
+    if date: out.append(T(G, 'date', **date, ff=SANS, weight='600', color='#f7d98a', ls=3))
+    return out
+
+
+def tr_photo(x, y, size, brand, align='left'):
+    """'PHOTO TIME' (chuyển thành chữ động 'slogan' ở cuối bộ) + thương hiệu 'YOUNG BOOTH' vàng đậm ngay dưới (brand = (dy, cỡ chữ))."""
+    dy, bs = brand
+    return [dict(text='PHOTO TIME', x=x, y=y, size=size, ff=COND, weight=600, color='#fcd9c4', ls=round(size * .06), align=align),
+            dict(text='YOUNG BOOTH', x=x, y=y + dy, size=bs, ff=SANS, weight=800, color=TR_GOLD, ls=round(bs * .2), align=align)]
+
+
+TRS = dict(set='TR', style='tet-truong', background=TR_RED, keepFit=True, **TR)   # keepFit: sao không đè chữ dài / ngày
+
+# --- Nhật Ký: 2 dải 2×6, mỗi dải 1 kiểu trang trí khác nhau (giống 2 dải trong ảnh mẫu); 4 ô/dải, ảnh lặp ở 2 dải.
+_CB = [(44, 1506, 556, 1598), (644, 1506, 1156, 1598)]
+add(id='C-tet-truong', mode='C', name='Tết Trường – Đỏ Son', cut2inch=True, **TRS, slots=strip_slots(96, 318, 44, 34),
+    shapes=['cloudtop', 'notch', 'round', 'cloud'], badges=_CB,
+    texts=tr_texts(_CB[0], dict(x=48, y=80, size=58), dict(xs=[556, 1156], y=1750, size=18, align='right'))
+          + tr_texts(_CB[1], dict(x=648, y=80, size=58)),
+    fixed=[*tr_photo(556, 1676, 44, (36, 21), 'right'), *tr_photo(1156, 1676, 44, (36, 21), 'right')],
+    deco=[('lixi', 520, 92, 104, 8), ('shirt', 92, 790, 92, -10), ('shirt', 508, 432, 92, 10), ('medal', 78, 1150, 90, -8),
+          ('melon', 500, 1478, 100, -6),
+          ('mai_r', 1046, 112, 140, 0), ('book', 1104, 790, 100, 6), ('camera', 696, 1150, 92, -8), ('banhchung', 1108, 1474, 100, 6)],
+    sparkles=10, qr=qr(110, (44, 1622), (644, 1622)))
+
+# --- Khoảnh Khắc: 1 ảnh lớn hình mây.
+_AB = (64, 1428, 760, 1556)
+add(id='A-tet-truong', mode='A', name='Tết Trường – Đỏ Son', **TRS, slots=[S(70, 196, 1060, 1196)], shapes=['cloud'], badges=[_AB],
+    texts=tr_texts(_AB, dict(x=70, y=158, size=118), dict(x=70, y=1758, size=24, align='left')),
+    fixed=tr_photo(70, 1660, 76, (52, 32)),
+    deco=[('mai_r', 960, 178, 260, 0), ('lixi', 780, 100, 120, 8), ('medal', 84, 820, 120, -10), ('camera', 1120, 640, 120, 10),
+          ('banhchung', 120, 1360, 136, 6), ('melon', 880, 1490, 124, -8), ('shirt', 1112, 1250, 116, 10)],
+    sparkles=16, qr=qr(120, (1010, 1612)))
+
+# --- Ngọt Ngào: tờ dọc 4×6, 2 ảnh xếp chồng (ô trên mây, ô dưới sóng).
+_BB = (64, 1484, 720, 1598)
+add(id='B-tet-truong', mode='B', name='Tết Trường – Đỏ Son (dọc)', paper='4x6', noRotate=False, **TRS,
+    slots=[S(70, 176, 1060, 620), S(70, 836, 1060, 620)], shapes=['cloudtop', 'wave'], badges=[_BB],
+    texts=tr_texts(_BB, dict(x=70, y=146, size=108), dict(x=70, y=1764, size=22, align='left')),
+    fixed=tr_photo(70, 1680, 64, (44, 28)),
+    deco=[('mai_r', 960, 172, 240, 0), ('lixi', 760, 96, 112, 8), ('shirt', 96, 806, 116, -10), ('book', 1104, 812, 120, 8),
+          ('camera', 1110, 1420, 116, 10), ('banhchung', 830, 1532, 116, -6)],
+    sparkles=14, qr=qr(120, (1010, 1612)))
+
+# --- Chia Đôi: tờ ngang 6×4, 2 ảnh khác nhau, cắt x=900 → 2 tấm 3×4" dọc hoàn chỉnh (mỗi tấm thẻ trường + năm + QR riêng).
+_DB = [(56, 950, 640, 1040), (956, 950, 1540, 1040)]
+add(id='D-tet-truong', mode='D', name='Tết Trường – Đỏ Son', **TRS, canvas=(1800, 1200),
+    slots=[S(60, 112, 780, 800), S(960, 112, 780, 800)], shapes=['cloud', 'cloudtop'], badges=_DB,
+    texts=tr_texts(_DB[0], dict(x=62, y=92, size=64), dict(xs=[62, 962], y=1164, size=18, align='left'))
+          + tr_texts(_DB[1], dict(x=962, y=92, size=64)),
+    fixed=[*tr_photo(62, 1098, 44, (34, 21)), *tr_photo(962, 1098, 44, (34, 21))],
+    deco=[('mai_r', 730, 128, 170, 0), ('lixi', 74, 640, 104, -8), ('medal', 816, 860, 96, 8),
+          ('mai_r', 1630, 128, 170, 0), ('camera', 976, 640, 100, -8), ('melon', 1716, 862, 100, 8)],
+    sparkles=10, qr=qr(120, (716, 1012), (1616, 1012)))
+
+# --- Dịu Dàng: lưới 2×2, mỗi ô 1 hình (mây / lõm / sóng / mây tròn).
+_FB = (64, 1500, 760, 1612)
+add(id='F-tet-truong', mode='F', name='Tết Trường – Đỏ Son', **TRS, slots=grid2x2_slots(186, 330, 60, 34),
+    shapes=['cloudtop', 'notch', 'wave', 'cloud'], badges=[_FB],
+    texts=tr_texts(_FB, dict(x=64, y=150, size=112), dict(x=70, y=1766, size=22, align='left')),
+    fixed=tr_photo(70, 1690, 62, (40, 27)),
+    deco=[('mai_r', 960, 176, 250, 0), ('lixi', 760, 96, 112, 8), ('shirt', 90, 830, 104, -10), ('book', 1110, 1240, 104, 8),
+          ('medal', 600, 840, 96, 0), ('camera', 1112, 830, 104, 10), ('banhchung', 830, 1548, 116, -6)],
+    sparkles=14, qr=qr(120, (1010, 1612)))
+
+
+# Chữ lớn "PHOTO TIME" của mẫu → chữ động 'slogan' (mặc định THANH XUÂN, admin đổi trong Cài đặt). Thương hiệu YOUNG BOOTH giữ cố định.
+_TR_FIT = {'A': 900, 'B': 900, 'F': 900, 'C': 360, 'D': 630}
+for _f in [f for f in FR if f['set'] == 'TR']:
+    for _t in [t for t in _f['fixed'] if t['text'] == 'PHOTO TIME']:
+        _f['fixed'].remove(_t)
+        _o = {k: v for k, v in _t.items() if k not in ('text', 'weight')}
+        _f['texts'].append(T('truong', 'slogan', **_o, weight='600', fit=_TR_FIT[_f['mode']]))
