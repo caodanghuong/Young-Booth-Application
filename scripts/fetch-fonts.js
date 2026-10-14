@@ -17,6 +17,7 @@ const FAMILIES = [
   'Oswald:wght@400;500;600;700',                                           // condensed
   'Baloo+2:wght@400;600;700;800',                                          // tròn vui
   'Noto+Serif:wght@400;700',                                               // serif đậm
+  'Patrick+Hand',                                                          // chữ tay in rời (khung Polaroid)
 ];
 const ALIASES = { 'Great Vibes': 'YB Script', 'Cormorant Garamond': 'YB Serif' };
 const KEEP = ['vietnamese', 'latin', 'latin-ext'];

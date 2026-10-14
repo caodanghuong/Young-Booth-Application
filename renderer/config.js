@@ -38,6 +38,23 @@ const FRAME_SETS = {
           { id: 'line2', label: 'Dòng chữ dưới', value: 'Hạnh Phúc', x: 960, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'left' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 1140, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
         ] },
+      { id: 'A-music-gray', name: 'Music Player – Xám', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-gray.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-gray-thumb.png', background: '#6a6a6a', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 972, y: 1150 }] },
+        slots: [{ x: 84, y: 84, w: 1032, h: 1032, radius: 44 }],
+        texts: [
+          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 86, y: 1208, size: 50, fit: 820, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
+          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 86, y: 1266, size: 36, fit: 820, color: '#cdcdcd', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+        ] },
+      { id: 'A-music-night', name: 'Music Player – Đêm Tím', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-night.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-night-thumb.png', background: '#2a2238', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 972, y: 1150 }] },
+        slots: [{ x: 84, y: 84, w: 1032, h: 1032, radius: 44 }],
+        texts: [
+          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 86, y: 1208, size: 50, fit: 820, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
+          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 86, y: 1266, size: 36, fit: 820, color: '#bcb6c8', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+        ] },
+      { id: 'A-polaroid-love', name: 'Polaroid – I Love You', textGroup: 'polaroid-love', overlay: 'file:///C:/YoungBooth-Frames/A-polaroid-love.png', thumb: 'file:///C:/YoungBooth-Frames/A-polaroid-love-thumb.png', background: '#efebe6', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1014, y: 1622 }] },
+        slots: [{ x: 92, y: 92, w: 1016, h: 1290 }],
+        texts: [
+          { id: 'caption', label: 'Chữ viết tay dưới ảnh', value: 'i love you <3', x: 600, y: 1590, size: 128, fit: 820, color: '#161616', ff: '"Patrick Hand", "Baloo 2", cursive', weight: '400', ls: 2 },
+        ] },
   ],
   B: [
       { id: 'B-std-white', name: 'Save The Date – Trắng (dọc)', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/B-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/B-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 130, label: false, at: [{ x: 1024, y: 1624 }] },
@@ -346,6 +363,8 @@ const FRAME_TEXT_GROUPS = {
   'lc': 'Khung Chanh Vàng (khung sự kiện)',
   'bc': 'Khung Báo Cũ (khung sự kiện)',
   'pl': 'Khung Polaroid (khung sự kiện)',
+  'music': 'Khung Music Player (Khoảnh Khắc)',
+  'polaroid-love': 'Khung Polaroid Giấy Cũ (Khoảnh Khắc)',
 };
 // ==== HẾT KHUNG MỚI (tự sinh)
 

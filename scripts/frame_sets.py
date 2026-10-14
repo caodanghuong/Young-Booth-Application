@@ -1452,3 +1452,142 @@ STYLES.update({
     'rv': (st_plain_bg, st_rv_over), 'lemon': (st_plain_bg, st_lemon_over), 'news': (st_news_bg, st_news_over),
     'polaroid': (st_polaroid_bg, st_polaroid_over), 'goldstar': (st_plain_bg, st_goldstar_over),
 })
+
+
+# ================================================================ #19 Music Player (màn "Đang phát" kiểu iPhone)
+# Ảnh khách = ảnh bìa vuông bo góc; dưới là tên bài + nghệ sĩ (chữ động), thanh tiến trình 1:53 / -1:20,
+# nút ⏮ ⏸ ⏭, thanh âm lượng, hàng icon lời bài hát / AirPlay / danh sách. QR thay chỗ nút "•••" cạnh tên bài.
+GROUPS['music'] = ('Khung Music Player', [('title', 'Tên bài hát', 'Khoảnh Khắc'), ('artist', 'Nghệ sĩ', 'Young Booth')])
+
+
+def mus_pal(f):
+    if f['mus'] == 'night':
+        return dict(bg=[(0, '#3b2d4f'), (.55, '#1f1a2e'), (1, '#111016')], ink='#ffffff', dim=(255, 255, 255, 95), mute=(255, 255, 255, 150))
+    return dict(bg=[(0, '#727272'), (1, '#5e5e5e')], ink='#ffffff', dim=(255, 255, 255, 105), mute=(255, 255, 255, 165))
+
+
+def mus_tri(img, x, cy, h, color, left=False):
+    """Tam giác 'play' cao h, đỉnh trái (left) hoặc phải; x = cạnh đứng."""
+    w = h * .86; d = -1 if left else 1
+    fill_poly(img, [(x, cy - h / 2), (x + d * w, cy), (x, cy + h / 2)], color)
+    return w
+
+
+def mus_skip(img, cx, cy, h, color, back=False):
+    """⏭ / ⏮: 2 tam giác chạm đỉnh."""
+    w = h * .86; d = -1 if back else 1
+    x0 = cx - d * w
+    mus_tri(img, x0, cy, h, color, left=back); mus_tri(img, x0 + d * w, cy, h, color, left=back)
+
+
+def mus_speaker(img, x, cy, s, color, waves=0):
+    rect(img, x, cy - s * .22, x + s * .3, cy + s * .22, color, radius=s * .05)
+    fill_poly(img, [(x + s * .2, cy - s * .22), (x + s * .62, cy - s * .55), (x + s * .62, cy + s * .55), (x + s * .2, cy + s * .22)], color)
+    for k in range(waves):
+        r = s * (.42 + .3 * k); a = [math.radians(t) for t in range(-45, 46, 5)]
+        stroke_poly(img, [(x + s * .55 + r * math.cos(t), cy + r * math.sin(t)) for t in a], color, max(3, s * .09), closed=False)
+
+
+def mus_airplay(img, cx, cy, s, color, ring=False):
+    """AirPlay: 2 cung đồng tâm + tam giác dưới (ring → nằm trong vòng tròn như nút trên ảnh mẫu)."""
+    if ring: circle(img, cx, cy, s * .72, color); color2 = (40, 40, 40, 255)
+    else: color2 = color
+    for r in (s * .42, s * .26):
+        a = [math.radians(t) for t in range(150, 391, 6)]
+        stroke_poly(img, [(cx + r * math.cos(t), cy - s * .02 + r * math.sin(t)) for t in a], color2, max(3, s * .07), closed=False)
+    fill_poly(img, [(cx - s * .2, cy + s * .42), (cx, cy + s * .16), (cx + s * .2, cy + s * .42)], color2)
+
+
+def st_music_bg(img, c, R):
+    f = c.f; pal = mus_pal(f); W, H = c.W, c.H
+    rect(img, 0, 0, W, H, lambda w, h, x0, y0: lin_grad(w, h, (0, 0), (w * .3, h), pal['bg']))
+    s = f['slots'][0]; x0, x1 = s['x'], s['x'] + s['w']
+    rect(img, x0 - 2, s['y'] + 14, x1 + 2, s['y'] + s['h'] + 22, (0, 0, 0, 70), radius=s['radius'], blur=22)   # bóng ảnh bìa
+    # thanh tiến trình
+    y = 1352; p = x0 + (x1 - x0) * .6
+    rect(img, x0, y - 5, x1, y + 5, pal['dim'], radius=5)
+    rect(img, x0, y - 5, p, y + 5, pal['ink'], radius=5)
+    circle(img, p, y, 12, pal['ink'])
+    # nút điều khiển
+    cy = 1508
+    mus_skip(img, 600 - 250, cy, 62, pal['ink'], back=True)
+    rect(img, 600 - 32, cy - 44, 600 - 8, cy + 44, pal['ink'], radius=6)
+    rect(img, 600 + 8, cy - 44, 600 + 32, cy + 44, pal['ink'], radius=6)
+    mus_skip(img, 600 + 250, cy, 62, pal['ink'])
+    # âm lượng
+    vy = 1628; vx0, vx1 = x0 + 66, x1 - 82; vp = vx0 + (vx1 - vx0) * .9
+    mus_speaker(img, x0, vy, 40, pal['mute'])
+    rect(img, vx0, vy - 5, vx1, vy + 5, pal['dim'], radius=5)
+    rect(img, vx0, vy - 5, vp, vy + 5, pal['ink'], radius=5)
+    circle(img, vp + 3, vy + 6, 30, (0, 0, 0, 60), blur=8)
+    circle(img, vp, vy, 28, '#ffffff')
+    mus_speaker(img, x1 - 54, vy, 40, pal['mute'], waves=2)
+    # hàng icon dưới cùng: lời bài hát · AirPlay · danh sách
+    by = 1728; col = pal['mute']
+    stroke_rect(img, 600 - 270 - 26, by - 22, 600 - 270 + 26, by + 16, col, 4, radius=12)
+    fill_poly(img, [(600 - 270 - 14, by + 14), (600 - 270 - 14, by + 30), (600 - 270 + 2, by + 14)], col)
+    for dx in (-9, 9): circle(img, 600 - 270 + dx, by - 4, 5, col)
+    mus_airplay(img, 600, by - 2, 58, col)
+    for k in range(3):
+        circle(img, 600 + 270 - 24, by - 16 + k * 16, 4, col)
+        rect(img, 600 + 270 - 12, by - 18 + k * 16, 600 + 270 + 28, by - 14 + k * 16, col, radius=2)
+    # nền thẻ sau QR (app vẽ QR trắng ở qr.at)
+    q = f['qr']['at'][0]; t = f['qr']['size'] * 1.2
+    rect(img, q['x'] - 8, q['y'] - 8, q['x'] + t + 8, q['y'] + t + 8, (255, 255, 255, 40), radius=24)
+
+
+STYLES['music'] = (st_music_bg, None)
+
+
+def mus_texts(sub):
+    g = 'music'
+    return [T(g, 'title', x=86, y=1208, size=50, fit=820, ff=SANS, weight='700', color='#ffffff', align='left'),
+            T(g, 'artist', x=86, y=1266, size=36, fit=820, ff=SANS, weight='500', color=sub, align='left')]
+
+
+def mus_fixed():
+    o = dict(y=1404, size=24, ff=SANS, weight=600, color=(255, 255, 255, 165))
+    return [dict(text='1:53', x=84, align='left', **o), dict(text='-1:20', x=1116, align='right', **o)]
+
+
+MUS = dict(set='19', style='music', textGroup='music', slots=[S(84, 84, 1032, 1032, 44)], qr=qr(120, (972, 1150)))
+add(id='A-music-gray', mode='A', name='Music Player – Xám', mus='gray', background='#6a6a6a', texts=mus_texts('#cdcdcd'), fixed=mus_fixed(), **MUS)
+add(id='A-music-night', mode='A', name='Music Player – Đêm Tím', mus='night', background='#2a2238', texts=mus_texts('#bcb6c8'), fixed=mus_fixed(), **MUS)
+
+
+# ================================================================ #20 Polaroid giấy cũ "i love you <3"
+# Cả tờ là 1 tấm Polaroid: giấy ngà hơi ố (hạt giấy + vết mờ ở mép), ảnh khách ô gần vuông, chữ tay Patrick Hand ở lề dưới dày.
+HANDP = '"Patrick Hand", "Baloo 2", cursive'
+GROUPS['polaroid-love'] = ('Khung Polaroid Giấy Cũ', [('caption', 'Chữ viết tay dưới ảnh', 'i love you <3')])
+
+
+def st_polaroid_love_bg(img, c, R):
+    W, H = c.W, c.H
+    rect(img, 0, 0, W, H, lambda w, h, x0, y0: lin_grad(w, h, (0, 0), (w * .4, h), [(0, '#f3f0ec'), (.6, '#efebe6'), (1, '#e9e4de')]))
+    rng = np.random.default_rng(seeded(c.f['id']).randrange(1 << 30))
+    g = rng.normal(0, 1, (H, W)).astype(np.float32)                                   # hạt giấy
+    a = np.clip(np.abs(g) * 7, 0, 18).astype(np.uint8)
+    grain = np.zeros((H, W, 4), np.uint8); grain[..., :3] = np.where(g[..., None] > 0, 255, 90); grain[..., 3] = a
+    img.alpha_composite(Image.fromarray(grain, 'RGBA'))
+    for _ in range(26):                                                                # vết ố / mờ tay ở gần mép
+        side = R.random()
+        if side < .35: x, y = R.uniform(0, 70), R.uniform(0, H)
+        elif side < .7: x, y = W - R.uniform(0, 70), R.uniform(0, H)
+        elif side < .85: x, y = R.uniform(0, W), R.uniform(0, 60)
+        else: x, y = R.uniform(0, W), H - R.uniform(0, 70)
+        circle(img, x, y, R.uniform(20, 70), (120, 112, 104, R.randint(10, 26)), blur=R.uniform(14, 30))
+    for k in range(3):                                                                 # tối nhẹ sát mép giấy
+        stroke_rect(img, k * 4, k * 4, W - k * 4, H - k * 4, (110, 100, 92, 22 - k * 6), 6)
+
+
+def st_polaroid_love_over(img, c, R):
+    s = c.f['slots'][0]; x0, y0, x1, y1 = s['x'], s['y'], s['x'] + s['w'], s['y'] + s['h']
+    stroke_rect(img, x0 - 3, y0 - 3, x1 + 3, y1 + 3, (150, 142, 134, 120), 3)   # mép ảnh hơi lõm như ảnh Polaroid thật
+    stroke_rect(img, x0, y0, x1, y1, (0, 0, 0, 40), 3)
+
+
+STYLES['polaroid-love'] = (st_polaroid_love_bg, st_polaroid_love_over)
+add(id='A-polaroid-love', mode='A', name='Polaroid – I Love You', set='20', style='polaroid-love', textGroup='polaroid-love',
+    background='#efebe6', slots=[S(92, 92, 1016, 1290)],
+    texts=[T('polaroid-love', 'caption', x=600, y=1590, size=128, fit=820, ff=HANDP, weight='400', color='#161616', ls=2)],
+    qr=qr(120, (1014, 1622)))

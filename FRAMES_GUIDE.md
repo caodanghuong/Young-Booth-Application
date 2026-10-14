@@ -43,7 +43,7 @@ Một khung có thể ghi đè bố cục của kiểu chụp:
 - Chữ động (`texts`): `x`/`xs`, `y`/`ys` (vẽ ở mọi cặp), `size`, `fit` (tự co tối đa 60% khi dài), `w` + `lh` (tự xuống dòng),
   `align`, `ls` (giãn chữ), `stroke` + `strokeW` (viền), `rotate` (độ), `weight`, `italic`. Ô để trống → không vẽ.
 - **Font có tiếng Việt, nhúng sẵn** (chạy offline): `YB Script` (Great Vibes), `YB Serif` (Cormorant Garamond), `Dancing Script`,
-  `Be Vietnam Pro`, `Oswald`, `Baloo 2`, `Noto Serif`. Không dùng Segoe Script / Georgia (thiếu "ư", "ấ").
+  `Be Vietnam Pro`, `Oswald`, `Baloo 2`, `Noto Serif`, `Patrick Hand` (chữ tay in rời). Không dùng Segoe Script / Georgia (thiếu "ư", "ấ").
 - Khung **dịp lễ** (`holiday: 'quockhanh'` / `'trungthu'`) mặc định ẩn → bật trong ⚙️ Cài đặt → "Khung dịp lễ / sự kiện".
 
 ### 17 bộ khung có sẵn — sinh bằng script
