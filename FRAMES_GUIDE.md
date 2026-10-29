@@ -5,11 +5,14 @@ Mọi file khung nằm trong `C:\YoungBooth-Frames\` (ngoài app → đổi PNG 
 
 | Kiểu chụp | id | Số ảnh | Khổ PNG mặc định |
 |---|---|---|---|
-| Khoảnh Khắc | A | 1 | 1200 × 1800 (dọc) |
+| Khoảnh Khắc | A | 1 | 1800 × 1200 (ngang) |
 | Ngọt Ngào | B | 2 | 1800 × 1200 (ngang) |
-| Nhật Ký | C | 4 (chụp 6 chọn 4) | 1200 × 1800 = 2 dải 600 giống nhau, cắt ở x = 600 |
+| Nhật Ký | C | 4 (chụp 6 chọn 4) | 1200 × 1800 = 2 dải 600 giống nhau, cắt ở x = 600 (GIỮ dọc) |
 | Chia Đôi | D | 2 | 1800 × 1200 |
-| Dịu Dàng | F | 4 | 1200 × 1800 |
+| Dịu Dàng | F | 4 | 1800 × 1200 (ngang) |
+
+**Quy ước từ 28/10/2026:** mọi khung là tờ NGANG 1800×1200 và mọi ô ảnh NẰM NGANG (rộng > cao, ~4:3–3:2 như ảnh camera,
+không bị cắt mất 2 bên) — riêng Nhật Ký giữ dải dọc với 4 ảnh ngang xếp chồng. Khung cũ đã bỏ được đổi id qua `FRAME_ALIASES` (config.js).
 
 In 300 dpi: 4×6 inch = 1200×1800 px. Chừa lề ~36 px (máy in hụt mép 1–2 mm); QR tối thiểu **110 px** (dải) / **120 px** (tờ).
 
@@ -70,7 +73,7 @@ Luồng sự kiện bật/tắt ở webadmin (`http://<IP máy booth>:3737/admin
 Mỗi sự kiện có giao diện riêng + danh sách khung riêng. Khung sự kiện **không bao giờ** hiện ở luồng thường.
 
 **Thêm khung sự kiện mới:**
-1. Thiết kế PNG đúng khổ của kiểu chụp (dọc 1200×1800, ngang 1800×1200), ô ảnh **trong suốt** đúng toạ độ `slots`.
+1. Thiết kế PNG tờ ngang 1800×1200 (Nhật Ký: dọc 1200×1800), ô ảnh **nằm ngang** + **trong suốt** đúng toạ độ `slots`.
    Kèm ảnh nhỏ `*-thumb.png` rộng ~300 px (không bắt buộc — thiếu thì dùng chính PNG khung).
 2. Chép vào `C:\YoungBooth-Frames\events\<tên bộ>\`, ví dụ `C:\YoungBooth-Frames\events\tiec-cuoi\`.
 3. Trong cùng thư mục tạo file **`frames.json`** khai báo khung (đường dẫn ảnh viết **tương đối** theo thư mục này):

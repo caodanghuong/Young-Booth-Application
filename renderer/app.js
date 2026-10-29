@@ -929,56 +929,87 @@ async function rerenderResult(msg, keepPreviews) {
 const _beautyCache = new Map();
 function clearBeautyCache() { _beautyCache.clear(); }
 
-// Unsharp/Laplacian sharpen in-place on a 2d context.
-function sharpenCtx(ctx, w, h, amount) {
-  if (amount <= 0) return;
-  const img = ctx.getImageData(0, 0, w, h);
-  const d = img.data;
-  const src = new Uint8ClampedArray(d);
-  const idx = (x, y) => ((y * w + x) << 2);
-  const k = amount * 0.8;
+const newCanvas = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+
+// Làm nét cho BẢN IN (unsharp mask Gauss 3×3, ~0.8px ở 300dpi) — chạy SAU khi ảnh đã về đúng kích thước ô in,
+// nên độ nét giữ nguyên tới giấy. threshold: chênh lệch nhỏ hơn ngưỡng (hạt nhiễu ISO, vùng da phẳng) không bị đẩy lên.
+function printSharpen(g, w, h, amount, threshold = 4) {
+  if (!(amount > 0) || w < 3 || h < 3) return;
+  const img = g.getImageData(0, 0, w, h), d = img.data, s = new Uint8ClampedArray(d), row = w * 4;
   for (let y = 1; y < h - 1; y++) {
     for (let x = 1; x < w - 1; x++) {
-      const o = idx(x, y);
+      const i = (y * w + x) * 4;
       for (let c = 0; c < 3; c++) {
-        const i = o + c, ctr = src[i];
-        const lap = src[idx(x - 1, y) + c] + src[idx(x + 1, y) + c] +
-                    src[idx(x, y - 1) + c] + src[idx(x, y + 1) + c] - 4 * ctr;
-        d[i] = ctr - k * lap;
+        const p = i + c;
+        const blur = (4 * s[p] + 2 * (s[p - 4] + s[p + 4] + s[p - row] + s[p + row])
+          + s[p - row - 4] + s[p - row + 4] + s[p + row - 4] + s[p + row + 4]) / 16;
+        const diff = s[p] - blur, ad = diff < 0 ? -diff : diff;
+        if (ad <= threshold) continue;
+        d[p] = s[p] + amount * diff * (ad - threshold) / ad;
       }
     }
   }
-  ctx.putImageData(img, 0, 0);
+  g.putImageData(img, 0, 0);
 }
 
-// Produce a beautified copy of a raw frame canvas (cached).
+// Thu nhỏ chất lượng cao: giảm từng nấc ½ (mỗi nấc smoothing 'high') rồi về đúng W×H.
+// Thu 1 lần từ ảnh 2400px xuống ô 600px làm mất chi tiết / răng cưa — đây là 1 nguyên nhân ảnh in bị bệt.
+function resampleHQ(src, sx, sy, sw, sh, W, H) {
+  let cur = src;
+  while (sw / 2 >= W && sh / 2 >= H) {
+    const nw = Math.round(sw / 2), nh = Math.round(sh / 2), c = newCanvas(nw, nh), g = c.getContext('2d');
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(cur, sx, sy, sw, sh, 0, 0, nw, nh);
+    cur = c; sx = 0; sy = 0; sw = nw; sh = nh;
+  }
+  const out = newCanvas(W, H), g = out.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(cur, sx, sy, sw, sh, 0, 0, W, H);
+  return out;
+}
+
+// Làm đẹp (cache theo ảnh): MỊN DA CHỈ Ở VÙNG DA, giữ nguyên đường nét (mắt, mi, tóc, viền áo) + sáng da nhẹ.
+// Không làm mờ cả ảnh như bản cũ (phủ bản blur 45% lên toàn ảnh → ảnh in bị mờ).
+// smooth = độ mịn da (0–1), glow = sáng da (0–0.2). Làm nét do printSharpen() đảm nhận ở bước ghép khung.
 function beautifyCanvas(src) {
   const b = CFG.beauty || {};
   const w = src.width, h = src.height;
-  const out = document.createElement('canvas');
-  out.width = w; out.height = h;
-  const ctx = out.getContext('2d');
-
-  // base with a slight brighten/glow
-  ctx.filter = `brightness(${1 + (b.glow || 0)}) saturate(1.03)`;
+  const out = newCanvas(w, h), ctx = out.getContext('2d');
   ctx.drawImage(src, 0, 0);
-  ctx.filter = 'none';
+  const smooth = Math.min(1, b.smooth || 0), glow = b.glow || 0;
+  if (smooth <= 0 && glow <= 0) return out;
 
-  // skin smoothing: overlay a blurred copy
-  if (b.smooth > 0) {
-    const blur = document.createElement('canvas');
-    blur.width = w; blur.height = h;
-    const bx = blur.getContext('2d');
-    const radius = Math.max(1, Math.round(Math.min(w, h) * 0.008 * b.smooth * 2));
-    bx.filter = `blur(${radius}px)`;
-    bx.drawImage(src, 0, 0);
-    ctx.globalAlpha = Math.min(0.8, b.smooth);
-    ctx.drawImage(blur, 0, 0);
-    ctx.globalAlpha = 1;
+  const r = Math.max(2, Math.round(Math.min(w, h) * 0.006));   // bán kính làm mịn ~ lỗ chân lông / mụn nhỏ
+  const bl = newCanvas(w, h), bg = bl.getContext('2d');
+  bg.filter = `blur(${r}px)`; bg.drawImage(src, 0, 0);
+  const O = ctx.getImageData(0, 0, w, h), od = O.data, B = bg.getImageData(0, 0, w, h).data;
+
+  // 1) mặt nạ màu da (YCbCr) — làm mềm mép mặt nạ để không lộ ranh giới
+  const mask = new ImageData(w, h), md = mask.data;
+  for (let i = 0; i < od.length; i += 4) {
+    const R = od[i], G = od[i + 1], Bc = od[i + 2];
+    const Y = 0.299 * R + 0.587 * G + 0.114 * Bc;
+    const cb = 128 - 0.1687 * R - 0.3313 * G + 0.5 * Bc, cr = 128 + 0.5 * R - 0.4187 * G - 0.0813 * Bc;
+    let m = 1 - ((cb - 104) / 26) ** 2 - ((cr - 150) / 22) ** 2;
+    m = m <= 0 ? 0 : Math.min(1, m * 2.2);
+    if (Y < 45) m *= Y / 45;
+    md[i + 3] = m * 255;
   }
+  const mc = newCanvas(w, h), mg = mc.getContext('2d'); mg.putImageData(mask, 0, 0);
+  const ms = newCanvas(w, h), msg = ms.getContext('2d'); msg.filter = 'blur(3px)'; msg.drawImage(mc, 0, 0);
+  const M = msg.getImageData(0, 0, w, h).data;
 
-  // sharpen to keep eyes / edges crisp
-  sharpenCtx(ctx, w, h, b.sharpen || 0);
+  // 2) trộn: chỉ vùng da + chỉ chỗ phẳng (chênh với bản blur nhỏ) → đường nét giữ nguyên độ sắc
+  for (let i = 0; i < od.length; i += 4) {
+    const m = M[i + 3] / 255;
+    if (m < 0.02) continue;
+    const yo = 0.299 * od[i] + 0.587 * od[i + 1] + 0.114 * od[i + 2];
+    const yb = 0.299 * B[i] + 0.587 * B[i + 1] + 0.114 * B[i + 2];
+    let we = 1 - Math.abs(yo - yb) / 20; we = we <= 0 ? 0 : we * we;
+    const k = Math.min(0.85, smooth) * m * we, lift = 1 + glow * m;
+    for (let c = 0; c < 3; c++) od[i + c] = (od[i + c] + (B[i + c] - od[i + c]) * k) * lift;
+  }
+  ctx.putImageData(O, 0, 0);
   return out;
 }
 
@@ -1006,26 +1037,38 @@ function roundRectPath(ctx, x, y, w, h, r) {
 // Draw a photo, cover-fit, with optional rounded corners + filter.
 // filter = chuỗi CSS hoặc bộ lọc trong config { css, tint: { color, alpha, mode } } — tint = lớp ánh màu phủ lên ảnh
 // (vd soft-light cam / xanh) để ấm / mát mà không đổi màu da như hue-rotate.
+// Chất lượng: cắt đúng vùng cover từ ảnh gốc → thu nhỏ từng nấc (resampleHQ) về ĐÚNG kích thước ô → bộ lọc + ánh màu
+// → làm nét cho bản in (printSharpen, CFG.output.sharpen) → dán vào khung. Ảnh nhỏ (thumb < 300×300) bỏ qua làm nét cho nhanh.
 function drawCover(ctx, src, dx, dy, dw, dh, filter, radius = 0) {
   const filterCss = filter && typeof filter === 'object' ? filter.css : filter;
   const tint = filter && typeof filter === 'object' ? filter.tint : null;
+  const W = Math.max(1, Math.round(dw)), H = Math.max(1, Math.round(dh));
   const sw = src.width, sh = src.height;
-  const scale = Math.max(dw / sw, dh / sh);
-  const w = sw * scale, h = sh * scale;
-  const ox = dx + (dw - w) / 2, oy = dy + (dh - h) / 2;
+  const scale = Math.max(W / sw, H / sh);
+  const cw = W / scale, ch = H / scale;
+  const cell = resampleHQ(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, W, H);
+  let out = cell;
+  if (filterCss && filterCss !== 'none') {
+    out = newCanvas(W, H);
+    const fg = out.getContext('2d');
+    fg.filter = filterCss; fg.drawImage(cell, 0, 0); fg.filter = 'none';
+  }
+  const og = out.getContext('2d');
+  if (tint && tint.color && tint.alpha > 0) {
+    og.save();
+    og.globalCompositeOperation = tint.mode || 'soft-light';
+    og.globalAlpha = tint.alpha;
+    og.fillStyle = tint.color;
+    og.fillRect(0, 0, W, H);
+    og.restore();
+  }
+  const sharp = CFG.output && CFG.output.sharpen != null ? CFG.output.sharpen : 0.8;
+  if (W * H >= 90000) printSharpen(og, W, H, sharp);
   ctx.save();
   if (radius > 0) roundRectPath(ctx, dx, dy, dw, dh, radius);
   else { ctx.beginPath(); ctx.rect(dx, dy, dw, dh); }
   ctx.clip();
-  ctx.filter = (filterCss && filterCss !== 'none') ? filterCss : 'none';
-  ctx.drawImage(src, ox, oy, w, h);
-  ctx.filter = 'none';
-  if (tint && tint.color && tint.alpha > 0) {   // vẫn trong vùng clip của ô ảnh
-    ctx.globalCompositeOperation = tint.mode || 'soft-light';
-    ctx.globalAlpha = tint.alpha;
-    ctx.fillStyle = tint.color;
-    ctx.fillRect(dx, dy, dw, dh);
-  }
+  ctx.drawImage(out, dx, dy, dw, dh);
   ctx.restore();
 }
 
@@ -1152,7 +1195,7 @@ function modeFrames(m, includeHidden) {
 // Khung mặc định: frames[0], hoặc khung sự kiện đang bật có defaultForEvent.
 function defaultFrame(m) {
   if (state.flow && m) {   // luồng sự kiện: khung mặc định của sự kiện cho kiểu này
-    const list = eventFramesFor(state.flow, m), id = state.flow.defaultFrame && state.flow.defaultFrame[m.id];
+    const list = eventFramesFor(state.flow, m), id = frameAlias(state.flow.defaultFrame && state.flow.defaultFrame[m.id]);
     return list.find((f) => f.id === id) || list[0] || null;
   }
   const vis = modeFrames(m);
@@ -1177,7 +1220,9 @@ function effectiveMode(m = state.mode) { return m ? applyFrame(m, currentFrame(m
    state.flow = sự kiện ĐANG ÁP DỤNG (null = luồng thường). Chỉ đổi khi ở màn chờ — không đổi giữa lượt chụp. */
 state.flow = null; state.flowPending = false; state.printCount = 0;
 // Tìm khung theo id: khung thường (modes[].frames) rồi thư viện khung sự kiện (eventFrames).
+const frameAlias = (id) => (id && (CFG.frameAliases || {})[id]) || id;   // id khung đã bỏ → khung thay thế
 function getFrameById(id) {
+  id = frameAlias(id);
   if (!id) return null;
   for (const m of CFG.modes) { const f = (Array.isArray(m.frames) ? m.frames : []).find((x) => x.id === id); if (f) return f; }
   const f = (CFG.eventFrames || []).find((x) => x.id === id);
@@ -1224,7 +1269,7 @@ function framePhotos(m, f) { return (f && Number(f.photos)) || m.select || m.cap
 function eventMode(m) {
   const ev = state.flow;
   if (!ev || !m || m.kind !== 'photo') return m;
-  const list = eventFramesFor(ev, m), id = ev.defaultFrame && ev.defaultFrame[m.id];
+  const list = eventFramesFor(ev, m), id = frameAlias(ev.defaultFrame && ev.defaultFrame[m.id]);
   const n = framePhotos(m, list.find((f) => f.id === id) || list[0]);
   const sel = m.select || m.captureCount || 1, cap = m.captureCount || sel;
   if (n === sel) return m;

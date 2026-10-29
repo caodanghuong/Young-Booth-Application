@@ -461,6 +461,19 @@ def grid2x2_slots(top, bottom, side, gap, radius=0):
     return [dict(x=side + c * (w + gap), y=top + r * (h + gap), w=w, h=h, radius=radius) for c, r in ((0, 0), (1, 0), (0, 1), (1, 1))]
 
 
+def wide_strip_slots(top, bottom, side, gap, radius=0, n=4):
+    """Nhật Ký NGANG: canvas 1800×1200 = 2 dải 1800×600 giống nhau (cắt y=600), n ảnh/dải xếp hàng ngang.
+    top/bottom = lề trên/dưới TRONG mỗi dải (chừa dải chữ + QR), side = lề trái/phải."""
+    w, h = (1800 - 2 * side - (n - 1) * gap) // n, 600 - top - bottom
+    return [dict(x=side + i * (w + gap), y=oy + top, w=w, h=h, radius=radius) for oy in (0, 600) for i in range(n)]
+
+
+def grid2x2_wide_slots(top, bottom, left, right, gap, radius=0):
+    """Dịu Dàng NGANG: canvas 1800×1200, lưới 2×2 (left/right = lề trái/phải, thường chừa cột chữ + QR một bên)."""
+    w, h = (1800 - left - right - gap) // 2, (1200 - top - bottom - gap) // 2
+    return [dict(x=left + c * (w + gap), y=top + r * (h + gap), w=w, h=h, radius=radius) for c, r in ((0, 0), (1, 0), (0, 1), (1, 1))]
+
+
 def wide_row(x0, step, w, h, ys):
     """Nhật Ký bản ngang: 2 dải 1800×600 (cắt y=600), 4 ảnh/dải."""
     return [dict(x=x0 + i * step, y=y, w=w, h=h, radius=0) for y in ys for i in range(4)]

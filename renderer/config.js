@@ -22,15 +22,7 @@ function grid2x2Slots({ top, bottom, side, gap, radius = 0 }) {
 // "py scripts/make-frames.py sets config" (sinh lại PNG + khối này). Thứ tự trong mảng = thứ tự trong bảng "Chọn khung".
 const FRAME_SETS = {
   A: [
-      { id: 'A-clover-sage', name: 'Cỏ Bốn Lá – Sage', textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/A-clover-sage.png', thumb: 'file:///C:/YoungBooth-Frames/A-clover-sage-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 80, y: 80, w: 1040, h: 1300, radius: 40 }],
-        texts: [
-          { id: 'line1', label: 'Dòng chữ trên', value: 'Yêu Thương', x: 470, y: 1530, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'sep', label: 'Ký tự nối', value: '+', x: 600, y: 1600, size: 40, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'line2', label: 'Dòng chữ dưới', value: 'Hạnh Phúc', x: 720, y: 1680, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 720, y: 1735, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
-        ] },
-      { id: 'A-clover-sage-wide', name: 'Cỏ Bốn Lá – Sage (ngang)', textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/A-clover-sage-wide.png', thumb: 'file:///C:/YoungBooth-Frames/A-clover-sage-wide-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
+      { id: 'A-clover-sage', name: 'Cỏ Bốn Lá – Sage', textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/A-clover-sage.png', thumb: 'file:///C:/YoungBooth-Frames/A-clover-sage-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
         slots: [{ x: 85, y: 63, w: 1630, h: 910, radius: 40 }],
         texts: [
           { id: 'line1', label: 'Dòng chữ trên', value: 'Yêu Thương', x: 840, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'right' },
@@ -38,50 +30,66 @@ const FRAME_SETS = {
           { id: 'line2', label: 'Dòng chữ dưới', value: 'Hạnh Phúc', x: 960, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'left' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 1140, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
         ] },
-      { id: 'A-music-gray', name: 'Music Player – Xám', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-gray.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-gray-thumb.png', background: '#6a6a6a', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 972, y: 1150 }] },
-        slots: [{ x: 84, y: 84, w: 1032, h: 1032, radius: 44 }],
+      { id: 'A-cosmos', name: 'Cosmos – Tạp Chí', textGroup: 'cosmos', overlay: 'file:///C:/YoungBooth-Frames/A-cosmos.png', thumb: 'file:///C:/YoungBooth-Frames/A-cosmos-thumb.png', background: '#f4f3f1', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1600, y: 1000 }] },
+        slots: [{ x: 48, y: 48, w: 1260, h: 880, radius: 48 }],
         texts: [
-          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 86, y: 1208, size: 50, fit: 820, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
-          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 86, y: 1266, size: 36, fit: 820, color: '#cdcdcd', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+          { id: 'line1', label: 'Tiêu đề dòng 1', value: 'Khoảnh khắc', x: 1350, y: 170, size: 88, fit: 410, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'line2', label: 'Tiêu đề dòng 2', value: 'có cá tính', x: 1350, y: 268, size: 88, fit: 410, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'tagline', label: 'Chữ trong thanh tìm kiếm', value: 'Tìm khoảnh khắc của bạn', x: 140, y: 1029, size: 32, fit: 700, color: '#8a8a8a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1300, y: 1138, size: 22, color: '#8a8a8a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'right' },
         ] },
-      { id: 'A-music-night', name: 'Music Player – Đêm Tím', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-night.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-night-thumb.png', background: '#2a2238', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 972, y: 1150 }] },
-        slots: [{ x: 84, y: 84, w: 1032, h: 1032, radius: 44 }],
+      { id: 'A-cosmos-hero', name: 'Cosmos – Thả Nổi', textGroup: 'cosmos', overlay: 'file:///C:/YoungBooth-Frames/A-cosmos-hero.png', thumb: 'file:///C:/YoungBooth-Frames/A-cosmos-hero-thumb.png', background: '#f4f3f1', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1600, y: 1000 }] },
+        slots: [{ x: 260, y: 48, w: 1280, h: 780, radius: 56 }],
         texts: [
-          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 86, y: 1208, size: 50, fit: 820, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
-          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 86, y: 1266, size: 36, fit: 820, color: '#bcb6c8', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+          { id: 'line1', label: 'Tiêu đề dòng 1', value: 'Khoảnh khắc', x: 900, y: 914, size: 70, fit: 1000, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'center' },
+          { id: 'line2', label: 'Tiêu đề dòng 2', value: 'có cá tính', x: 900, y: 990, size: 70, fit: 1000, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'center' },
+          { id: 'tagline', label: 'Chữ trong thanh tìm kiếm', value: 'Tìm khoảnh khắc của bạn', x: 650, y: 1085, size: 28, fit: 440, color: '#8a8a8a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 230, y: 1062, size: 22, color: '#8a8a8a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'center' },
         ] },
-      { id: 'A-polaroid-love', name: 'Polaroid – I Love You', textGroup: 'polaroid-love', overlay: 'file:///C:/YoungBooth-Frames/A-polaroid-love.png', thumb: 'file:///C:/YoungBooth-Frames/A-polaroid-love-thumb.png', background: '#efebe6', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1014, y: 1622 }] },
-        slots: [{ x: 92, y: 92, w: 1016, h: 1290 }],
+      { id: 'A-music-gray', name: 'Music Player – Xám', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-gray.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-gray-thumb.png', background: '#6a6a6a', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1586, y: 282 }] },
+        slots: [{ x: 70, y: 220, w: 1060, h: 760, radius: 44 }],
         texts: [
-          { id: 'caption', label: 'Chữ viết tay dưới ảnh', value: 'i love you <3', x: 600, y: 1590, size: 128, fit: 820, color: '#161616', ff: '"Patrick Hand", "Baloo 2", cursive', weight: '400', ls: 2 },
+          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 1200, y: 340, size: 50, fit: 360, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
+          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 1200, y: 398, size: 36, fit: 360, color: '#cdcdcd', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
         ] },
-      { id: 'A-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/A-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/A-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
-        slots: [{ x: 70, y: 196, w: 1060, h: 1196 }],
+      { id: 'A-music-night', name: 'Music Player – Đêm Tím', textGroup: 'music', overlay: 'file:///C:/YoungBooth-Frames/A-music-night.png', thumb: 'file:///C:/YoungBooth-Frames/A-music-night-thumb.png', background: '#2a2238', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1586, y: 282 }] },
+        slots: [{ x: 70, y: 220, w: 1060, h: 760, radius: 44 }],
         texts: [
-          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 196, y: 1492, size: 38, fit: 546, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 196, y: 1530, size: 27, fit: 546, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
-          { id: 'nam', label: 'Năm', value: '2026', x: 70, y: 158, size: 118, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1758, size: 24, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
-          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1660, size: 76, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 5, align: 'left' },
+          { id: 'title', label: 'Tên bài hát', value: 'Khoảnh Khắc', x: 1200, y: 340, size: 50, fit: 360, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', align: 'left' },
+          { id: 'artist', label: 'Nghệ sĩ', value: 'Young Booth', x: 1200, y: 398, size: 36, fit: 360, color: '#bcb6c8', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', align: 'left' },
+        ] },
+      { id: 'A-polaroid-love', name: 'Polaroid – I Love You', textGroup: 'polaroid-love', overlay: 'file:///C:/YoungBooth-Frames/A-polaroid-love.png', thumb: 'file:///C:/YoungBooth-Frames/A-polaroid-love-thumb.png', background: '#efebe6', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+        slots: [{ x: 80, y: 80, w: 1640, h: 880 }],
+        texts: [
+          { id: 'caption', label: 'Chữ viết tay dưới ảnh', value: 'i love you <3', x: 900, y: 1120, size: 110, fit: 1100, color: '#161616', ff: '"Patrick Hand", "Baloo 2", cursive', weight: '400', ls: 2 },
+        ] },
+      { id: 'A-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/A-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/A-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1616, y: 1030 }] },
+        slots: [{ x: 60, y: 150, w: 1240, h: 880 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 1430, y: 348, size: 29, fit: 324, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 1430, y: 377, size: 20, fit: 324, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 1346, y: 200, size: 110, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1346, y: 1160, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1346, y: 560, size: 66, fit: 420, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
         ] },
   ],
   B: [
-      { id: 'B-std-white', name: 'Save The Date – Trắng (dọc)', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/B-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/B-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 130, label: false, at: [{ x: 1024, y: 1624 }] },
-        slots: [{ x: 50, y: 50, w: 1100, h: 650 }, { x: 50, y: 740, w: 1100, h: 650 }],
+      { id: 'B-std-white', name: 'Save The Date – Trắng', textGroup: 'std-white', overlay: 'file:///C:/YoungBooth-Frames/B-std-white.png', thumb: 'file:///C:/YoungBooth-Frames/B-std-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 130, label: false, at: [{ x: 1604, y: 1004 }] },
+        slots: [{ x: 40, y: 40, w: 850, h: 640 }, { x: 910, y: 40, w: 850, h: 640 }],
         texts: [
-          { id: 'line1', label: 'Dòng chữ 1', value: 'Khoảnh Khắc', x: 560, y: 1500, size: 100, fit: 760, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive' },
-          { id: 'line2', label: 'Dòng chữ 2', value: 'Đáng Nhớ', x: 640, y: 1610, size: 100, fit: 760, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 600, y: 1680, size: 32, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
-          { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 600, y: 1728, size: 30, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 5 },
+          { id: 'line1', label: 'Dòng chữ 1', value: 'Khoảnh Khắc', x: 870, y: 860, size: 100, fit: 640, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
+          { id: 'line2', label: 'Dòng chữ 2', value: 'Đáng Nhớ', x: 930, y: 860, size: 100, fit: 640, color: '#1a1a1a', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 950, size: 30, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
+          { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 900, y: 996, size: 28, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 5 },
         ] },
-      { id: 'B-tet-truong', name: 'Tết Trường – Đỏ Son (dọc)', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/B-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/B-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
-        slots: [{ x: 70, y: 176, w: 1060, h: 620 }, { x: 70, y: 836, w: 1060, h: 620 }],
+      { id: 'B-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/B-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/B-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1616, y: 1030 }] },
+        slots: [{ x: 50, y: 170, w: 830, h: 640 }, { x: 920, y: 170, w: 830, h: 640 }],
         texts: [
-          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 182, y: 1541, size: 34, fit: 520, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 182, y: 1575, size: 24, fit: 520, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
-          { id: 'nam', label: 'Năm', value: '2026', x: 70, y: 146, size: 108, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1764, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
-          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1680, size: 64, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 164, y: 935, size: 33, fit: 518, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 164, y: 968, size: 23, fit: 518, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 56, y: 122, size: 100, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 56, y: 1166, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1560, y: 1060, size: 62, fit: 640, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'right' },
         ] },
   ],
   C: [
@@ -104,26 +112,14 @@ const FRAME_SETS = {
       { id: 'C-crystal-white', name: 'Pha Lê Trắng', overlay: 'file:///C:/YoungBooth-Frames/C-crystal-white.png', thumb: 'file:///C:/YoungBooth-Frames/C-crystal-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
         slots: [{ x: 30, y: 30, w: 540, h: 380 }, { x: 30, y: 422, w: 540, h: 380 }, { x: 30, y: 814, w: 540, h: 380 }, { x: 30, y: 1206, w: 540, h: 380 }, { x: 630, y: 30, w: 540, h: 380 }, { x: 630, y: 422, w: 540, h: 380 }, { x: 630, y: 814, w: 540, h: 380 }, { x: 630, y: 1206, w: 540, h: 380 }],
         texts: [] },
-      { id: 'C-crystal-white-wide', name: 'Pha Lê Trắng – Ngang', overlay: 'file:///C:/YoungBooth-Frames/C-crystal-white-wide.png', thumb: 'file:///C:/YoungBooth-Frames/C-crystal-white-wide-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 1640, y: 448 }, { x: 1640, y: 1048 }] },
-        slots: [{ x: 24, y: 24, w: 427, h: 476 }, { x: 465, y: 24, w: 427, h: 476 }, { x: 906, y: 24, w: 427, h: 476 }, { x: 1347, y: 24, w: 427, h: 476 }, { x: 24, y: 624, w: 427, h: 476 }, { x: 465, y: 624, w: 427, h: 476 }, { x: 906, y: 624, w: 427, h: 476 }, { x: 1347, y: 624, w: 427, h: 476 }],
-        texts: [] },
       { id: 'C-black-stars', name: 'Ngôi Sao Đen', overlay: 'file:///C:/YoungBooth-Frames/C-black-stars.png', thumb: 'file:///C:/YoungBooth-Frames/C-black-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
         slots: [{ x: 30, y: 30, w: 540, h: 380 }, { x: 30, y: 422, w: 540, h: 380 }, { x: 30, y: 814, w: 540, h: 380 }, { x: 30, y: 1206, w: 540, h: 380 }, { x: 630, y: 30, w: 540, h: 380 }, { x: 630, y: 422, w: 540, h: 380 }, { x: 630, y: 814, w: 540, h: 380 }, { x: 630, y: 1206, w: 540, h: 380 }],
-        texts: [] },
-      { id: 'C-black-stars-wide', name: 'Ngôi Sao Đen – Ngang', overlay: 'file:///C:/YoungBooth-Frames/C-black-stars-wide.png', thumb: 'file:///C:/YoungBooth-Frames/C-black-stars-wide-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 1640, y: 448 }, { x: 1640, y: 1048 }] },
-        slots: [{ x: 24, y: 90, w: 427, h: 486 }, { x: 465, y: 90, w: 427, h: 486 }, { x: 906, y: 90, w: 427, h: 486 }, { x: 1347, y: 90, w: 427, h: 486 }, { x: 24, y: 690, w: 427, h: 486 }, { x: 465, y: 690, w: 427, h: 486 }, { x: 906, y: 690, w: 427, h: 486 }, { x: 1347, y: 690, w: 427, h: 486 }],
         texts: [] },
       { id: 'C-gold-stars', name: 'Sao Kim Tuyến', overlay: 'file:///C:/YoungBooth-Frames/C-gold-stars.png', thumb: 'file:///C:/YoungBooth-Frames/C-gold-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1648 }, { x: 1048, y: 1648 }] },
         slots: [{ x: 40, y: 150, w: 520, h: 390 }, { x: 40, y: 556, w: 520, h: 390 }, { x: 40, y: 962, w: 520, h: 390 }, { x: 40, y: 1368, w: 520, h: 390 }, { x: 640, y: 150, w: 520, h: 390 }, { x: 640, y: 556, w: 520, h: 390 }, { x: 640, y: 962, w: 520, h: 390 }, { x: 640, y: 1368, w: 520, h: 390 }],
         texts: [] },
-      { id: 'C-gold-stars-wide', name: 'Sao Kim Tuyến – Ngang', overlay: 'file:///C:/YoungBooth-Frames/C-gold-stars-wide.png', thumb: 'file:///C:/YoungBooth-Frames/C-gold-stars-wide-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 1640, y: 448 }, { x: 1640, y: 1048 }] },
-        slots: [{ x: 30, y: 100, w: 424, h: 476 }, { x: 468, y: 100, w: 424, h: 476 }, { x: 906, y: 100, w: 424, h: 476 }, { x: 1344, y: 100, w: 424, h: 476 }, { x: 30, y: 700, w: 424, h: 476 }, { x: 468, y: 700, w: 424, h: 476 }, { x: 906, y: 700, w: 424, h: 476 }, { x: 1344, y: 700, w: 424, h: 476 }],
-        texts: [] },
       { id: 'C-night-sky', name: 'Bầu Trời Sao', overlay: 'file:///C:/YoungBooth-Frames/C-night-sky.png', thumb: 'file:///C:/YoungBooth-Frames/C-night-sky-thumb.png', background: '#0b0b0d', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 36, y: 1648 }, { x: 636, y: 1648 }] },
         slots: [{ x: 30, y: 30, w: 540, h: 380 }, { x: 30, y: 422, w: 540, h: 380 }, { x: 30, y: 814, w: 540, h: 380 }, { x: 30, y: 1206, w: 540, h: 380 }, { x: 630, y: 30, w: 540, h: 380 }, { x: 630, y: 422, w: 540, h: 380 }, { x: 630, y: 814, w: 540, h: 380 }, { x: 630, y: 1206, w: 540, h: 380 }],
-        texts: [] },
-      { id: 'C-night-sky-wide', name: 'Bầu Trời Sao – Ngang', overlay: 'file:///C:/YoungBooth-Frames/C-night-sky-wide.png', thumb: 'file:///C:/YoungBooth-Frames/C-night-sky-wide-thumb.png', background: '#0b0b0d', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 1640, y: 448 }, { x: 1640, y: 1048 }] },
-        slots: [{ x: 24, y: 90, w: 427, h: 486 }, { x: 465, y: 90, w: 427, h: 486 }, { x: 906, y: 90, w: 427, h: 486 }, { x: 1347, y: 90, w: 427, h: 486 }, { x: 24, y: 690, w: 427, h: 486 }, { x: 465, y: 690, w: 427, h: 486 }, { x: 906, y: 690, w: 427, h: 486 }, { x: 1347, y: 690, w: 427, h: 486 }],
         texts: [] },
       { id: 'C-quoc-khanh', name: 'Quốc Khánh 02.09', hidden: true, holiday: 'quockhanh', textGroup: 'quockhanh', overlay: 'file:///C:/YoungBooth-Frames/C-quoc-khanh.png', thumb: 'file:///C:/YoungBooth-Frames/C-quoc-khanh-thumb.png', background: '#f8eedb', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 40, y: 1648 }, { x: 640, y: 1648 }] },
         slots: [{ x: 50, y: 50, w: 500, h: 386 }, { x: 50, y: 448, w: 500, h: 386 }, { x: 50, y: 846, w: 500, h: 386 }, { x: 50, y: 1244, w: 500, h: 386 }, { x: 650, y: 50, w: 500, h: 386 }, { x: 650, y: 448, w: 500, h: 386 }, { x: 650, y: 846, w: 500, h: 386 }, { x: 650, y: 1244, w: 500, h: 386 }],
@@ -181,6 +177,20 @@ const FRAME_SETS = {
         texts: [
           { id: 'title', label: 'Tiêu đề', value: 'Happy Mid Autumn', xs: [300, 900], y: 1690, size: 30, fit: 290, color: '#ffffff', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '700' },
         ] },
+      { id: 'C-cosmos', name: 'Cosmos – Ngà', textGroup: 'cosmos', overlay: 'file:///C:/YoungBooth-Frames/C-cosmos.png', thumb: 'file:///C:/YoungBooth-Frames/C-cosmos-thumb.png', background: '#f4f3f1', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1640 }, { x: 1048, y: 1640 }] },
+        slots: [{ x: 36, y: 36, w: 528, h: 348, radius: 28 }, { x: 36, y: 398, w: 528, h: 348, radius: 28 }, { x: 36, y: 760, w: 528, h: 348, radius: 28 }, { x: 36, y: 1122, w: 528, h: 348, radius: 28 }, { x: 636, y: 36, w: 528, h: 348, radius: 28 }, { x: 636, y: 398, w: 528, h: 348, radius: 28 }, { x: 636, y: 760, w: 528, h: 348, radius: 28 }, { x: 636, y: 1122, w: 528, h: 348, radius: 28 }],
+        texts: [
+          { id: 'line1', label: 'Tiêu đề dòng 1', value: 'Khoảnh khắc', xs: [40, 640], y: 1556, size: 54, fit: 520, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'line2', label: 'Tiêu đề dòng 2', value: 'có cá tính', xs: [40, 640], y: 1614, size: 54, fit: 520, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', xs: [84, 684], y: 1686, size: 22, fit: 200, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+        ] },
+      { id: 'C-cosmos-noir', name: 'Cosmos – Noir', textGroup: 'cosmos', overlay: 'file:///C:/YoungBooth-Frames/C-cosmos-noir.png', thumb: 'file:///C:/YoungBooth-Frames/C-cosmos-noir-thumb.png', background: '#0f0f0f', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 448, y: 1640 }, { x: 1048, y: 1640 }] },
+        slots: [{ x: 36, y: 36, w: 528, h: 348, radius: 28 }, { x: 36, y: 398, w: 528, h: 348, radius: 28 }, { x: 36, y: 760, w: 528, h: 348, radius: 28 }, { x: 36, y: 1122, w: 528, h: 348, radius: 28 }, { x: 636, y: 36, w: 528, h: 348, radius: 28 }, { x: 636, y: 398, w: 528, h: 348, radius: 28 }, { x: 636, y: 760, w: 528, h: 348, radius: 28 }, { x: 636, y: 1122, w: 528, h: 348, radius: 28 }],
+        texts: [
+          { id: 'line1', label: 'Tiêu đề dòng 1', value: 'Khoảnh khắc', xs: [40, 640], y: 1556, size: 54, fit: 520, color: '#f4f3f1', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'line2', label: 'Tiêu đề dòng 2', value: 'có cá tính', xs: [40, 640], y: 1614, size: 54, fit: 520, color: '#f4f3f1', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', xs: [84, 684], y: 1686, size: 22, fit: 200, color: '#f4f3f1', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+        ] },
       { id: 'C-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/C-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/C-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, cut2inch: true, qr: { size: 110, label: false, at: [{ x: 44, y: 1622 }, { x: 644, y: 1622 }] },
         slots: [{ x: 44, y: 96, w: 512, h: 321 }, { x: 44, y: 451, w: 512, h: 321 }, { x: 44, y: 806, w: 512, h: 321 }, { x: 44, y: 1161, w: 512, h: 321 }, { x: 644, y: 96, w: 512, h: 321 }, { x: 644, y: 451, w: 512, h: 321 }, { x: 644, y: 806, w: 512, h: 321 }, { x: 644, y: 1161, w: 512, h: 321 }],
         texts: [
@@ -191,8 +201,8 @@ const FRAME_SETS = {
           { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 740, y: 1552, size: 28, fit: 398, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
           { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 740, y: 1580, size: 19, fit: 398, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
           { id: 'nam', label: 'Năm', value: '2026', x: 648, y: 80, size: 58, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
-          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 556, y: 1676, size: 44, fit: 360, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
-          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1156, y: 1676, size: 44, fit: 360, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 556, y: 1676, size: 44, fit: 560, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1156, y: 1676, size: 44, fit: 560, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'right' },
         ] },
   ],
   D: [
@@ -205,110 +215,117 @@ const FRAME_SETS = {
           { id: 'tagline', label: 'Dòng dưới ngày', value: 'SAVE THE DATE', x: 1627, ys: [315, 915], size: 18, color: '#333333', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 3 },
         ] },
       { id: 'D-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/D-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/D-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 716, y: 1012 }, { x: 1616, y: 1012 }] },
-        slots: [{ x: 60, y: 112, w: 780, h: 800 }, { x: 960, y: 112, w: 780, h: 800 }],
+        slots: [{ x: 60, y: 112, w: 780, h: 620 }, { x: 960, y: 112, w: 780, h: 620 }],
         texts: [
-          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 150, y: 995, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 150, y: 1022, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 150, y: 845, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 150, y: 872, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
           { id: 'nam', label: 'Năm', value: '2026', x: 62, y: 92, size: 64, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', xs: [62, 962], y: 1164, size: 18, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
-          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 1050, y: 995, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 1050, y: 1022, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 1050, y: 845, size: 27, fit: 472, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 1050, y: 872, size: 19, fit: 472, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
           { id: 'nam', label: 'Năm', value: '2026', x: 962, y: 92, size: 64, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
           { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 62, y: 1098, size: 44, fit: 630, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'left' },
           { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 962, y: 1098, size: 44, fit: 630, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 3, align: 'left' },
         ] },
   ],
   F: [
-      { id: 'F-crystal-white', name: 'Pha Lê Trắng', overlay: 'file:///C:/YoungBooth-Frames/F-crystal-white.png', thumb: 'file:///C:/YoungBooth-Frames/F-crystal-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-crystal-white', name: 'Pha Lê Trắng', overlay: 'file:///C:/YoungBooth-Frames/F-crystal-white.png', thumb: 'file:///C:/YoungBooth-Frames/F-crystal-white-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-crystal-pink', name: 'Pha Lê Hồng', overlay: 'file:///C:/YoungBooth-Frames/F-crystal-pink.png', thumb: 'file:///C:/YoungBooth-Frames/F-crystal-pink-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-crystal-pink', name: 'Pha Lê Hồng', overlay: 'file:///C:/YoungBooth-Frames/F-crystal-pink.png', thumb: 'file:///C:/YoungBooth-Frames/F-crystal-pink-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-black-stars', name: 'Ngôi Sao Đen', overlay: 'file:///C:/YoungBooth-Frames/F-black-stars.png', thumb: 'file:///C:/YoungBooth-Frames/F-black-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-black-stars', name: 'Ngôi Sao Đen', overlay: 'file:///C:/YoungBooth-Frames/F-black-stars.png', thumb: 'file:///C:/YoungBooth-Frames/F-black-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-black-stars-dense', name: 'Ngôi Sao Dày', overlay: 'file:///C:/YoungBooth-Frames/F-black-stars-dense.png', thumb: 'file:///C:/YoungBooth-Frames/F-black-stars-dense-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-black-stars-dense', name: 'Ngôi Sao Dày', overlay: 'file:///C:/YoungBooth-Frames/F-black-stars-dense.png', thumb: 'file:///C:/YoungBooth-Frames/F-black-stars-dense-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-gold-stars', name: 'Sao Kim Tuyến', overlay: 'file:///C:/YoungBooth-Frames/F-gold-stars.png', thumb: 'file:///C:/YoungBooth-Frames/F-gold-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1020, y: 1636 }] },
-        slots: [{ x: 60, y: 160, w: 533, h: 733 }, { x: 607, y: 160, w: 533, h: 733 }, { x: 60, y: 907, w: 533, h: 733 }, { x: 607, y: 907, w: 533, h: 733 }],
+      { id: 'F-gold-stars', name: 'Sao Kim Tuyến', overlay: 'file:///C:/YoungBooth-Frames/F-gold-stars.png', thumb: 'file:///C:/YoungBooth-Frames/F-gold-stars-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-gold-stars-blush', name: 'Sao Kim Tuyến Hồng', overlay: 'file:///C:/YoungBooth-Frames/F-gold-stars-blush.png', thumb: 'file:///C:/YoungBooth-Frames/F-gold-stars-blush-thumb.png', background: '#fdeef0', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1020, y: 1636 }] },
-        slots: [{ x: 60, y: 160, w: 533, h: 733 }, { x: 607, y: 160, w: 533, h: 733 }, { x: 60, y: 907, w: 533, h: 733 }, { x: 607, y: 907, w: 533, h: 733 }],
+      { id: 'F-gold-stars-blush', name: 'Sao Kim Tuyến Hồng', overlay: 'file:///C:/YoungBooth-Frames/F-gold-stars-blush.png', thumb: 'file:///C:/YoungBooth-Frames/F-gold-stars-blush-thumb.png', background: '#fdeef0', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-night-sky', name: 'Bầu Trời Sao', overlay: 'file:///C:/YoungBooth-Frames/F-night-sky.png', thumb: 'file:///C:/YoungBooth-Frames/F-night-sky-thumb.png', background: '#0b0b0d', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 36, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-night-sky', name: 'Bầu Trời Sao', overlay: 'file:///C:/YoungBooth-Frames/F-night-sky.png', thumb: 'file:///C:/YoungBooth-Frames/F-night-sky-thumb.png', background: '#0b0b0d', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-night-sky-violet', name: 'Bầu Trời Sao – Tím Đêm', overlay: 'file:///C:/YoungBooth-Frames/F-night-sky-violet.png', thumb: 'file:///C:/YoungBooth-Frames/F-night-sky-violet-thumb.png', background: '#140d2a', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 36, y: 1636 }] },
-        slots: [{ x: 36, y: 36, w: 557, h: 760 }, { x: 607, y: 36, w: 557, h: 760 }, { x: 36, y: 810, w: 557, h: 760 }, { x: 607, y: 810, w: 557, h: 760 }],
+      { id: 'F-night-sky-violet', name: 'Bầu Trời Sao – Tím Đêm', overlay: 'file:///C:/YoungBooth-Frames/F-night-sky-violet.png', thumb: 'file:///C:/YoungBooth-Frames/F-night-sky-violet-thumb.png', background: '#140d2a', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1515, y: 610 }] },
+        slots: [{ x: 48, y: 48, w: 663, h: 542 }, { x: 731, y: 48, w: 663, h: 542 }, { x: 48, y: 610, w: 663, h: 542 }, { x: 731, y: 610, w: 663, h: 542 }],
         texts: [] },
-      { id: 'F-quoc-khanh', name: 'Quốc Khánh 02.09', hidden: true, holiday: 'quockhanh', textGroup: 'quockhanh', overlay: 'file:///C:/YoungBooth-Frames/F-quoc-khanh.png', thumb: 'file:///C:/YoungBooth-Frames/F-quoc-khanh-thumb.png', background: '#f8eedb', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 36, y: 1636 }] },
-        slots: [{ x: 70, y: 70, w: 523, h: 763 }, { x: 607, y: 70, w: 523, h: 763 }, { x: 70, y: 847, w: 523, h: 763 }, { x: 607, y: 847, w: 523, h: 763 }],
+      { id: 'F-quoc-khanh', name: 'Quốc Khánh 02.09', hidden: true, holiday: 'quockhanh', textGroup: 'quockhanh', overlay: 'file:///C:/YoungBooth-Frames/F-quoc-khanh.png', thumb: 'file:///C:/YoungBooth-Frames/F-quoc-khanh-thumb.png', background: '#f8eedb', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1556, y: 1020 }] },
+        slots: [{ x: 70, y: 70, w: 668, h: 523 }, { x: 752, y: 70, w: 668, h: 523 }, { x: 70, y: 607, w: 668, h: 523 }, { x: 752, y: 607, w: 668, h: 523 }],
         texts: [
-          { id: 'date', label: 'Ngày lễ', value: '02.09', x: 40, y: 868, size: 64, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, align: 'left', stroke: '#ffffff', strokeW: 12, rotate: -4 },
-          { id: 'title', label: 'Dòng chữ dưới', value: 'VIỆT NAM', x: 600, y: 1730, size: 72, fit: 420, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800' },
+          { id: 'date', label: 'Ngày lễ', value: '02.09', x: 1440, y: 190, size: 76, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, align: 'left', stroke: '#ffffff', strokeW: 12, rotate: -4 },
+          { id: 'title', label: 'Dòng chữ dưới', value: 'VIỆT NAM', x: 1610, y: 690, size: 58, fit: 320, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800' },
         ] },
-      { id: 'F-qk-blue', name: 'Độc Lập – Xanh Nhạt', hidden: true, holiday: 'quockhanh', textGroup: 'qk-motto', overlay: 'file:///C:/YoungBooth-Frames/F-qk-blue.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-blue-thumb.png', background: '#d6e6f1', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 528, y: 1636 }] },
-        slots: [{ x: 50, y: 120, w: 538, h: 753 }, { x: 612, y: 120, w: 538, h: 753 }, { x: 50, y: 897, w: 538, h: 753 }, { x: 612, y: 897, w: 538, h: 753 }],
+      { id: 'F-qk-blue', name: 'Độc Lập – Xanh Nhạt', hidden: true, holiday: 'quockhanh', textGroup: 'qk-motto', overlay: 'file:///C:/YoungBooth-Frames/F-qk-blue.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-blue-thumb.png', background: '#d6e6f1', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1556, y: 1020 }] },
+        slots: [{ x: 50, y: 120, w: 673, h: 503 }, { x: 747, y: 120, w: 673, h: 503 }, { x: 50, y: 647, w: 673, h: 503 }, { x: 747, y: 647, w: 673, h: 503 }],
         texts: [
-          { id: 'header', label: 'Khẩu hiệu trên', value: 'ĐỘC LẬP — TỰ DO — HẠNH PHÚC', x: 130, y: 92, size: 34, fit: 960, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
-          { id: 'title', label: 'Chữ dưới trái', value: 'VIỆT NAM', x: 140, y: 1730, size: 34, fit: 360, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
-          { id: 'years', label: 'Chữ dưới phải', value: '1945 - 2026', x: 1090, y: 1730, size: 34, fit: 360, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'right' },
+          { id: 'header', label: 'Khẩu hiệu trên', value: 'ĐỘC LẬP — TỰ DO — HẠNH PHÚC', x: 120, y: 84, size: 34, fit: 1200, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
+          { id: 'title', label: 'Chữ dưới trái', value: 'VIỆT NAM', x: 1610, y: 600, size: 40, fit: 320, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600' },
+          { id: 'years', label: 'Chữ dưới phải', value: '1945 - 2026', x: 1610, y: 660, size: 34, fit: 320, color: '#1f2a44', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600' },
         ] },
-      { id: 'F-qk-red-gloss', name: 'Độc Lập – Đỏ Bóng', hidden: true, holiday: 'quockhanh', textGroup: 'qk-motto', overlay: 'file:///C:/YoungBooth-Frames/F-qk-red-gloss.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-red-gloss-thumb.png', background: '#d7261e', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 528, y: 1636 }] },
-        slots: [{ x: 50, y: 120, w: 538, h: 753 }, { x: 612, y: 120, w: 538, h: 753 }, { x: 50, y: 897, w: 538, h: 753 }, { x: 612, y: 897, w: 538, h: 753 }],
+      { id: 'F-qk-red-gloss', name: 'Độc Lập – Đỏ Bóng', hidden: true, holiday: 'quockhanh', textGroup: 'qk-motto', overlay: 'file:///C:/YoungBooth-Frames/F-qk-red-gloss.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-red-gloss-thumb.png', background: '#d7261e', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1556, y: 1020 }] },
+        slots: [{ x: 50, y: 120, w: 673, h: 503 }, { x: 747, y: 120, w: 673, h: 503 }, { x: 50, y: 647, w: 673, h: 503 }, { x: 747, y: 647, w: 673, h: 503 }],
         texts: [
-          { id: 'header', label: 'Khẩu hiệu trên', value: 'ĐỘC LẬP — TỰ DO — HẠNH PHÚC', x: 130, y: 92, size: 34, fit: 960, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
-          { id: 'title', label: 'Chữ dưới trái', value: 'VIỆT NAM', x: 140, y: 1730, size: 34, fit: 360, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
-          { id: 'years', label: 'Chữ dưới phải', value: '1945 - 2026', x: 1090, y: 1730, size: 34, fit: 360, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'right' },
+          { id: 'header', label: 'Khẩu hiệu trên', value: 'ĐỘC LẬP — TỰ DO — HẠNH PHÚC', x: 120, y: 84, size: 34, fit: 1200, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', align: 'left' },
+          { id: 'title', label: 'Chữ dưới trái', value: 'VIỆT NAM', x: 1610, y: 600, size: 40, fit: 320, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600' },
+          { id: 'years', label: 'Chữ dưới phải', value: '1945 - 2026', x: 1610, y: 660, size: 34, fit: 320, color: '#ffffff', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600' },
         ] },
-      { id: 'F-qk-29', name: 'Quốc Khánh 2.9 – Đỏ Trắng', hidden: true, holiday: 'quockhanh', textGroup: 'qk-29', overlay: 'file:///C:/YoungBooth-Frames/F-qk-29.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-29-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 50, y: 130, w: 544, h: 764 }, { x: 606, y: 130, w: 544, h: 764 }, { x: 50, y: 906, w: 544, h: 764 }, { x: 606, y: 906, w: 544, h: 764 }],
+      { id: 'F-qk-29', name: 'Quốc Khánh 2.9 – Đỏ Trắng', hidden: true, holiday: 'quockhanh', textGroup: 'qk-29', overlay: 'file:///C:/YoungBooth-Frames/F-qk-29.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-29-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1538, y: 260 }] },
+        slots: [{ x: 50, y: 130, w: 679, h: 504 }, { x: 741, y: 130, w: 679, h: 504 }, { x: 50, y: 646, w: 679, h: 504 }, { x: 741, y: 646, w: 679, h: 504 }],
         texts: [
-          { id: 'badge', label: 'Số lớn', value: '2.9', x: 70, y: 100, size: 64, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'header', label: 'Dòng trên', value: 'MỪNG QUỐC KHÁNH', x: 720, y: 96, size: 28, fit: 520, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', ls: 1 },
-          { id: 'footer', label: 'Dòng dưới', value: 'VIỆT NAM TỰ HÀO', x: 640, y: 1722, size: 28, fit: 520, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', ls: 1 },
+          { id: 'badge', label: 'Số lớn', value: '2.9', x: 60, y: 104, size: 72, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'header', label: 'Dòng trên', value: 'MỪNG QUỐC KHÁNH', x: 760, y: 96, size: 30, fit: 700, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', ls: 1 },
+          { id: 'footer', label: 'Dòng dưới', value: 'VIỆT NAM TỰ HÀO', x: 1610, y: 760, size: 30, fit: 330, color: '#d42a2a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', ls: 1 },
         ] },
-      { id: 'F-qk-white-flags', name: 'Độc Lập – Trắng Cờ Hoa', hidden: true, holiday: 'quockhanh', textGroup: 'qk-white-flags', overlay: 'file:///C:/YoungBooth-Frames/F-qk-white-flags.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-white-flags-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 528, y: 1636 }] },
-        slots: [{ x: 50, y: 170, w: 542, h: 732 }, { x: 608, y: 170, w: 542, h: 732 }, { x: 50, y: 918, w: 542, h: 732 }, { x: 608, y: 918, w: 542, h: 732 }],
+      { id: 'F-qk-white-flags', name: 'Độc Lập – Trắng Cờ Hoa', hidden: true, holiday: 'quockhanh', textGroup: 'qk-white-flags', overlay: 'file:///C:/YoungBooth-Frames/F-qk-white-flags.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-white-flags-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1538, y: 440 }] },
+        slots: [{ x: 50, y: 170, w: 677, h: 482 }, { x: 743, y: 170, w: 677, h: 482 }, { x: 50, y: 668, w: 677, h: 482 }, { x: 743, y: 668, w: 677, h: 482 }],
         texts: [
-          { id: 'kicker', label: 'Dòng nhỏ', value: 'Còn gì vui hơn ?', x: 600, y: 70, size: 30, color: '#1a1a1a', ff: '"Dancing Script", cursive', weight: '600' },
-          { id: 'header', label: 'Dòng chính', value: 'Độc lập - Tự do', x: 600, y: 132, size: 52, fit: 760, color: '#1a1a1a', ff: '"Dancing Script", cursive', weight: '700' },
+          { id: 'kicker', label: 'Dòng nhỏ', value: 'Còn gì vui hơn ?', x: 700, y: 70, size: 30, color: '#1a1a1a', ff: '"Dancing Script", cursive', weight: '600' },
+          { id: 'header', label: 'Dòng chính', value: 'Độc lập - Tự do', x: 700, y: 138, size: 56, fit: 1000, color: '#1a1a1a', ff: '"Dancing Script", cursive', weight: '700' },
         ] },
-      { id: 'F-qk-maroon', name: 'Độc Lập – Đỏ Thẫm Hoa Văn', hidden: true, holiday: 'quockhanh', textGroup: 'qk-maroon', overlay: 'file:///C:/YoungBooth-Frames/F-qk-maroon.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-maroon-thumb.png', background: '#8e1717', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 40, y: 110, w: 550, h: 780, radius: 40 }, { x: 610, y: 110, w: 550, h: 780, radius: 40 }, { x: 40, y: 910, w: 550, h: 780, radius: 40 }, { x: 610, y: 910, w: 550, h: 780, radius: 40 }],
+      { id: 'F-qk-maroon', name: 'Độc Lập – Đỏ Thẫm Hoa Văn', hidden: true, holiday: 'quockhanh', textGroup: 'qk-maroon', overlay: 'file:///C:/YoungBooth-Frames/F-qk-maroon.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-maroon-thumb.png', background: '#8e1717', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1535, y: 400 }] },
+        slots: [{ x: 40, y: 40, w: 670, h: 550, radius: 40 }, { x: 730, y: 40, w: 670, h: 550, radius: 40 }, { x: 40, y: 610, w: 670, h: 550, radius: 40 }, { x: 730, y: 610, w: 670, h: 550, radius: 40 }],
         texts: [
-          { id: 'header', label: 'Khẩu hiệu', value: 'ĐỘC LẬP - TỰ DO', x: 1150, y: 82, size: 34, fit: 760, color: '#ffd21f', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'right' },
+          { id: 'header', label: 'Khẩu hiệu', value: 'ĐỘC LẬP - TỰ DO', x: 1607, y: 96, size: 30, fit: 340, color: '#ffd21f', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'center' },
         ] },
-      { id: 'F-qk-bronze', name: 'Không Gì Quý Hơn Độc Lập Tự Do', hidden: true, holiday: 'quockhanh', textGroup: 'qk-bronze', overlay: 'file:///C:/YoungBooth-Frames/F-qk-bronze.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-bronze-thumb.png', background: '#7b5e2d', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 60, y: 1636 }] },
-        slots: [{ x: 40, y: 40, w: 553, h: 708 }, { x: 607, y: 40, w: 553, h: 708 }, { x: 40, y: 762, w: 553, h: 708 }, { x: 607, y: 762, w: 553, h: 708 }],
+      { id: 'F-qk-bronze', name: 'Không Gì Quý Hơn Độc Lập Tự Do', hidden: true, holiday: 'quockhanh', textGroup: 'qk-bronze', overlay: 'file:///C:/YoungBooth-Frames/F-qk-bronze.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-bronze-thumb.png', background: '#7b5e2d', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1556, y: 1020 }] },
+        slots: [{ x: 40, y: 40, w: 673, h: 553 }, { x: 727, y: 40, w: 673, h: 553 }, { x: 40, y: 607, w: 673, h: 553 }, { x: 727, y: 607, w: 673, h: 553 }],
         texts: [
-          { id: 'quote', label: 'Câu trích', value: '“Không có gì quý hơn độc lập, tự do.”', x: 560, y: 1600, size: 32, w: 360, lh: 44, color: '#f1d58a', ff: '"YB Script", "Dancing Script", cursive' },
-          { id: 'kicker', label: 'Dòng 1', value: 'CHÀO MỪNG', x: 1150, y: 1560, size: 18, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', ls: 2, align: 'right' },
-          { id: 'header', label: 'Dòng 2', value: 'QUỐC KHÁNH', x: 1150, y: 1592, size: 22, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', ls: 2, align: 'right' },
-          { id: 'title', label: 'Dòng 3', value: 'VIỆT NAM', x: 1150, y: 1630, size: 30, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'right' },
-          { id: 'badge', label: 'Số lớn', value: '2-9', x: 1150, y: 1730, size: 90, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'right' },
+          { id: 'kicker', label: 'Dòng 1', value: 'CHÀO MỪNG', x: 1607, y: 96, size: 18, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', ls: 2 },
+          { id: 'header', label: 'Dòng 2', value: 'QUỐC KHÁNH', x: 1607, y: 130, size: 22, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', ls: 2 },
+          { id: 'title', label: 'Dòng 3', value: 'VIỆT NAM', x: 1607, y: 172, size: 30, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800' },
+          { id: 'badge', label: 'Số lớn', value: '2-9', x: 1607, y: 300, size: 100, color: '#f1d58a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800' },
+          { id: 'quote', label: 'Câu trích', value: '“Không có gì quý hơn độc lập, tự do.”', x: 1607, y: 420, size: 30, w: 330, lh: 40, color: '#f1d58a', ff: '"YB Script", "Dancing Script", cursive' },
         ] },
-      { id: 'F-qk-airmail', name: 'Thư Bưu Chính 2/9 (3 ảnh)', hidden: true, holiday: 'quockhanh', textGroup: 'qk-airmail', overlay: 'file:///C:/YoungBooth-Frames/F-qk-airmail.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-airmail-thumb.png', background: '#f3ece0', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1030, y: 1630 }] },
-        slots: [{ x: 60, y: 60, w: 528, h: 693 }, { x: 612, y: 60, w: 528, h: 693 }, { x: 60, y: 777, w: 528, h: 693 }],
+      { id: 'F-qk-airmail', name: 'Thư Bưu Chính 2/9 (3 ảnh)', hidden: true, holiday: 'quockhanh', textGroup: 'qk-airmail', overlay: 'file:///C:/YoungBooth-Frames/F-qk-airmail.png', thumb: 'file:///C:/YoungBooth-Frames/F-qk-airmail-thumb.png', background: '#f3ece0', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1586, y: 990 }] },
+        slots: [{ x: 50, y: 50, w: 820, h: 530 }, { x: 890, y: 50, w: 820, h: 530 }, { x: 50, y: 610, w: 820, h: 530 }],
         texts: [
-          { id: 'para1', label: 'Đoạn ngắn', value: '2/9 – Ngày Quốc khánh nước Việt Nam.', x: 640, y: 830, size: 32, w: 480, lh: 42, color: '#c8252b', ff: '"Noto Serif", Georgia, serif', weight: '700', align: 'left' },
-          { id: 'para2', label: 'Đoạn dài', value: 'Chúc mừng ngày Quốc khánh 2/9 – cùng nhau lưu giữ khoảnh khắc tự hào.', x: 60, y: 1545, size: 30, w: 1080, lh: 42, color: '#c8252b', ff: '"Noto Serif", Georgia, serif', weight: '700', align: 'left' },
+          { id: 'para1', label: 'Đoạn ngắn', value: '2/9 – Ngày Quốc khánh nước Việt Nam.', x: 1250, y: 670, size: 30, w: 480, lh: 40, color: '#c8252b', ff: '"Noto Serif", Georgia, serif', weight: '700', align: 'left' },
+          { id: 'para2', label: 'Đoạn dài', value: 'Chúc mừng ngày Quốc khánh 2/9 – cùng nhau lưu giữ khoảnh khắc tự hào.', x: 1250, y: 800, size: 26, w: 480, lh: 36, color: '#c8252b', ff: '"Noto Serif", Georgia, serif', weight: '700', align: 'left' },
         ] },
-      { id: 'F-trungthu', name: 'Trung Thu', hidden: true, holiday: 'trungthu', textGroup: 'trungthu', overlay: 'file:///C:/YoungBooth-Frames/F-trungthu.png', thumb: 'file:///C:/YoungBooth-Frames/F-trungthu-thumb.png', background: '#4a2a9e', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 50, y: 70, w: 547, h: 762 }, { x: 603, y: 70, w: 547, h: 762 }, { x: 50, y: 838, w: 547, h: 762 }, { x: 603, y: 838, w: 547, h: 762 }],
+      { id: 'F-trungthu', name: 'Trung Thu', hidden: true, holiday: 'trungthu', textGroup: 'trungthu', overlay: 'file:///C:/YoungBooth-Frames/F-trungthu.png', thumb: 'file:///C:/YoungBooth-Frames/F-trungthu-thumb.png', background: '#4a2a9e', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1538, y: 290 }] },
+        slots: [{ x: 60, y: 60, w: 677, h: 537 }, { x: 743, y: 60, w: 677, h: 537 }, { x: 60, y: 603, w: 677, h: 537 }, { x: 743, y: 603, w: 677, h: 537 }],
         texts: [
-          { id: 'title', label: 'Tiêu đề', value: 'Happy Mid Autumn', x: 640, y: 1690, size: 42, fit: 560, color: '#ffffff', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '700' },
+          { id: 'title', label: 'Tiêu đề', value: 'Happy Mid Autumn', x: 1610, y: 190, size: 44, fit: 330, color: '#ffffff', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '700' },
         ] },
-      { id: 'F-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/F-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/F-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1010, y: 1612 }] },
-        slots: [{ x: 60, y: 186, w: 523, h: 625 }, { x: 617, y: 186, w: 523, h: 625 }, { x: 60, y: 845, w: 523, h: 625 }, { x: 617, y: 845, w: 523, h: 625 }],
+      { id: 'F-cosmos', name: 'Cosmos – Lưới', textGroup: 'cosmos', overlay: 'file:///C:/YoungBooth-Frames/F-cosmos.png', thumb: 'file:///C:/YoungBooth-Frames/F-cosmos-thumb.png', background: '#f4f3f1', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1600, y: 1000 }] },
+        slots: [{ x: 40, y: 40, w: 672, h: 552, radius: 36 }, { x: 728, y: 40, w: 672, h: 552, radius: 36 }, { x: 40, y: 608, w: 672, h: 552, radius: 36 }, { x: 728, y: 608, w: 672, h: 552, radius: 36 }],
         texts: [
-          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 180, y: 1556, size: 34, fit: 562, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
-          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 180, y: 1590, size: 24, fit: 562, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
-          { id: 'nam', label: 'Năm', value: '2026', x: 64, y: 150, size: 112, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 70, y: 1766, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
-          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 70, y: 1690, size: 62, fit: 900, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
+          { id: 'line1', label: 'Tiêu đề dòng 1', value: 'Khoảnh khắc', x: 1440, y: 170, size: 66, fit: 320, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'line2', label: 'Tiêu đề dòng 2', value: 'có cá tính', x: 1440, y: 246, size: 66, fit: 320, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1490, y: 915, size: 22, fit: 210, color: '#111111', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+        ] },
+      { id: 'F-tet-truong', name: 'Tết Trường – Đỏ Son', hidden: true, holiday: 'truong', textGroup: 'truong', overlay: 'file:///C:/YoungBooth-Frames/F-tet-truong.png', thumb: 'file:///C:/YoungBooth-Frames/F-tet-truong-thumb.png', background: '#a3192b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1616, y: 1030 }] },
+        slots: [{ x: 50, y: 150, w: 645, h: 485 }, { x: 725, y: 150, w: 645, h: 485 }, { x: 50, y: 665, w: 645, h: 485 }, { x: 725, y: 665, w: 645, h: 485 }],
+        texts: [
+          { id: 'school', label: 'Tên trường', value: 'TRƯỜNG THPT YOUNG BOOTH', x: 1484, y: 348, size: 29, fit: 270, color: '#1f4fa3', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', align: 'left' },
+          { id: 'khoa', label: 'Khóa', value: 'Khóa 2023 – 2026', x: 1484, y: 377, size: 20, fit: 270, color: '#b3202e', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', align: 'left' },
+          { id: 'nam', label: 'Năm', value: '2026', x: 56, y: 124, size: 100, color: '#f5c443', ff: '"Baloo 2", "Be Vietnam Pro", sans-serif', weight: '800', align: 'left', stroke: '#4a0c14', strokeW: 8, rotate: -6 },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1388, y: 1160, size: 22, color: '#f7d98a', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '600', ls: 3, align: 'left' },
+          { id: 'slogan', label: 'Khẩu hiệu lớn (thay Photo Time)', value: 'THANH XUÂN', x: 1388, y: 560, size: 60, fit: 380, color: '#fcd9c4', ff: 'Oswald, "Be Vietnam Pro", sans-serif', weight: '600', ls: 4, align: 'left' },
         ] },
   ],
 };
@@ -321,22 +338,14 @@ const EVENT_FRAMES = [
           { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', xs: [470, 1070], y: 1515, size: 36, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
           { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', xs: [320, 920], y: 1548, size: 22, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
         ] },
-      { id: 'EV-B-orientation', mode: 'B', name: 'Orientation Day (dọc)', photos: 2, textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 50, y: 150, w: 1100, h: 600 }, { x: 50, y: 780, w: 1100, h: 600 }],
+      { id: 'EV-B-orientation', mode: 'B', name: 'Orientation Day', photos: 2, textGroup: 'event-orientation', overlay: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation.png', thumb: 'file:///C:/YoungBooth-Frames/events/orientation/B-orientation-thumb.png', background: '#3fb6e8', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+        slots: [{ x: 40, y: 150, w: 850, h: 640 }, { x: 910, y: 150, w: 850, h: 640 }],
         texts: [
-          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', x: 600, y: 1540, size: 84, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
-          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', x: 830, y: 1560, size: 56, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
-          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', x: 590, y: 1600, size: 34, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
+          { id: 'title', label: 'Tên sự kiện', value: 'ORIENTATION', x: 900, y: 990, size: 80, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '800', italic: true, stroke: '#1d3a8a', strokeW: 10, rotate: -6 },
+          { id: 'title2', label: 'Chữ phụ tên sự kiện', value: 'day', x: 1130, y: 1008, size: 54, color: '#ffffff', ff: '"Dancing Script", cursive', weight: '700', stroke: '#1d3a8a', strokeW: 8, rotate: -6 },
+          { id: 'tagline', label: 'Khẩu hiệu', value: 'Future Starts Here', x: 890, y: 1050, size: 32, color: '#ffffff', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '700', stroke: '#1d3a8a', strokeW: 6, rotate: -6 },
         ] },
-      { id: 'EV-A-cs-d1', mode: 'A', name: 'Cỏ Bốn Lá – Tờ dọc', photos: 1, textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-d1-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 80, y: 80, w: 1040, h: 1300, radius: 40 }],
-        texts: [
-          { id: 'line1', label: 'Dòng chữ trên', value: 'Yêu Thương', x: 470, y: 1530, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'sep', label: 'Ký tự nối', value: '+', x: 600, y: 1600, size: 40, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'line2', label: 'Dòng chữ dưới', value: 'Hạnh Phúc', x: 720, y: 1680, size: 64, fit: 520, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 720, y: 1735, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
-        ] },
-      { id: 'EV-A-cs-n1', mode: 'A', name: 'Cỏ Bốn Lá – Tờ ngang', photos: 1, textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
+      { id: 'EV-A-cs-n1', mode: 'A', name: 'Cỏ Bốn Lá', photos: 1, textGroup: 'clover-sage', overlay: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/co-bon-la/cs-n1-thumb.png', background: '#c3d1ba', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
         slots: [{ x: 85, y: 63, w: 1630, h: 910, radius: 40 }],
         texts: [
           { id: 'line1', label: 'Dòng chữ trên', value: 'Yêu Thương', x: 840, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'right' },
@@ -344,23 +353,15 @@ const EVENT_FRAMES = [
           { id: 'line2', label: 'Dòng chữ dưới', value: 'Hạnh Phúc', x: 960, y: 1090, size: 64, fit: 620, color: '#ffffff', ff: '"YB Serif", Georgia, serif', weight: '600', align: 'left' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 1140, size: 22, color: '#f2f6ef', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
         ] },
-      { id: 'EV-A-rv-d1', mode: 'A', name: 'Đỏ Rượu Vang – 1 ảnh dọc', photos: 1, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d1-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 42, y: 42, w: 1116, h: 1380, radius: 14 }],
+      { id: 'EV-B-rv-d2', mode: 'B', name: 'Đỏ Rượu Vang – 2 ảnh', photos: 2, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+        slots: [{ x: 40, y: 40, w: 850, h: 660, radius: 12 }, { x: 910, y: 40, w: 850, h: 660, radius: 12 }],
         texts: [
-          { id: 'line1', label: 'Chữ bên trái trái tim', value: 'Love', x: 560, y: 1560, size: 84, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
-          { id: 'line2', label: 'Chữ bên phải trái tim', value: 'Forever', x: 640, y: 1560, size: 84, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 600, y: 1630, size: 26, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
-          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 600, y: 1706, size: 42, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
+          { id: 'line1', label: 'Chữ bên trái trái tim', value: 'Love', x: 860, y: 830, size: 72, fit: 360, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
+          { id: 'line2', label: 'Chữ bên phải trái tim', value: 'Forever', x: 940, y: 830, size: 72, fit: 360, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
+          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 884, size: 22, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
+          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 900, y: 940, size: 34, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
         ] },
-      { id: 'EV-B-rv-d2', mode: 'B', name: 'Đỏ Rượu Vang – 2 ảnh dọc', photos: 2, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-d2-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, paper: '4x6', noRotate: false, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 42, y: 42, w: 1116, h: 718, radius: 12 }, { x: 42, y: 776, w: 1116, h: 718, radius: 12 }],
-        texts: [
-          { id: 'line1', label: 'Chữ bên trái trái tim', value: 'Love', x: 560, y: 1600, size: 70, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
-          { id: 'line2', label: 'Chữ bên phải trái tim', value: 'Forever', x: 640, y: 1600, size: 70, fit: 330, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'left' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 600, y: 1658, size: 22, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
-          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 600, y: 1724, size: 36, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
-        ] },
-      { id: 'EV-A-rv-n1', mode: 'A', name: 'Đỏ Rượu Vang – 1 ảnh ngang', photos: 1, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+      { id: 'EV-A-rv-n1', mode: 'A', name: 'Đỏ Rượu Vang – 1 ảnh', photos: 1, textGroup: 'rv', overlay: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/ruou-vang/rv-n1-thumb.png', background: '#6e0b16', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
         slots: [{ x: 40, y: 40, w: 1720, h: 900, radius: 14 }],
         texts: [
           { id: 'line1', label: 'Chữ bên trái trái tim', value: 'Love', x: 860, y: 1050, size: 80, fit: 380, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive', align: 'right' },
@@ -368,35 +369,29 @@ const EVENT_FRAMES = [
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 1108, size: 24, color: '#f5efe6', ff: '"Be Vietnam Pro", Arial, sans-serif', weight: '500', ls: 3 },
           { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank You', x: 900, y: 1162, size: 36, color: '#f5efe6', ff: '"YB Script", "Dancing Script", cursive' },
         ] },
-      { id: 'EV-A-lc-d1', mode: 'A', name: 'Chanh Vàng – Tờ dọc', photos: 1, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-d1-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 1036, y: 1636 }] },
-        slots: [{ x: 42, y: 42, w: 1116, h: 1400 }],
-        texts: [
-          { id: 'mono', label: 'Chữ trong vòng lá (vd chữ cái đầu)', value: 'Love', x: 600, y: 1632, size: 66, fit: 211.2, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
-          { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 600, y: 1686, size: 22, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
-        ] },
-      { id: 'EV-A-lc-n1', mode: 'A', name: 'Chanh Vàng – Tờ ngang', photos: 1, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
+      { id: 'EV-A-lc-n1', mode: 'A', name: 'Chanh Vàng', photos: 1, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n1-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1620, y: 1020 }] },
         slots: [{ x: 42, y: 42, w: 1716, h: 860 }],
         texts: [
           { id: 'mono', label: 'Chữ trong vòng lá (vd chữ cái đầu)', value: 'Love', x: 900, y: 1054, size: 54, fit: 172.8, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 900, y: 1098, size: 18, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
         ] },
-      { id: 'EV-F-lc-n3', mode: 'F', name: 'Chanh Vàng – 3 ảnh ngang', photos: 3, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1600, y: 410 }] },
+      { id: 'EV-F-lc-n3', mode: 'F', name: 'Chanh Vàng – 3 ảnh', photos: 3, textGroup: 'lc', overlay: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3.png', thumb: 'file:///C:/YoungBooth-Frames/events/chanh-vang/lc-n3-thumb.png', background: '#fffdf7', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1600, y: 410 }] },
         slots: [{ x: 40, y: 40, w: 850, h: 550 }, { x: 40, y: 610, w: 850, h: 550 }, { x: 910, y: 610, w: 850, h: 550 }],
         texts: [
           { id: 'mono', label: 'Chữ trong vòng lá (vd chữ cái đầu)', value: 'Love', x: 1300, y: 322, size: 112, fit: 358.4, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '700' },
           { id: 'date', label: 'Ngày (trống = hôm nay)', value: '', x: 1300, y: 404, size: 30, color: '#7a5a1e', ff: '"YB Serif", Georgia, serif', weight: '600', ls: 2 },
         ] },
-      { id: 'EV-A-bc-d1', mode: 'A', name: 'Báo Cũ – The Daily', photos: 1, textGroup: 'bc', overlay: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1-thumb.png', background: '#cfc4a5', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, qr: { size: 120, label: false, at: [{ x: 70, y: 1590 }] },
-        slots: [{ x: 60, y: 96, w: 1080, h: 1290 }],
+      { id: 'EV-A-bc-d1', mode: 'A', name: 'Báo Cũ – The Daily', photos: 1, textGroup: 'bc', overlay: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1.png', thumb: 'file:///C:/YoungBooth-Frames/events/bao-cu/bc-d1-thumb.png', background: '#cfc4a5', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1474, y: 230 }] },
+        slots: [{ x: 60, y: 150, w: 1220, h: 900 }],
         texts: [
-          { id: 'dateline', label: 'Dòng ngày kiểu báo', value: 'Ấn bản đặc biệt', x: 64, y: 1478, size: 22, fit: 360, color: '#4e4434', ff: '"Noto Serif", Georgia, serif', align: 'left' },
+          { id: 'dateline', label: 'Dòng ngày kiểu báo', value: 'Ấn bản đặc biệt', x: 1366, y: 130, size: 22, fit: 360, color: '#4e4434', ff: '"Noto Serif", Georgia, serif', align: 'left' },
         ] },
-      { id: 'EV-B-pl-n2', mode: 'B', name: 'Polaroid Băng Dính', photos: 2, textGroup: 'pl', overlay: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2.png', thumb: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 700, y: 950 }, { x: 1582, y: 950 }] },
-        slots: [{ x: 99, y: 153, w: 720, h: 720 }, { x: 981, y: 153, w: 720, h: 720 }],
+      { id: 'EV-B-pl-n2', mode: 'B', name: 'Polaroid Băng Dính', photos: 2, textGroup: 'pl', overlay: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2.png', thumb: 'file:///C:/YoungBooth-Frames/events/polaroid/pl-n2-thumb.png', background: '#ffffff', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 700, y: 880 }, { x: 1582, y: 880 }] },
+        slots: [{ x: 99, y: 213, w: 720, h: 540 }, { x: 981, y: 213, w: 720, h: 540 }],
         texts: [
-          { id: 'caption', label: 'Chữ dưới ảnh Polaroid', value: 'Young Booth', xs: [400, 1282], y: 1010, size: 62, fit: 520, color: '#8c8680', ff: '"YB Script", "Dancing Script", cursive' },
+          { id: 'caption', label: 'Chữ dưới ảnh Polaroid', value: 'Young Booth', xs: [400, 1282], y: 930, size: 62, fit: 520, color: '#8c8680', ff: '"YB Script", "Dancing Script", cursive' },
         ] },
-      { id: 'EV-A-sv-n1', mode: 'A', name: 'Sao Vàng Nền Đen', photos: 1, overlay: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1-thumb.png', background: '#0b0b0b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, paper: '4x6', qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
+      { id: 'EV-A-sv-n1', mode: 'A', name: 'Sao Vàng Nền Đen', photos: 1, overlay: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1-thumb.png', background: '#0b0b0b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
         slots: [{ x: 180, y: 120, w: 1440, h: 960, radius: 125 }],
         texts: [] },
 ];
@@ -416,11 +411,25 @@ const FRAME_TEXT_GROUPS = {
   'lc': 'Khung Chanh Vàng (khung sự kiện)',
   'bc': 'Khung Báo Cũ (khung sự kiện)',
   'pl': 'Khung Polaroid (khung sự kiện)',
+  'cosmos': 'Khung Cosmos (Khoảnh Khắc · Nhật Ký · Dịu Dàng)',
   'music': 'Khung Music Player (Khoảnh Khắc)',
   'polaroid-love': 'Khung Polaroid Giấy Cũ (Khoảnh Khắc)',
   'truong': 'Khung Trường cấp 3 (Khoảnh Khắc · Nhật Ký · Chia Đôi · Ngọt Ngào · Dịu Dàng)',
 };
 // ==== HẾT KHUNG MỚI (tự sinh)
+
+// Khung đã bỏ (28/10/2026: mọi khung tờ ngang + ảnh ngang, Nhật Ký giữ dải dọc) → id thay thế.
+// Cài đặt / sự kiện đã lưu id cũ vẫn mở đúng khung mới, không rơi về khung mặc định.
+const FRAME_ALIASES = {
+  'A-clover-sage-wide': 'A-clover-sage',
+  'C-crystal-white-wide': 'C-crystal-white',
+  'C-black-stars-wide': 'C-black-stars',
+  'C-gold-stars-wide': 'C-gold-stars',
+  'C-night-sky-wide': 'C-night-sky',
+  'EV-A-cs-d1': 'EV-A-cs-n1',
+  'EV-A-rv-d1': 'EV-A-rv-n1',
+  'EV-A-lc-d1': 'EV-A-lc-n1',
+};
 
 const BOOTH_CONFIG = {
   brand: {
@@ -514,11 +523,11 @@ const BOOTH_CONFIG = {
   reviewShots: true,      // sau khi chụp loạt ảnh → cho XEM LẠI + CHỤP LẠI từng tấm trước khi ghép
 
   // Làm đẹp: mịn da + làm nét. 0 = tắt, 1 = mạnh.
+  // Làm đẹp (28/10/2026): mịn da CHỈ ở vùng da + giữ nguyên đường nét (mắt, tóc, viền áo) — không làm mờ cả ảnh.
   beauty: {
     enabled: true,       // bật sẵn (có nút bật/tắt ở màn kết quả)
-    smooth: 0.45,        // mịn da (0–1)
-    sharpen: 0.35,       // làm nét (0–1)
-    glow: 0.05,          // sáng da nhẹ (0–1)
+    smooth: 0.55,        // mịn da (0–1) — chỉ tác dụng lên vùng da phẳng
+    glow: 0.04,          // sáng da nhẹ (0–0.2)
   },
 
   // Sticker dán lên ảnh (màn kết quả). emojis = mặc định; images = PNG trong renderer/stickers/.
@@ -581,6 +590,11 @@ const BOOTH_CONFIG = {
     { id: 'cool',    name: 'Lạnh',      css: 'brightness(1.05) contrast(1.04) saturate(1.02)', tint: { color: '#3c8cff', alpha: 0.14, mode: 'soft-light' } },
     { id: 'vivid',   name: 'Rực rỡ',    css: 'saturate(1.28) contrast(1.1) brightness(1.03)' },
     { id: 'vintage', name: 'Cổ điển',   css: 'sepia(0.25) saturate(0.85) contrast(0.92) brightness(1.06)', tint: { color: '#3a2a1a', alpha: 0.22, mode: 'lighten' } },
+    { id: 'clear',   name: 'Trong trẻo', css: 'brightness(1.06) contrast(1.08) saturate(1.12)' },
+    { id: 'korean',  name: 'Hàn Quốc',  css: 'brightness(1.08) contrast(0.94) saturate(0.92)', tint: { color: '#ffc8d8', alpha: 0.14, mode: 'soft-light' } },
+    { id: 'film',    name: 'Film',      css: 'contrast(1.06) saturate(0.86) sepia(0.12) brightness(1.03)', tint: { color: '#2a6f6a', alpha: 0.12, mode: 'soft-light' } },
+    { id: 'moody',   name: 'Trầm',      css: 'contrast(1.12) saturate(0.78) brightness(0.97)', tint: { color: '#1d2a44', alpha: 0.14, mode: 'soft-light' } },
+    { id: 'bwsoft',  name: 'Đen trắng mềm', css: 'grayscale(1) contrast(0.95) brightness(1.08)' },
   ],
 
   // Kiểu chụp.
@@ -592,13 +606,14 @@ const BOOTH_CONFIG = {
   // PNG phải 1200×1800, CHỪA TRONG SUỐT đúng các ô ảnh (slots); đổi khung = thay PNG, không build lại.
   modes: [
     // Layout A — Khoảnh Khắc: GALLERY sang trọng (nền navy nhung, 2 lớp viền vàng đồng, góc art-deco).
-    // Khung: make_a() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['A'].
-    { id: 'A', name: 'Khoảnh Khắc', icon: '🖼️', desc: '4×6" · 1 ảnh', kind: 'photo',
+    // Tờ 6×4 NGANG: ảnh ngang bên trái, cột phải logo + chữ + QR. Khung: make_a() — slots PHẢI khớp SLOTS['A'].
+    { id: 'A', name: 'Khoảnh Khắc', icon: '🖼️', desc: '6×4" · 1 ảnh (ngang)', kind: 'photo',
       captureCount: 1, select: 1,
-      canvas: { w: 1200, h: 1800 },
+      canvas: { w: 1800, h: 1200 },
       background: '#1C2541',
+      paper: '6x4', noRotate: true,
       slots: [
-        { x: 60, y: 150, w: 1080, h: 1390, radius: 0 },
+        { x: 70, y: 120, w: 1290, h: 960, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid1-dark.png',
       // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
@@ -608,16 +623,16 @@ const BOOTH_CONFIG = {
         ...FRAME_SETS.A,   // khung mới (tự sinh ở đầu file)
       ],
       showBrand: false,
-      qr: { xs: [994], y: 1586, width: 136, label: '' },   // QR trong footer, thẳng viền ngoài bên phải
-      // Logo giữa header (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 44, h: 74 },
+      qr: { xs: [1505], y: 900, width: 150, label: '' },   // QR cuối cột phải, đáy ngang đáy ảnh
+      // Logo đầu cột phải (thay file C:\YoungBooth-Frames\logo.png để đổi logo).
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [1580], y: 140, h: 74 },
       texts: [
-        { id: 'brand', label: 'Chữ thương hiệu (footer)', value: 'YoungBooth',
-          x: 600, y: 1648, size: 62, color: '#C9A961', ff: '"Segoe Script", cursive', weight: '700' },
+        { id: 'brand', label: 'Chữ thương hiệu', value: 'YoungBooth',
+          x: 1580, y: 410, size: 62, fit: 340, color: '#C9A961', ff: '"Segoe Script", cursive', weight: '700' },
         { id: 'date', label: 'Ngày', value: '',
-          x: 600, y: 1712, size: 22, color: '#E8E1D3', ff: 'Arial, sans-serif', weight: '600', ls: 10 },
+          x: 1580, y: 474, size: 22, color: '#E8E1D3', ff: 'Arial, sans-serif', weight: '600', ls: 8 },
         { id: 'qrhint', label: 'Dòng hướng dẫn QR', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
-          x: 600, y: 1746, size: 17, color: 'rgba(232,225,211,0.75)', ff: 'Arial, sans-serif', weight: '600', ls: 1 },
+          x: 1580, y: 870, size: 16, fit: 340, color: 'rgba(232,225,211,0.75)', ff: 'Arial, sans-serif', weight: '600' },
       ],
     },
 
@@ -631,8 +646,8 @@ const BOOTH_CONFIG = {
       paper: '6x4',
       noRotate: true,
       slots: [
-        { x: 110, y: 160, w: 680, h: 810, radius: 24 },
-        { x: 1010, y: 160, w: 680, h: 810, radius: 24 },
+        { x: 60, y: 150, w: 780, h: 585, radius: 24 },
+        { x: 960, y: 150, w: 780, h: 585, radius: 24 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/wedding-4x6.png',
       // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
@@ -642,15 +657,15 @@ const BOOTH_CONFIG = {
         ...FRAME_SETS.B,   // khung mới (tự sinh ở đầu file)
       ],
       showBrand: false,
-      qr: { xs: [640, 1540], y: 990, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 60, h: 66 },
+      qr: { xs: [387, 1287], y: 975, width: 126, label: '' },   // mỗi tấm 1 QR, giữa tấm dưới chữ
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 58, h: 66 },
       texts: [
         { id: 'name', label: 'Chữ dưới ảnh (2 bên)', value: 'YoungBooth',
-          xs: [450, 1350], y: 1046, size: 46, color: '#8C4A5A', ff: '"Segoe Script", "Brush Script MT", cursive', weight: '700' },
+          xs: [450, 1350], y: 840, size: 58, color: '#8C4A5A', ff: '"Segoe Script", "Brush Script MT", cursive', weight: '700' },
         { id: 'date', label: 'Ngày (2 bên)', value: '',
-          xs: [450, 1350], y: 1096, size: 22, color: '#8C4A5A', ff: '"Palatino Linotype", Cambria, serif', ls: 5 },
+          xs: [450, 1350], y: 898, size: 22, color: '#8C4A5A', ff: '"Palatino Linotype", Cambria, serif', ls: 5 },
         { id: 'qrhint', label: 'Dòng hướng dẫn QR (2 bên)', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
-          xs: [450, 1350], y: 1130, size: 17, color: 'rgba(140,74,90,0.8)', ff: '"Palatino Linotype", Cambria, serif', italic: true },
+          xs: [450, 1350], y: 936, size: 17, color: 'rgba(140,74,90,0.8)', ff: '"Palatino Linotype", Cambria, serif', italic: true },
       ],
     },
 
@@ -697,7 +712,7 @@ const BOOTH_CONFIG = {
     },
 
     // Layout D — Chia Đôi: SCRAPBOOK. Giấy 6×4 NGANG, 2 ảnh khác nhau, cắt đôi ở x=900 → 2 tấm 3×4" dọc
-    // (mỗi tấm lề trái = lề phải 110px). Canvas đã ngang nên KHÔNG xoay khi in (noRotate).
+    // (mỗi tấm lề trái = lề phải 100px, ảnh ngang 700×520). Canvas đã ngang nên KHÔNG xoay khi in (noRotate).
     // Khung: make_d() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['D'].
     { id: 'D', name: 'Chia Đôi', icon: '✂️', desc: '6×4" · 2 ảnh → cắt 2 tấm 3×4', kind: 'photo',
       captureCount: 2, select: 2,
@@ -705,8 +720,8 @@ const BOOTH_CONFIG = {
       paper: '6x4', noRotate: true,
       background: '#FAF6EF',
       slots: [
-        { x: 110, y: 150, w: 680, h: 810, radius: 0 },
-        { x: 1010, y: 150, w: 680, h: 810, radius: 0 },
+        { x: 100, y: 170, w: 700, h: 520, radius: 0 },
+        { x: 1000, y: 170, w: 700, h: 520, radius: 0 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/split2-ivory.png',
       // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
@@ -716,29 +731,30 @@ const BOOTH_CONFIG = {
         ...FRAME_SETS.D,   // khung mới (tự sinh ở đầu file)
       ],
       showBrand: false,
-      qr: { xs: [640, 1540], y: 1000, width: 126, label: '' },   // mỗi tấm 1 QR, thẳng mép phải ảnh
+      qr: { xs: [387, 1287], y: 975, width: 126, label: '' },   // mỗi tấm 1 QR, giữa tấm dưới chữ
       logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [450, 1350], y: 44, h: 56 },
       texts: [
         { id: 'title', label: 'Tiêu đề (2 tấm)', value: 'YoungBooth',
-          xs: [450, 1350], y: 1056, size: 56, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
+          xs: [450, 1350], y: 850, size: 56, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
         { id: 'date', label: 'Ngày (2 tấm)', value: '',
-          xs: [450, 1350], y: 1108, size: 22, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive', ls: 4 },
+          xs: [450, 1350], y: 902, size: 22, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive', ls: 4 },
         { id: 'qrhint', label: 'Dòng hướng dẫn QR (2 tấm)', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
-          xs: [450, 1350], y: 1140, size: 17, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
+          xs: [450, 1350], y: 936, size: 17, color: '#333333', ff: '"Ink Free", "Segoe Print", cursive' },
       ],
     },
 
     // Layout F — Dịu Dàng: PASTEL HÀN QUỐC (Life4Cuts). Lưới 2×2 ảnh bo góc 28, viền trắng 8px,
     // sticker bế ở góc mỗi ảnh. Khung: make_f() trong scripts/make-frames.py — slots PHẢI khớp SLOTS['F'].
-    { id: 'F', name: 'Dịu Dàng', icon: '🎀', desc: '4×6" · 4 ảnh', kind: 'photo',
+    { id: 'F', name: 'Dịu Dàng', icon: '🎀', desc: '6×4" · 4 ảnh (ngang)', kind: 'photo',
       captureCount: 4, select: 4,
-      canvas: { w: 1200, h: 1800 },
+      canvas: { w: 1800, h: 1200 },
+      paper: '6x4', noRotate: true,
       background: '#FBF3E9',
       slots: [
-        { x: 92, y: 168, w: 490, h: 650, radius: 28 },
-        { x: 618, y: 168, w: 490, h: 650, radius: 28 },
-        { x: 92, y: 854, w: 490, h: 650, radius: 28 },
-        { x: 618, y: 854, w: 490, h: 650, radius: 28 },
+        { x: 70, y: 142, w: 600, h: 440, radius: 28 },
+        { x: 706, y: 142, w: 600, h: 440, radius: 28 },
+        { x: 70, y: 618, w: 600, h: 440, radius: 28 },
+        { x: 706, y: 618, w: 600, h: 440, radius: 28 },
       ],
       overlay: 'file:///C:/YoungBooth-Frames/grid4-charcoal.png',
       // Khung cho nút "Chọn khung" ở màn kết quả. frames[0] = khung mặc định (giá trị của chính kiểu chụp này).
@@ -748,15 +764,15 @@ const BOOTH_CONFIG = {
         ...FRAME_SETS.F,   // khung mới (tự sinh ở đầu file)
       ],
       showBrand: false,
-      qr: { xs: [960], y: 1588, width: 130, label: '' },   // QR footer, thẳng mép phải lưới ảnh
-      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', center: true, y: 50, h: 74 },
+      qr: { xs: [1495], y: 920, width: 130, label: '' },   // QR cuối cột phải, đáy ngang đáy lưới ảnh
+      logo: { src: 'file:///C:/YoungBooth-Frames/logo.png', xs: [1560], y: 160, h: 74 },
       texts: [
         { id: 'brand', label: 'Chữ thương hiệu (footer)', value: 'YoungBooth',
-          x: 600, y: 1648, size: 58, color: '#D86A8A', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '900' },
+          x: 1560, y: 470, size: 58, fit: 360, color: '#D86A8A', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '900' },
         { id: 'date', label: 'Ngày', value: '',
-          x: 600, y: 1702, size: 24, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600', ls: 4 },
+          x: 1560, y: 530, size: 24, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600', ls: 4 },
         { id: 'qrhint', label: 'Dòng hướng dẫn QR', value: 'Quét QR lấy ảnh + GIF · lưu 3 ngày',
-          x: 600, y: 1736, size: 18, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600' },
+          x: 1560, y: 885, size: 17, fit: 360, color: '#A08A8F', ff: '"Nunito", "Quicksand", "Segoe UI", sans-serif', weight: '600' },
       ],
     },
 
@@ -798,6 +814,7 @@ const BOOTH_CONFIG = {
   // Thư viện khung SỰ KIỆN (Luồng sự kiện — bật/tắt + hồ sơ sự kiện trong webadmin). Mỗi phần tử = 1 khung + trường mode.
   // Thêm khung sự kiện mới: PNG vào C:\YoungBooth-Frames\events\<bộ>\ + 1 dòng ở đây (id 'EV-<mode>-<tên>'), xem FRAMES_GUIDE.md.
   eventFrames: EVENT_FRAMES,
+  frameAliases: FRAME_ALIASES,   // id khung cũ → id mới
 
   // Kích thước xuất ảnh (px). 300dpi: 4×6 = 1200×1800.
   output: {
@@ -808,6 +825,7 @@ const BOOTH_CONFIG = {
     stripW: 600,
     stripH: 1800,
     gifSize: 600,
+    sharpen: 0.8,  // làm nét cho bản in (0 = tắt, 0.5–1 tự nhiên) — áp sau khi ảnh về đúng kích thước ô in
     gifBrandBar: 104,
   },
 

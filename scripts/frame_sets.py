@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 from frame_kit import (rgba, seeded, comp, lin_grad, rad_grad, shape, fill_poly, stroke_poly, circle, ellipse_rot, rect,
                        stroke_rect, cubic, quad, star_pts, draw_star, metal_star, twinkle_pts, glow_star, gem, heart_pts,
                        flag_vn, heart_flag, fireworks, cloud, skyline, clover, leaf, lantern, placeholder, load_asset, paste_fit,
-                       Fonts, draw_text, text_width, _family, fake_qr, strip_slots, grid2x2_slots, wide_row, S, punch,
+                       Fonts, draw_text, text_width, _family, fake_qr, strip_slots, grid2x2_slots, wide_row, wide_strip_slots, grid2x2_wide_slots, S, punch,
                        clover_cluster, leaves_wc)
 from PIL import ImageFilter
 
@@ -66,12 +66,28 @@ BRAND_SERIF = dict(ff=SERIF, weight=600)
 
 
 def add(**f):
-    f.setdefault('canvas', (1200, 1800)); f.setdefault('texts', []); f.setdefault('fixed', []); f.setdefault('qr', [])
+    f.setdefault('canvas', (1800, 1200)); f.setdefault('texts', []); f.setdefault('fixed', []); f.setdefault('qr', [])   # mặc định tờ NGANG
     FR.append(f)
 
 
 def qr(size, *pts):
     return dict(size=size, at=[dict(x=x, y=y) for x, y in pts])
+
+
+# ================================================================ QUY ƯỚC TỜ NGANG + ẢNH NGANG (chủ app chốt 28/10/2026)
+# MỌI khung là tờ ngang 6×4 = 1800×1200 và MỌI ô ảnh nằm ngang (rộng > cao, ~4:3–3:2 như ảnh camera) — TRỪ Nhật Ký.
+# Khoảnh Khắc (A): 1 ảnh lớn + cột / dải chữ, QR.     Ngọt Ngào (B): 2 ảnh cạnh nhau + dải chữ / QR bên dưới.
+# Dịu Dàng (F): lưới 2×2 bên trái + cột chữ / QR bên phải.     Chia Đôi (D): 2 tấm cắt x=900, mỗi tấm 1 ảnh ngang.
+# Nhật Ký (C): GIỮ NGUYÊN như cũ — tờ dọc 1200×1800, 2 dải 2×6 cắt x=600, mỗi dải 4 ảnh ngang xếp chồng (canvas=CP).
+# Khung dọc cũ đã bỏ — id cũ còn được app nhận qua FRAME_ALIASES (config.js) để cài đặt / sự kiện đã lưu không bị mất khung.
+CP = (1200, 1800)         # tờ dọc — chỉ dùng cho Nhật Ký
+QR_C = qr(110, (448, 1648), (1048, 1648))   # Nhật Ký: QR cuối mỗi dải
+PANEL = 1587              # Dịu Dàng / Khoảnh Khắc: tâm cột phải (cột x 1422–1752)
+QR_F = qr(120, (1515, 610))     # QR trong CỤM chữ giữa cột phải (không lọt góc)
+QR_F_CORNER = qr(120, (1556, 1020))   # khung chưa chuyển bố cục chuẩn
+# Bố cục chuẩn Dịu Dàng (28/10/2026): lề đều 48px, khe 20px, lưới 2×2 ô 663×542 bên trái; cột phải 330px chứa 1 cụm chữ + QR căn giữa.
+F_STD = grid2x2_wide_slots(48, 48, 48, 406, 20)
+F_BRAND_Y = 540             # đường chân chữ thương hiệu trong cụm (QR ngay dưới)
 
 
 # ================================================================ #01 Save The Date (trắng tối giản)
@@ -82,19 +98,19 @@ def std_texts(l1, l2, d, t):
 
 
 add(id='C-std-white', mode='C', set='01', name='Save The Date – Trắng', style='plain', background='#ffffff', textGroup='std-white', cut2inch=True,
-    slots=[S(40 if i < 4 else 640, 40 + (i % 4) * 344, 520, 328) for i in range(8)],
+    canvas=CP, slots=[S(40 if i < 4 else 640, 40 + (i % 4) * 344, 520, 328) for i in range(8)],
     texts=std_texts(dict(xs=[270, 870], y=1490, size=72, fit=480), dict(xs=[330, 930], y=1570, size=72, fit=480),
                     dict(xs=[300, 900], y=1625, size=24, ls=2), dict(xs=[300, 900], y=1662, size=22, ls=4)),
     fixed=[dict(text='YOUNG BOOTH', xs=[300, 900], y=1712, size=16, ls=7, color='#9a9a9a', **BRAND_SERIF)],
-    qr=qr(110, (448, 1648), (1048, 1648)))
-add(id='B-std-white', mode='B', set='01', name='Save The Date – Trắng (dọc)', style='plain', background='#ffffff', textGroup='std-white',
-    paper='4x6', noRotate=False, slots=[S(50, 50, 1100, 650), S(50, 740, 1100, 650)],
-    texts=std_texts(dict(x=560, y=1500, size=100, fit=760), dict(x=640, y=1610, size=100, fit=760),
-                    dict(x=600, y=1680, size=32, ls=3), dict(x=600, y=1728, size=30, ls=5)),
-    fixed=[dict(text='YOUNG BOOTH', x=600, y=1772, size=22, ls=9, color='#9a9a9a', **BRAND_SERIF)],
-    qr=qr(130, (1024, 1624)))
+    qr=QR_C)
+add(id='B-std-white', mode='B', set='01', name='Save The Date – Trắng', style='plain', background='#ffffff', textGroup='std-white',
+    slots=[S(40, 40, 850, 640), S(910, 40, 850, 640)],
+    texts=std_texts(dict(x=870, y=860, size=100, fit=640, align='right'), dict(x=930, y=860, size=100, fit=640, align='left'),
+                    dict(x=900, y=950, size=30, ls=3), dict(x=900, y=996, size=28, ls=5)),
+    fixed=[dict(text='YOUNG BOOTH', x=900, y=1044, size=18, ls=8, color='#9a9a9a', **BRAND_SERIF)],
+    qr=qr(130, (1604, 1004)))
 add(id='D-std-white', mode='D', set='01', name='Save The Date – Trắng', style='plain', background='#ffffff', textGroup='std-white', cut2inch=True,
-    canvas=(1800, 1200), slots=[S(30, 30, 700, 540), S(754, 30, 700, 540), S(30, 630, 700, 540), S(754, 630, 700, 540)],
+    slots=[S(30, 30, 700, 540), S(754, 30, 700, 540), S(30, 630, 700, 540), S(754, 630, 700, 540)],
     texts=std_texts(dict(x=1612, ys=[150, 750], size=46, fit=300), dict(x=1642, ys=[220, 820], size=46, fit=300),
                     dict(x=1627, ys=[280, 880], size=20, ls=2), dict(x=1627, ys=[315, 915], size=18, ls=3)),
     fixed=[dict(text='YOUNG BOOTH', x=1627, ys=[352, 952], size=14, ls=5, color='#9a9a9a', **BRAND_SERIF)],
@@ -109,8 +125,9 @@ def clv_texts(l1, sp, l2, d):
 
 
 CLV_BRAND = dict(color=(255, 255, 255, 204), **BRAND_SERIF)
+# band = mép trên dải cỏ xanh đậm, tính TRONG mỗi dải / tấm
 add(id='C-clover-sage', mode='C', set='02', name='Cỏ Bốn Lá – Sage', style='clover', background='#c3d1ba', textGroup='clover-sage', cut2inch=True,
-    band=1417, slots=strip_slots(45, 383, 45, 24, 36),
+    canvas=CP, band=1417, slots=strip_slots(45, 383, 45, 24, 36),
     texts=clv_texts(dict(xs=[220, 820], y=1500, size=52, fit=360), dict(xs=[290, 890], y=1552, size=36),
                     dict(xs=[370, 970], y=1612, size=52, fit=360), dict(xs=[370, 970], y=1660, size=20, ls=2)),
     fixed=[dict(text='YOUNG BOOTH', xs=[300, 900], y=1765, size=16, ls=7, **CLV_BRAND)],
@@ -118,14 +135,7 @@ add(id='C-clover-sage', mode='C', set='02', name='Cỏ Bốn Lá – Sage', styl
     leaves=[(70, 1500, .48), (670, 1500, .48)],
     qr=qr(110, (36, 1648), (636, 1648)))
 add(id='A-clover-sage', mode='A', set='02', name='Cỏ Bốn Lá – Sage', style='clover', background='#c3d1ba', textGroup='clover-sage',
-    band=1380, slots=[S(80, 80, 1040, 1300, 40)],
-    texts=clv_texts(dict(x=470, y=1530, size=64, fit=520), dict(x=600, y=1600, size=40),
-                    dict(x=720, y=1680, size=64, fit=520), dict(x=720, y=1735, size=22, ls=2)),
-    fixed=[dict(text='YOUNG BOOTH', x=600, y=1774, size=18, ls=8, **CLV_BRAND)],
-    clovers=[(60, 60, 160, .6), (1070, 1370, 240, 1)], leaves=[(110, 1610, 1.2)],
-    qr=qr(120, (1036, 1636)))
-add(id='A-clover-sage-wide', mode='A', set='02', name='Cỏ Bốn Lá – Sage (ngang)', style='clover', background='#c3d1ba', textGroup='clover-sage',
-    canvas=(1800, 1200), paper='4x6', band=973, slots=[S(85, 63, 1630, 910, 40)],
+    band=973, slots=[S(85, 63, 1630, 910, 40)],
     texts=clv_texts(dict(x=840, y=1090, size=64, fit=620, align='right'), dict(x=900, y=1088, size=44),
                     dict(x=960, y=1090, size=64, fit=620, align='left'), dict(x=900, y=1140, size=22, ls=2)),
     fixed=[dict(text='YOUNG BOOTH', x=900, y=1176, size=16, ls=7, **CLV_BRAND)],
@@ -133,46 +143,33 @@ add(id='A-clover-sage-wide', mode='A', set='02', name='Cỏ Bốn Lá – Sage (
     qr=qr(120, (1636, 1036)))
 
 # ================================================================ #03 Pha Lê / #04 Ngôi Sao Đen / #07 Bầu Trời Sao (chung bố cục)
-CRY_C = strip_slots(30, 214, 30, 12)                 # 4 ảnh 540×380 mỗi dải
-CRY_F = grid2x2_slots(36, 230, 36, 14)               # 2×2, 557×760
-CRY_W = wide_row(24, 441, 427, 476, [24, 624])       # ngang, chữ ở dưới mỗi dải
-BS_W = wide_row(24, 441, 427, 486, [90, 690])        # ngang, chữ ở trên mỗi dải
+CRY_C = strip_slots(30, 214, 30, 12)                     # Nhật Ký: 4 ảnh 540×380 mỗi dải
+CRY_F = F_STD
 YB = dict(text='Young Booth', ff=SCRIPT)
-QR_C = qr(110, (448, 1648), (1048, 1648))
-QR_F = qr(120, (1036, 1636))
-QR_W = qr(110, (1640, 448), (1640, 1048))
 
 add(id='C-crystal-white', mode='C', set='03', name='Pha Lê Trắng', style='gems', background='#ffffff', cut2inch=True, pink=.6, count=16,
-    slots=CRY_C, fixed=[dict(xs=[250, 850], y=1715, size=64, color='#2a2a2a', flourish=True, **YB)], qr=QR_C)
-add(id='C-crystal-white-wide', mode='C', set='03', name='Pha Lê Trắng – Ngang', style='gems', background='#ffffff', cut2inch=True,
-    canvas=(1800, 1200), pink=.6, count=16, slots=CRY_W, fixed=[dict(x=900, ys=[568, 1168], size=48, color='#2a2a2a', **YB)], qr=QR_W)
+    canvas=CP, slots=CRY_C, fixed=[dict(xs=[250, 850], y=1715, size=64, color='#2a2a2a', flourish=True, **YB)], qr=QR_C)
 add(id='F-crystal-white', mode='F', set='03', name='Pha Lê Trắng', style='gems', background='#ffffff', pink=.3, count=14,
-    slots=CRY_F, fixed=[dict(x=600, y=1715, size=90, color='#2a2a2a', flourish=True, **YB)], qr=QR_F)
+    slots=CRY_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=74, fit=300, color='#2a2a2a', flourish=True, **YB)], qr=QR_F)
 add(id='F-crystal-pink', mode='F', set='03', name='Pha Lê Hồng', style='gems', background='#ffffff', pink=.85, count=19, big=3,
-    slots=CRY_F, fixed=[dict(x=600, y=1715, size=90, color='#2a2a2a', flourish=True, **YB)], qr=QR_F)
+    slots=CRY_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=74, fit=300, color='#2a2a2a', flourish=True, **YB)], qr=QR_F)
 
 add(id='C-black-stars', mode='C', set='04', name='Ngôi Sao Đen', style='bstars', background='#ffffff', cut2inch=True, count=40,
-    slots=CRY_C, fixed=[dict(xs=[300, 900], y=1715, size=56, color='#111111', starY=True, **YB)], qr=QR_C)
-add(id='C-black-stars-wide', mode='C', set='04', name='Ngôi Sao Đen – Ngang', style='bstars', background='#ffffff', cut2inch=True,
-    canvas=(1800, 1200), count=30, slots=BS_W,
-    fixed=[dict(x=40, ys=[66, 666], size=44, align='left', color='#111111', starY=True, **YB)], qr=QR_W)
+    canvas=CP, slots=CRY_C, fixed=[dict(xs=[300, 900], y=1715, size=56, color='#111111', starY=True, **YB)], qr=QR_C)
 add(id='F-black-stars', mode='F', set='04', name='Ngôi Sao Đen', style='bstars', background='#ffffff', count=22,
-    slots=CRY_F, fixed=[dict(x=560, y=1715, size=90, color='#111111', starY=True, **YB)], qr=QR_F)
+    slots=CRY_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=66, fit=290, color='#111111', starY=True, **YB)], qr=QR_F)
 add(id='F-black-stars-dense', mode='F', set='04', name='Ngôi Sao Dày', style='bstars', background='#ffffff', count=34, big=4,
-    slots=CRY_F, fixed=[dict(x=560, y=1715, size=90, color='#111111', starY=True, **YB)], qr=QR_F)
+    slots=CRY_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=66, fit=290, color='#111111', starY=True, **YB)], qr=QR_F)
 
 # ================================================================ #05 Sao Kim Tuyến
 GS_C = strip_slots(150, 42, 40, 16)
-GS_F = grid2x2_slots(160, 160, 60, 14)
+GS_F = F_STD
 add(id='C-gold-stars', mode='C', set='05', name='Sao Kim Tuyến', style='gstars', background='#ffffff', cut2inch=True, gold=.5, count=16,
-    outline='#222222', slots=GS_C, fixed=[dict(xs=[44, 644], y=112, size=52, align='left', color='#333333', **YB)], qr=QR_C)
-add(id='C-gold-stars-wide', mode='C', set='05', name='Sao Kim Tuyến – Ngang', style='gstars', background='#ffffff', cut2inch=True,
-    canvas=(1800, 1200), gold=.5, count=16, outline='#222222', slots=wide_row(30, 438, 424, 476, [100, 700]),
-    fixed=[dict(x=900, ys=[72, 672], size=44, color='#333333', **YB)], qr=QR_W)
+    outline='#222222', canvas=CP, slots=GS_C, fixed=[dict(xs=[44, 644], y=112, size=52, align='left', color='#333333', **YB)], qr=QR_C)
 add(id='F-gold-stars', mode='F', set='05', name='Sao Kim Tuyến', style='gstars', background='#ffffff', gold=.5, count=20,
-    outline='#222222', slots=GS_F, fixed=[dict(x=600, y=115, size=80, color='#333333', **YB)], qr=qr(120, (1020, 1636)))
+    outline='#222222', slots=GS_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=72, fit=300, color='#333333', **YB)], qr=QR_F)
 add(id='F-gold-stars-blush', mode='F', set='05', name='Sao Kim Tuyến Hồng', style='gstars', background='#fdeef0', gold=.8, count=22,
-    outline='#3a2a2e', slots=GS_F, fixed=[dict(x=600, y=115, size=80, color='#3a2a2e', **YB)], qr=qr(120, (1020, 1636)))
+    outline='#3a2a2e', slots=GS_F, fixed=[dict(x=PANEL, y=F_BRAND_Y, size=72, fit=300, color='#3a2a2e', **YB)], qr=QR_F)
 
 
 # ================================================================ #06 Sự kiện – Orientation Day (ẩn mặc định)
@@ -185,33 +182,41 @@ def ori_texts(t, t2, g):
 
 ORI_BRAND = dict(text='YOUNG BOOTH', color='#ffffff', ls=4, **BRAND_SERIF)
 # Khung SỰ KIỆN → thư viện eventFrames (chỉ dùng trong Luồng sự kiện, không bao giờ hiện ở luồng thường).
-# file = đường dẫn trong C:\YoungBooth-Frames (không có đuôi .png).
+# file = đường dẫn trong C:\YoungBooth-Frames (không có đuôi .png). band = mép trên vùng mây (tính trong mỗi dải).
 add(id='EV-C-orientation', mode='C', set='06', name='Orientation Day', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    lib='event', file='events/orientation/C-orientation', cut2inch=True, band=1420, photos=3, slots=strip_slots(130, 380, 36, 18, n=3),
+    lib='event', file='events/orientation/C-orientation', cut2inch=True, canvas=CP, band=1420, photos=3, slots=strip_slots(130, 380, 36, 18, n=3),
     texts=ori_texts(dict(xs=[330, 930], y=1500, size=52), dict(xs=[470, 1070], y=1515, size=36), dict(xs=[320, 920], y=1548, size=22)),
     fixed=[dict(xs=[300, 900], y=1780, size=14, **ORI_BRAND)], qr=QR_C)
-add(id='EV-B-orientation', mode='B', set='06', name='Orientation Day (dọc)', style='orient', background='#3fb6e8', textGroup='event-orientation',
-    lib='event', file='events/orientation/B-orientation', photos=2, paper='4x6', noRotate=False, band=1380, slots=[S(50, 150, 1100, 600), S(50, 780, 1100, 600)],
-    texts=ori_texts(dict(x=600, y=1540, size=84), dict(x=830, y=1560, size=56), dict(x=590, y=1600, size=34)),
-    fixed=[dict(x=600, y=1778, size=16, **ORI_BRAND)], qr=QR_F)
+add(id='EV-B-orientation', mode='B', set='06', name='Orientation Day', style='orient', background='#3fb6e8', textGroup='event-orientation',
+    lib='event', file='events/orientation/B-orientation', photos=2, band=880, slots=[S(40, 150, 850, 640), S(910, 150, 850, 640)],
+    texts=ori_texts(dict(x=900, y=990, size=80), dict(x=1130, y=1008, size=54), dict(x=890, y=1050, size=32)),
+    fixed=[dict(x=900, y=1182, size=15, **ORI_BRAND)], qr=qr(120, (1620, 1020)))
 
 # ================================================================ #07 Bầu Trời Sao
 NS = dict(text='Young Booth', ff=SCRIPT, color='#f5f5f5', twinkle=True)
 add(id='C-night-sky', mode='C', set='07', name='Bầu Trời Sao', style='night', background='#0b0b0d', cut2inch=True, count=62,
-    slots=CRY_C, fixed=[dict(xs=[560, 1160], y=1700, size=52, align='right', **NS)], qr=qr(110, (36, 1648), (636, 1648)))
-add(id='C-night-sky-wide', mode='C', set='07', name='Bầu Trời Sao – Ngang', style='night', background='#0b0b0d', cut2inch=True,
-    canvas=(1800, 1200), count=62, slots=BS_W, fixed=[dict(x=40, ys=[66, 666], size=44, align='left', **NS)], qr=QR_W)
+    canvas=CP, slots=CRY_C, fixed=[dict(xs=[560, 1160], y=1700, size=52, align='right', **NS)], qr=qr(110, (36, 1648), (636, 1648)))
 add(id='F-night-sky', mode='F', set='07', name='Bầu Trời Sao', style='night', background='#0b0b0d', count=62,
-    slots=CRY_F, fixed=[dict(x=1160, y=1650, size=80, align='right', **NS)], qr=qr(120, (36, 1636)))
+    slots=CRY_F, fixed=[dict(x=PANEL + 18, y=F_BRAND_Y, size=66, fit=280, **NS)], qr=QR_F)
 add(id='F-night-sky-violet', mode='F', set='07', name='Bầu Trời Sao – Tím Đêm', style='night', background='#140d2a', violet=True, count=62,
-    slots=CRY_F, fixed=[dict(x=1160, y=1650, size=80, align='right', **NS)], qr=qr(120, (36, 1636)))
+    slots=CRY_F, fixed=[dict(x=PANEL + 18, y=F_BRAND_Y, size=66, fit=280, **NS)], qr=QR_F)
 
 
 # ================================================================ #08 Quốc Khánh 02.09 (dịp lễ, ẩn mặc định)
+def two(*pts):
+    """Toạ độ cho CẢ 2 dải Nhật Ký: mỗi bộ (x, y, …) ở dải trái + bản dịch sang dải phải (x + 600)."""
+    return [(p[0] + dx, *p[1:]) for dx in (0, 600) for p in pts]
+
+
 def vb(x, cy, color, size, ff=SERIF, weight=600, text='YOUNG BOOTH', ls=None):
     """Chữ thương hiệu XOAY DỌC (đọc từ dưới lên), (x, cy) = tâm."""
     return dict(text=text, x=x, y=cy, size=size, color=color, ff=ff, weight=weight, rotate=-90, vcenter=True,
                 ls=size * .35 if ls is None else ls)
+
+
+def hb(color, size, ff=SERIF, weight=600, text='YOUNG BOOTH', **pos):
+    """Chữ thương hiệu NẰM NGANG (bản tờ ngang thay cho chữ dọc ở mép giấy)."""
+    return dict(text=text, size=size, color=color, ff=ff, weight=weight, ls=round(size * .35), **pos)
 
 
 def qk_texts(d, t):
@@ -221,22 +226,27 @@ def qk_texts(d, t):
 
 
 QK = dict(hidden=True, holiday='quockhanh')
+QK08_C = strip_slots(50, 170, 50, 12)
+QK08_VB = [vb(575, 600, '#b5523b', 22), vb(1175, 600, '#b5523b', 22), vb(25, 1400, '#b5523b', 22), vb(625, 1400, '#b5523b', 22)]
 add(id='C-quoc-khanh', mode='C', set='08', name='Quốc Khánh 02.09', style='qk08', background='#f8eedb', textGroup='quockhanh', cut2inch=True, **QK,
-    slots=strip_slots(50, 170, 50, 12),
+    canvas=CP, slots=QK08_C,
     texts=qk_texts(dict(xs=[40, 640], y=862, size=48), dict(xs=[390, 990], y=1740, size=48, fit=250)),
-    fixed=[vb(575, 600, '#b5523b', 22), vb(1175, 600, '#b5523b', 22), vb(25, 1400, '#b5523b', 22), vb(625, 1400, '#b5523b', 22)],
+    fixed=QK08_VB,
+    fw=two((62, 62, 52), (215, 1716, 36), (550, 1690, 26)), hflags=two((548, 442, 56)), nonla=two((528, 1218, 70, 64)),
     qr=qr(110, (40, 1648), (640, 1648)))
 # Bản THƯỜNG NGÀY của khung #08 (chủ app chọn 13/10/2026): giữ nền tia nắng + pháo hoa, bỏ mọi chữ / hình liên quan 2/9 → hiện quanh năm.
 add(id='C-sunburst', mode='C', set='08', name='Tia Nắng Pháo Hoa', style='qk08', everyday=True, background='#f8eedb', cut2inch=True,
-    slots=strip_slots(50, 170, 50, 12),
-    fixed=[vb(575, 600, '#b5523b', 22), vb(1175, 600, '#b5523b', 22), vb(25, 1400, '#b5523b', 22), vb(625, 1400, '#b5523b', 22),
-           dict(text='Young Booth', xs=[372, 972], y=1748, size=58, ff=SCRIPT, color='#b5523b')],
+    canvas=CP, slots=QK08_C,
+    fixed=QK08_VB + [dict(text='Young Booth', xs=[372, 972], y=1748, size=58, ff=SCRIPT, color='#b5523b')],
+    fw=two((62, 62, 52), (550, 1690, 26), (556, 442, 30)),
     qr=qr(110, (40, 1648), (640, 1648)))
 add(id='F-quoc-khanh', mode='F', set='08', name='Quốc Khánh 02.09', style='qk08', background='#f8eedb', textGroup='quockhanh', **QK,
-    slots=grid2x2_slots(70, 190, 70, 14),
-    texts=qk_texts(dict(x=40, y=868, size=64), dict(x=600, y=1730, size=72, fit=420)),
-    fixed=[vb(1165, 520, '#b5523b', 24), vb(35, 1300, '#b5523b', 24)],
-    qr=qr(120, (36, 1636)))
+    slots=grid2x2_wide_slots(70, 70, 70, 380, 14),
+    texts=qk_texts(dict(x=1440, y=190, size=76), dict(x=1610, y=690, size=58, fit=320)),
+    fixed=[hb('#b5523b', 18, x=1610, y=740)],
+    fw=[(105, 100, 85), (1736, 300, 50), (1460, 960, 40)], hflags=[(1700, 830, 64)],
+    nonla=[(1440, 790, 120, 100)], kid=[(1530, 250, 170, 380)],
+    qr=QR_F_CORNER)
 
 
 # ================================================================ #09 Độc Lập – Xanh Nhạt / #11 Độc Lập – Đỏ Bóng (chung chữ qk-motto)
@@ -246,24 +256,22 @@ def motto_texts(mode, col):
         return [T(g, 'header', xs=[100, 700], y=80, size=24, fit=440, align='left', **base),
                 T(g, 'title', xs=[100, 700], y=1760, size=26, fit=120, align='left', **base),
                 T(g, 'years', xs=[540, 1140], y=1700, size=24, fit=180, align='right', **base)]
-    return [T(g, 'header', x=130, y=92, size=34, fit=960, align='left', **base),
-            T(g, 'title', x=140, y=1730, size=34, fit=360, align='left', **base),
-            T(g, 'years', x=1090, y=1730, size=34, fit=360, align='right', **base)]
-
-
-def motto_vb(mode, col):
-    if mode == 'C': return [vb(580, 520, col, 18), vb(1180, 520, col, 18), vb(20, 1300, col, 18), vb(620, 1300, col, 18)]
-    return [vb(1175, 420, col, 22), vb(25, 1250, col, 22)]
+    return [T(g, 'header', x=120, y=84, size=34, fit=1200, align='left', **base),
+            T(g, 'title', x=1610, y=600, size=40, fit=320, **base),
+            T(g, 'years', x=1610, y=660, size=34, fit=320, **base)]
 
 
 for _id, _name, _tone, _col, _bg, _set in [('qk-blue', 'Độc Lập – Xanh Nhạt', 'blue', '#1f2a44', '#d6e6f1', '09'),
                                            ('qk-red-gloss', 'Độc Lập – Đỏ Bóng', 'red', '#ffffff', '#d7261e', '11')]:
     add(id='C-' + _id, mode='C', set=_set, name=_name, style='motto', tone=_tone, background=_bg, textGroup='qk-motto', cut2inch=True, **QK,
-        slots=strip_slots(110, 150, 40, 24), texts=motto_texts('C', _col), fixed=motto_vb('C', _col),
+        canvas=CP, slots=strip_slots(110, 150, 40, 24), texts=motto_texts('C', _col),
+        fixed=[vb(580, 520, _col, 18), vb(1180, 520, _col, 18), vb(20, 1300, _col, 18), vb(620, 1300, _col, 18)],
+        stars=two((40, 48, 38, 1), (556, 868, 30, -1), (40, 1702, 28, 1)),
         qr=qr(110, (234, 1648), (834, 1648)))
     add(id='F-' + _id, mode='F', set=_set, name=_name, style='motto', tone=_tone, background=_bg, textGroup='qk-motto', **QK,
-        slots=grid2x2_slots(120, 150, 50, 24), texts=motto_texts('F', _col), fixed=motto_vb('F', _col),
-        qr=qr(120, (528, 1636)))
+        slots=grid2x2_wide_slots(120, 50, 50, 380, 24), texts=motto_texts('F', _col), fixed=[hb(_col, 20, ff=COND, x=1610, y=730)],
+        stars=[(58, 64, 60, 1), (1720, 220, 56, -1), (1470, 860, 46, 1)],
+        qr=QR_F_CORNER)
 
 
 # ================================================================ #10 Quốc Khánh 2.9 – Đỏ Trắng
@@ -272,16 +280,20 @@ def q29_texts(b, h, f):
     return [T(g, 'badge', **b, align='left', **base), T(g, 'header', **h, ls=1, **base), T(g, 'footer', **f, ls=1, **base)]
 
 
+Q29_RED = '#c62828'
 add(id='C-qk-29', mode='C', set='10', name='Quốc Khánh 2.9 – Đỏ Trắng', style='q29', background='#ffffff', textGroup='qk-29', cut2inch=True, **QK,
-    slots=strip_slots(110, 110, 40, 14),
+    canvas=CP, slots=strip_slots(110, 110, 40, 14),
     texts=q29_texts(dict(xs=[50, 650], y=82, size=44), dict(xs=[330, 930], y=76, size=20, fit=280), dict(xs=[300, 900], y=1760, size=20, fit=250)),
-    fixed=[vb(582, 900, '#c62828', 16, ff=SANS, weight=700), vb(1182, 900, '#c62828', 16, ff=SANS, weight=700)],
-    qr=qr(110, (448, 1648), (1048, 1648)))
+    fixed=[vb(582, 900, Q29_RED, 16, ff=SANS, weight=700), vb(1182, 900, Q29_RED, 16, ff=SANS, weight=700)],
+    flags=two((512, 34, 52)), skylines=two((24, 1782, 130, 62)), carets=two((20, 1000, 3, 14), (580, 300, 3, 14)),
+    qr=QR_C)
 add(id='F-qk-29', mode='F', set='10', name='Quốc Khánh 2.9 – Đỏ Trắng', style='q29', background='#ffffff', textGroup='qk-29', **QK,
-    slots=grid2x2_slots(130, 130, 50, 12),
-    texts=q29_texts(dict(x=70, y=100, size=64), dict(x=720, y=96, size=28, fit=520), dict(x=640, y=1722, size=28, fit=520)),
-    fixed=[vb(1176, 900, '#c62828', 20, ff=SANS, weight=700)],
-    qr=qr(120, (1036, 1636)))
+    slots=grid2x2_wide_slots(130, 50, 50, 380, 12),
+    texts=q29_texts(dict(x=60, y=104, size=72), dict(x=760, y=96, size=30, fit=700), dict(x=1610, y=760, size=30, fit=330)),
+    fixed=[hb(Q29_RED, 20, ff=SANS, weight=700, x=1610, y=810)],
+    chevs=[(250, 80, 4, 22, False), (1470, 690, 4, 18, True)], flags=[(1560, 40, 70)], buildings=[(1660, 34, 74)],
+    hflags=[(1610, 580, 80)], skylines=[(1432, 1180, 340, 96)], carets=[(25, 700, 3, 18)],
+    qr=qr(120, (1538, 260)))
 
 
 # ================================================================ #12 Độc Lập – Trắng Cờ Hoa
@@ -291,78 +303,83 @@ def wf_texts(k, h):
 
 
 add(id='C-qk-white-flags', mode='C', set='12', name='Độc Lập – Trắng Cờ Hoa', style='wflags', background='#ffffff', textGroup='qk-white-flags',
-    cut2inch=True, **QK, slots=strip_slots(170, 150, 40, 14),
+    cut2inch=True, **QK, canvas=CP, slots=strip_slots(170, 150, 40, 14),
     texts=wf_texts(dict(xs=[300, 900], y=62, size=22), dict(xs=[300, 900], y=120, size=38, fit=330)),
     fixed=[dict(text='YOUNG BOOTH', xs=[470, 1070], y=1712, size=13, ls=4, color='#555555', **BRAND_SERIF)],
+    wflag=two((502, 92, 70)), langbac=two((40, 1658, 190, 124)),
     qr=qr(110, (234, 1648), (834, 1648)))
 add(id='F-qk-white-flags', mode='F', set='12', name='Độc Lập – Trắng Cờ Hoa', style='wflags', background='#ffffff', textGroup='qk-white-flags',
-    **QK, slots=grid2x2_slots(170, 150, 50, 16),
-    texts=wf_texts(dict(x=600, y=70, size=30), dict(x=600, y=132, size=52, fit=760)),
-    fixed=[dict(text='YOUNG BOOTH', x=960, y=1764, size=18, ls=6, color='#555555', **BRAND_SERIF)],
-    qr=qr(120, (528, 1636)))
+    **QK, slots=grid2x2_wide_slots(170, 50, 50, 380, 16),
+    texts=wf_texts(dict(x=700, y=70, size=30), dict(x=700, y=138, size=56, fit=1000)),
+    fixed=[dict(text='YOUNG BOOTH', x=1610, y=740, size=18, ls=6, color='#555555', **BRAND_SERIF)],
+    wflag=[(1620, 60, 96)], langbac=[(1436, 780, 340, 130)],
+    qr=qr(120, (1538, 440)))
 
 # ================================================================ #13 Độc Lập – Đỏ Thẫm Hoa Văn
 MAR = dict(ff=SANS, weight='800', color='#ffd21f', align='right')
+MAR_B = dict(text='YOUNG BOOTH', ls=5, color='#f6d9a8', **BRAND_SERIF)
 add(id='C-qk-maroon', mode='C', set='13', name='Độc Lập – Đỏ Thẫm Hoa Văn', style='maroon', background='#8e1717', textGroup='qk-maroon',
-    cut2inch=True, **QK, slots=strip_slots(110, 120, 40, 30, 36),
+    cut2inch=True, **QK, canvas=CP, slots=strip_slots(110, 120, 40, 30, 36),
     texts=[T('qk-maroon', 'header', xs=[560, 1160], y=74, size=24, fit=330, **MAR)],
-    fixed=[dict(text='YOUNG BOOTH', xs=[300, 900], y=1776, size=13, ls=4, color='#f6d9a8', **BRAND_SERIF)],
-    qr=qr(110, (448, 1648), (1048, 1648)))
+    fixed=[dict(xs=[300, 900], y=1776, size=13, **dict(MAR_B, ls=4))],
+    wflags=two((46, 1650, 190)), skylines=two((20, 1794, 250, 65)),
+    qr=QR_C)
 add(id='F-qk-maroon', mode='F', set='13', name='Độc Lập – Đỏ Thẫm Hoa Văn', style='maroon', background='#8e1717', textGroup='qk-maroon',
-    **QK, slots=grid2x2_slots(110, 110, 40, 20, 40),
-    texts=[T('qk-maroon', 'header', x=1150, y=82, size=34, fit=760, **MAR)],
-    fixed=[dict(text='YOUNG BOOTH', x=760, y=1772, size=16, ls=5, color='#f6d9a8', **BRAND_SERIF)],
-    qr=qr(120, (1036, 1636)))
+    **QK, slots=grid2x2_wide_slots(40, 40, 40, 400, 20, 40),
+    texts=[T('qk-maroon', 'header', x=1607, y=96, size=30, fit=340, **dict(MAR, align='center'))],
+    fixed=[dict(x=1607, y=650, size=16, **MAR_B)],
+    logo=(1532, 140, 150, 150), wflags=[(1470, 720, 260)], skylines=[(1420, 1194, 370, 96)],
+    qr=qr(120, (1535, 400)))
 
 # ================================================================ #14 Không Gì Quý Hơn Độc Lập Tự Do – Đồng
 GOLD = '#f1d58a'
 BRZ_C = (241, 213, 138, 217)
 BRZ_VS = dict(text='Young Booth', ff=SCRIPT, weight=400, ls=0)
 add(id='C-qk-bronze', mode='C', set='14', name='Không Gì Quý Hơn Độc Lập Tự Do', style='bronze', background='#7b5e2d', textGroup='qk-bronze',
-    cut2inch=True, **QK, slots=strip_slots(40, 240, 40, 14),
+    cut2inch=True, **QK, canvas=CP, slots=strip_slots(40, 240, 40, 14),
     texts=[T('qk-bronze', 'quote', xs=[330, 930], y=1640, w=230, lh=32, size=24, ff=SCRIPT, color=GOLD)],
     fixed=[vb(582, 500, BRZ_C, 28, **BRZ_VS), vb(1182, 500, BRZ_C, 28, **BRZ_VS), vb(18, 1250, BRZ_C, 28, **BRZ_VS), vb(618, 1250, BRZ_C, 28, **BRZ_VS)],
-    stars=[(112, 1640, 62), (712, 1640, 62)],
-    qr=qr(110, (448, 1648), (1048, 1648)))
+    stars=two((112, 1640, 62)),
+    qr=QR_C)
 add(id='F-qk-bronze', mode='F', set='14', name='Không Gì Quý Hơn Độc Lập Tự Do', style='bronze', background='#7b5e2d', textGroup='qk-bronze',
-    **QK, slots=grid2x2_slots(40, 330, 40, 14),
-    texts=[T('qk-bronze', 'quote', x=560, y=1600, w=360, lh=44, size=32, ff=SCRIPT, color=GOLD),
-           T('qk-bronze', 'kicker', x=1150, y=1560, size=18, align='right', ff=SANS, weight='700', color=GOLD, ls=2),
-           T('qk-bronze', 'header', x=1150, y=1592, size=22, align='right', ff=SANS, weight='700', color=GOLD, ls=2),
-           T('qk-bronze', 'title', x=1150, y=1630, size=30, align='right', ff=SANS, weight='800', color=GOLD),
-           T('qk-bronze', 'badge', x=1150, y=1730, size=90, align='right', ff=SANS, weight='800', color=GOLD)],
-    fixed=[vb(1182, 500, BRZ_C, 30, **BRZ_VS), vb(18, 1200, BRZ_C, 30, **BRZ_VS)],
-    stars=[(205, 1535, 92)],
-    qr=qr(120, (60, 1636)))
+    **QK, slots=grid2x2_wide_slots(40, 40, 40, 400, 14),
+    texts=[T('qk-bronze', 'kicker', x=1607, y=96, size=18, ff=SANS, weight='700', color=GOLD, ls=2),
+           T('qk-bronze', 'header', x=1607, y=130, size=22, ff=SANS, weight='700', color=GOLD, ls=2),
+           T('qk-bronze', 'title', x=1607, y=172, size=30, ff=SANS, weight='800', color=GOLD),
+           T('qk-bronze', 'badge', x=1607, y=300, size=100, ff=SANS, weight='800', color=GOLD),
+           T('qk-bronze', 'quote', x=1607, y=420, w=330, lh=40, size=30, ff=SCRIPT, color=GOLD)],
+    fixed=[dict(text='Young Booth', x=1607, y=990, size=40, ff=SCRIPT, weight=400, color=BRZ_C)],
+    stars=[(1607, 800, 82)],
+    qr=QR_F_CORNER)
 
 # ================================================================ #16 Thư Bưu Chính 2/9
 AIR = dict(ff=NSERIF, weight='700', color='#c8252b', align='left')
 add(id='C-qk-airmail', mode='C', set='16', name='Thư Bưu Chính 2/9', style='airmail', background='#f3ece0', textGroup='qk-airmail',
-    cut2inch=True, **QK, slots=strip_slots(40, 420, 40, 16),
+    cut2inch=True, **QK, canvas=CP, slots=strip_slots(40, 420, 40, 16),
     texts=[T('qk-airmail', 'para2', xs=[44, 644], y=1440, w=300, lh=30, size=22, **AIR)],
-    stamps=[(385, 1420, 170, 150), (985, 1420, 170, 150)], logos=[(40, 1760, 24), (640, 1760, 24)],
-    buildings=[(380, 1600, 180, 160), (980, 1600, 180, 160)],
+    stamps=two((385, 1420, 170, 150)), logos=two((40, 1760, 24)), buildings=two((380, 1600, 180, 160)),
     qr=qr(110, (40, 1580), (640, 1580)))
 add(id='F-qk-airmail', mode='F', set='16', name='Thư Bưu Chính 2/9 (3 ảnh)', style='airmail', background='#f3ece0', textGroup='qk-airmail',
-    **QK, slots=[S(60, 60, 528, 693), S(612, 60, 528, 693), S(60, 777, 528, 693)],
-    texts=[T('qk-airmail', 'para1', x=640, y=830, w=480, lh=42, size=32, **AIR),
-           T('qk-airmail', 'para2', x=60, y=1545, w=1080, lh=42, size=30, **AIR)],
-    stamps=[(680, 1080, 440, 360)], logos=[(60, 1752, 30)], buildings=[(760, 1630, 250, 150)],
-    qr=qr(120, (1030, 1630)))
+    **QK, slots=[S(50, 50, 820, 530), S(890, 50, 820, 530), S(50, 610, 820, 530)],
+    texts=[T('qk-airmail', 'para1', x=1250, y=670, w=480, lh=40, size=30, **AIR),
+           T('qk-airmail', 'para2', x=1250, y=800, w=480, lh=36, size=26, **AIR)],
+    stamps=[(900, 640, 320, 270)], logos=[(904, 1118, 30)], buildings=[(1180, 960, 220, 150)],
+    qr=qr(120, (1586, 990)))
 
 # ================================================================ #17 Trung Thu (dịp lễ, ẩn mặc định)
 TT = dict(hidden=True, holiday='trungthu')
 TT_T = dict(ff=ROUND, weight='700', color='#ffffff')
 add(id='C-trungthu', mode='C', set='17', name='Trung Thu', style='moon', background='#4a2a9e', textGroup='trungthu', cut2inch=True, **TT,
-    slots=strip_slots(60, 200, 30, 14),
+    canvas=CP, slots=strip_slots(60, 200, 30, 14),
     texts=[T('trungthu', 'title', xs=[300, 900], y=1690, size=30, fit=290, **TT_T)],
     fixed=[dict(text='Young Booth', xs=[300, 900], y=1736, size=22, **TT_T)],
-    qr=qr(110, (448, 1648), (1048, 1648)))
+    qr=QR_C)
 add(id='F-trungthu', mode='F', set='17', name='Trung Thu', style='moon', background='#4a2a9e', textGroup='trungthu', **TT,
-    slots=grid2x2_slots(70, 200, 50, 6),
-    texts=[T('trungthu', 'title', x=640, y=1690, size=42, fit=560, **TT_T)],
-    fixed=[dict(text='Young Booth', x=640, y=1742, size=28, **TT_T)],
-    qr=qr(120, (1036, 1636)))
+    slots=grid2x2_wide_slots(60, 60, 60, 380, 6),
+    texts=[T('trungthu', 'title', x=1610, y=190, size=44, fit=330, **TT_T)],
+    fixed=[dict(text='Young Booth', x=1610, y=246, size=30, **TT_T)],
+    kids=(1440, 480, 340, 340), trees=[(1530, 1130)],
+    qr=qr(120, (1538, 290)))
 
 
 # ================================================================================================ vẽ
@@ -526,17 +543,21 @@ def st_plain_bg(img, c, R):
 
 
 def st_clover_bg(img, c, R):
-    W, H, band = c.W, c.H, c.f['band']
+    W, H = c.W, c.H
     rect(img, 0, 0, W, H, '#c3d1ba')
-    edge = [(x, band + math.sin(x / 90 + R.random() * .2) * 10 - 6 + math.sin(x / 37) * 4) for x in range(0, W + 30, 30)]
-    pts = [(0, H)] + edge + [(W, H)]
-    fill_poly(img, pts, lambda w, h, x0, y0: lin_grad(w, h, (0, band - y0), (0, H - y0), [(0, '#a9bfa0'), (1, '#8fab88')]), blur=3)
     blobs = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    for i in range(14):
-        col = (255, 255, 255, 36) if R.random() > .5 else (90, 130, 80, 46)
-        cx, cy, r = R.random() * W, band + R.random() * (H - band), 60 + R.random() * 90
-        circle(blobs, cx, cy, r, col)
+    for ox, oy, W2, H2 in c.strips():   # dải cỏ đậm ở đáy MỖI dải (band tính trong dải)
+        band, bot = oy + c.f['band'], oy + H2
+        edge = [(x, band + math.sin(x / 90 + R.random() * .2) * 10 - 6 + math.sin(x / 37) * 4) for x in range(ox, ox + W2 + 30, 30)]
+        pts = [(ox, bot)] + edge + [(ox + W2, bot)]
+        fill_poly(img, pts, lambda w, h, x0, y0: lin_grad(w, h, (0, band - y0), (0, bot - y0), [(0, '#a9bfa0'), (1, '#8fab88')]), blur=3)
+        for i in range(7 if c.cut_x else 14 if H2 > 700 else 8):
+            col = (255, 255, 255, 36) if R.random() > .5 else (90, 130, 80, 46)
+            cx, cy, r = ox + R.random() * W2, band + R.random() * (bot - band), 60 + R.random() * 90
+            circle(blobs, cx, cy, r, col)
     blobs = blobs.filter(ImageFilter.GaussianBlur(36))
+    if c.cut_y:   # hoạ tiết mờ không vắt qua đường cắt
+        a = np.asarray(blobs).copy(); a[c.cut_y - 2:c.cut_y + 2, :, 3] = 0; blobs = Image.fromarray(a, 'RGBA')
     img.alpha_composite(blobs)
 
 
@@ -645,26 +666,34 @@ def sign_arrow(img, x, y, w, h):
 
 
 def st_orient_over(img, c, R):
-    f = c.f; band = f['band']; isC = f['mode'] == 'C'
-    for ox, oy, W2, H2 in c.strips():
-        k = W2 / 1200
-        lh = 70 if isC else 80; top = 30 if isC else 40; cx = ox + W2 / 2
+    f = c.f; band = f['band']
+    if c.cut_x:   # Nhật Ký: 2 dải dọc 600×1800 (giữ nguyên bản cũ)
+        for ox, oy, W2, H2 in c.strips():
+            k = W2 / 1200; lh = 70; cx = ox + W2 / 2
+            c.asset('events/orientation/logo-1.png', img, (cx - lh * 2.3 - 12, 30, lh * 2.3, lh), 'LOGO 1', align='right')
+            c.asset('events/orientation/logo-2.png', img, (cx + 12, 30, lh * 2.3, lh), 'LOGO 2', align='left')
+            for i in range(8):
+                cloud(img, ox + (i / 7) * W2 * .98 + 10, c.H - (30 + R.random() * 50) * 1.3, (90 + R.random() * 50) * k * 1.3)
+            cloud(img, ox + W2 * .1, band + 70 * k, 70 * k, '#ffffff', alpha=.85)
+            c.asset('events/orientation/building.png', img, (ox + 230 - 300 * .55, c.H - 300, 330, 300), 'Tòa nhà\n(file khách)', align='bottom')
+            sign_diamond(img, ox + 70, c.H - 250, 46)
+            for _ in range(5):
+                p = free_spot(c, R, 10, 0, region=(ox + 10, band, ox + W2 - 10, c.H - 120))
+                if p: glow_star(img, p[0], p[1], 7 + R.random() * 7, '#ffffff', four=True, halo=.3)
+        return
+    for ox, oy, W2, H2 in c.strips():   # tờ ngang
+        lh = 80; top = oy + 36; cx = ox + W2 / 2; bot = oy + H2
         c.asset('events/orientation/logo-1.png', img, (cx - lh * 2.3 - 12, top, lh * 2.3, lh), 'LOGO 1', align='right')
         c.asset('events/orientation/logo-2.png', img, (cx + 12, top, lh * 2.3, lh), 'LOGO 2', align='left')
         # mây trắng bồng bềnh dưới cùng
-        for i in range(8):
-            cloud(img, ox + (i / 7) * W2 * .98 + 10, c.H - (30 + R.random() * 50) * (1.3 if isC else 1), (90 + R.random() * 50) * (k * 1.3 if isC else k))
-        cloud(img, ox + W2 * .1, band + 70 * k, 70 * k, '#ffffff', alpha=.85)
-        bh = 300 if isC else 380
-        c.asset('events/orientation/building.png', img, (ox + (230 if isC else 420) - bh * .55, c.H - bh, bh * 1.1, bh),
-                'Tòa nhà\n(file khách)', align='bottom')
-        if isC:
-            sign_diamond(img, ox + 70, c.H - 250, 46)
-        else:
-            sign_diamond(img, ox + 180, 1600, 70)
-            sign_arrow(img, ox + 850, 1640, 130, 46)
-        for _ in range(5 if isC else 7):
-            p = free_spot(c, R, 10, 0, region=(ox + 10, band, ox + W2 - 10, c.H - 120))
+        for i in range(12):
+            cloud(img, ox + (i / 11) * W2 * .98 + 10, bot - (24 + R.random() * 40), 90 + R.random() * 50)
+        cloud(img, ox + W2 * .06, oy + band + 50, 70, '#ffffff', alpha=.85)
+        c.asset('events/orientation/building.png', img, (ox + 200 - 300 * .55, bot - 300, 330, 300), 'Tòa nhà\n(file khách)', align='bottom')
+        sign_diamond(img, ox + 470, bot - 230, 64)
+        sign_arrow(img, ox + 1330, bot - 200, 130, 46)
+        for _ in range(9):
+            p = free_spot(c, R, 10, 0, region=(ox + 10, oy + band, ox + W2 - 10, bot - 40))
             if p: glow_star(img, p[0], p[1], 7 + R.random() * 7, '#ffffff', four=True, halo=.3)
 
 
@@ -683,28 +712,16 @@ QK_COLS = ['#d7261e', '#f2b632', '#e8743b']
 
 
 def st_qk08_over(img, c, R):
+    """Pháo hoa / tim cờ / nón lá / em bé cầm cờ theo toạ độ khai báo ở khung (fw, hflags, nonla, kid) + sao vàng rải trong từng dải."""
     f = c.f
-    if f['mode'] == 'C':
-        for ox in (0, 600):
-            fireworks(img, ox + 62, 62, 52, QK_COLS, R)
-            if not f.get('everyday'): fireworks(img, ox + 215, 1716, 36, QK_COLS, R)   # bản thường ngày: chỗ này là chữ Young Booth
-            fireworks(img, ox + 550, 1690, 26, QK_COLS, R)
-            if f.get('everyday'):   # bản thường ngày: không tim cờ / nón lá, thêm 1 chùm pháo hoa nhỏ mép phải
-                fireworks(img, ox + 556, 442, 30, QK_COLS, R)
-            else:
-                heart_flag(img, ox + 548, 442, 56)
-                c.asset('holidays/quockhanh/non-la.png', img, (ox + 528, 1218, 70, 64), 'Nón lá')
-            for _ in range(4):
-                p = free_spot(c, R, 8, 0, region=(ox + 8, 8, ox + 592, 1792))
-                if p: draw_star(img, p[0], p[1], 7 + R.random() * 5, '#f2b632', rot=R.random())
-    else:
-        fireworks(img, 105, 100, 85, QK_COLS, R); fireworks(img, 300, 1738, 56, QK_COLS, R); fireworks(img, 870, 1740, 52, QK_COLS, R)
-        heart_flag(img, 1108, 106, 84)
-        c.asset('holidays/quockhanh/non-la.png', img, (165, 1520, 130, 110), 'Nón lá')
-        c.asset('holidays/quockhanh/be-cam-co.png', img, (980, 1440, 200, 340), 'Em bé\ncầm cờ', align='bottom')
-        for _ in range(7):
-            p = free_spot(c, R, 9, 0, region=(10, 10, 1190, 1790))
-            if p: draw_star(img, p[0], p[1], 8 + R.random() * 6, '#f2b632', rot=R.random())
+    for x, y, r in f.get('fw', []): fireworks(img, x, y, r, QK_COLS, R)
+    for x, y, sz in f.get('hflags', []): heart_flag(img, x, y, sz)
+    for b in f.get('nonla', []): c.asset('holidays/quockhanh/non-la.png', img, b, 'Nón lá')
+    for b in f.get('kid', []): c.asset('holidays/quockhanh/be-cam-co.png', img, b, 'Em bé\ncầm cờ', align='bottom')
+    for ox, oy, W2, H2 in c.strips():
+        for _ in range(4 if c.cut_x else 5 if H2 < 700 else 8):
+            p = free_spot(c, R, 9, 0, region=(ox + 8, oy + 8, ox + W2 - 8, oy + H2 - 8))
+            if p: draw_star(img, p[0], p[1], 7 + R.random() * 6, '#f2b632', rot=R.random())
 
 
 def st_motto_bg(img, c, R):
@@ -729,11 +746,7 @@ def st_motto_bg(img, c, R):
 
 def st_motto_over(img, c, R):
     col = '#d42a2a' if c.f['tone'] == 'blue' else '#ffd21f'
-    if c.f['mode'] == 'C':
-        pts = [(40, 48, 38, 1), (640, 48, 38, 1), (556, 868, 30, -1), (1156, 868, 30, -1), (40, 1702, 28, 1), (640, 1702, 28, 1)]
-    else:
-        pts = [(58, 64, 60, 1), (1138, 925, 52, -1), (70, 1690, 54, 1)]
-    for x, y, r, d in pts:
+    for x, y, r, d in c.f['stars']:   # sao lớn + sao nhỏ lệch bên (d = hướng)
         draw_star(img, x, y, r, col, rot=.1); draw_star(img, x + d * r * .95, y + r * .6, r * .38, col, rot=.3)
 
 
@@ -776,19 +789,13 @@ def caret_col(img, x, y, n, size, col, up=True):
 
 
 def st_q29_over(img, c, R):
-    red = '#d42a2a'
-    if c.f['mode'] == 'C':
-        for ox in (0, 600):
-            flag_vn(img, ox + 512, 34, 52)
-            skyline(img, ox + 24, 1782, 130, 62, red, R)
-            caret_col(img, ox + 20, 1000, 3, 14, red); caret_col(img, ox + 580, 300, 3, 14, red)
-    else:
-        chev(img, 220, 82, 4, 22, red)
-        flag_vn(img, 1000, 52, 62); building_icon(img, 1086, 40, 66, red)
-        skyline(img, 40, 1772, 270, 92, red, R)
-        chev(img, 330, 1712, 4, 20, red, left=True)
-        heart_flag(img, 960, 1716, 70)
-        caret_col(img, 25, 1000, 3, 18, red); caret_col(img, 1175, 300, 3, 18, red)
+    red = '#d42a2a'; f = c.f
+    for x, y, n, size, left in f.get('chevs', []): chev(img, x, y, n, size, red, left=left)
+    for x, y, w in f.get('flags', []): flag_vn(img, x, y, w)
+    for x, y, w in f.get('buildings', []): building_icon(img, x, y, w, red)
+    for x, y, w, h in f.get('skylines', []): skyline(img, x, y, w, h, red, R)
+    for x, y, sz in f.get('hflags', []): heart_flag(img, x, y, sz)
+    for x, y, n, size in f.get('carets', []): caret_col(img, x, y, n, size, red)
 
 
 def ribbon(img, cx, cy, length, clip):
@@ -813,17 +820,15 @@ def bunting(img, x1, x2, y0, sag=34):
 
 
 def st_wflags_over(img, c, R):
-    isC = c.f['mode'] == 'C'
-    for ox, oy, W2, H2 in c.strips():
-        ribbon(img, ox + 40, 40, 230, (ox, 0, ox + W2 - 1, c.H - 1))
-        ribbon(img, ox + W2 - 40, c.H - 40, 230, (ox, 0, ox + W2 - 1, c.H - 1))
-        fw = 70 if isC else 84
-        flag_vn(img, ox + W2 - fw - (28 if isC else 50), 92 if isC else 98, fw, wave=4)
-        mine = [s for s in c.f['slots'] if ox <= s['x'] < ox + W2]
+    for ox, oy, W2, H2 in c.strips():   # dải lụa sao ở 2 góc chéo của mỗi dải / tờ
+        clip = (ox, oy, ox + W2 - 1, oy + H2 - 1)
+        ribbon(img, ox + 40, oy + 40, 230, clip)
+        ribbon(img, ox + W2 - 40, oy + H2 - 40, 230, clip)
+        mine = [s for s in c.f['slots'] if ox <= s['x'] < ox + W2 and oy <= s['y'] < oy + H2]
         for i, s in enumerate(mine):
             if i % 3 == 0: bunting(img, s['x'] + s['w'] * .45, s['x'] + s['w'] - 12, s['y'] + 6)
-        c.asset('holidays/quockhanh/lang-bac.png', img,
-                (ox + 40, c.H - 142, 190, 124) if isC else (ox + 60, c.H - 145, 400, 130), 'Lăng Bác\n(file bản quyền)', align='left')
+    for x, y, fw in c.f.get('wflag', []): flag_vn(img, x, y, fw, wave=4)
+    for b in c.f.get('langbac', []): c.asset('holidays/quockhanh/lang-bac.png', img, b, 'Lăng Bác\n(file bản quyền)', align='left')
 
 
 def st_maroon_bg(img, c, R):
@@ -852,24 +857,22 @@ def wavy_flag(img, fx, fy, fw):
 
 
 def st_maroon_over(img, c, R):
-    isC = c.f['mode'] == 'C'
     for ox, oy, W2, H2 in c.strips():
-        k = W2 / 1200
-        for i in range(6):
-            x, y, r = ox + 14 + R.random() * 150 * k, 14 + R.random() * 150 * k, (20 + R.random() * 30) * k + 8
+        k = min(W2, H2) / 1200   # dải Nhật Ký (cạnh ngắn 600) → hoạ tiết nhỏ một nửa
+        for i in range(6):        # vòng tròn đồng tâm góc trên-trái
+            x, y, r = ox + 14 + R.random() * 150 * k, oy + 14 + R.random() * 150 * k, (20 + R.random() * 30) * k + 8
             for j in (1, 2, 3):
                 stroke_poly(img, ellipse_rot(x, y, r * j / 3, r * j / 3, 0, 36), '#e8b04a' if i % 2 else '#c23b2a', 3.5)
-        skyline(img, ox + 20, c.H - 6, (340 * k + 80), 70 * k + 30, '#1c1c1c', R)
-        wavy_flag(img, ox + 46, c.H - (150 if isC else 250), 190 if isC else 330)
-    if not isC:
-        c.asset('holidays/quockhanh/logo-ky-niem.png', img, (1030, 1470, 150, 150), 'Logo kỷ niệm\n(file chính thức)')
+    for x, y, w, h in c.f.get('skylines', []): skyline(img, x, y, w, h, '#1c1c1c', R)
+    for x, y, fw in c.f.get('wflags', []): wavy_flag(img, x, y, fw)
+    if c.f.get('logo'): c.asset('holidays/quockhanh/logo-ky-niem.png', img, c.f['logo'], 'Logo kỷ niệm\n(file chính thức)')
 
 
 def st_bronze_bg(img, c, R):
     img.alpha_composite(lin_grad(c.W, c.H, (0, 0), (0, c.H), [(0, '#8a6a35'), (1, '#6d5226')]))
     lay = Image.new('RGBA', (c.W, c.H), (0, 0, 0, 0))
     for ox, oy, W2, H2 in c.strips():
-        skyline(lay, ox, c.H, W2, 230 if W2 > 700 else 170, '#2e2211', R)
+        skyline(lay, ox, oy + H2, W2, 230 if min(W2, H2) > 700 else 170 if c.cut_x else 150, '#2e2211', R)
     lay.putalpha(lay.getchannel('A').point(lambda v: v * 15 // 100))
     img.alpha_composite(lay)
 
@@ -943,9 +946,10 @@ def st_air_over(img, c, R):
 def st_moon_bg(img, c, R):
     img.alpha_composite(lin_grad(c.W, c.H, (0, 0), (0, c.H), [(0, '#4a2a9e'), (1, '#3a1f86')]))
     for ox, oy, W2, H2 in c.strips():  # dải kem chữ L: mép trên + mép phải
-        img.alpha_composite(lin_grad(int(W2 * .66), 74, (0, 0), (0, 74), [(0, '#f5ecd2'), (1, (245, 236, 210, 0))]), (int(ox + W2 * .34), 0))
-        gw = 64 if W2 < 700 else 80
-        img.alpha_composite(lin_grad(gw, c.H - 230, (gw, 0), (0, 0), [(0, '#f5ecd2'), (1, (245, 236, 210, 0))]), (ox + W2 - gw, 0))
+        img.alpha_composite(lin_grad(int(W2 * .66), 74, (0, 0), (0, 74), [(0, '#f5ecd2'), (1, (245, 236, 210, 0))]), (int(ox + W2 * .34), oy))
+        gw = 64 if min(W2, H2) < 700 else 80
+        img.alpha_composite(lin_grad(gw, H2 - (120 if H2 < 700 else 230), (gw, 0), (0, 0), [(0, '#f5ecd2'), (1, (245, 236, 210, 0))]),
+                           (ox + W2 - gw, oy))
 
 
 def st_moon_over(img, c, R):
@@ -955,21 +959,22 @@ def st_moon_over(img, c, R):
         stroke_rect(lay, s['x'] - 1, s['y'] - 1, s['x'] + s['w'] + 1, s['y'] + s['h'] + 1, (255, 255, 255, 200), 2)
     img.alpha_composite(lay.filter(ImageFilter.GaussianBlur(1.2)))
     for ox, oy, W2, H2 in c.strips():
-        k = W2 / 1200
+        k = min(W2, H2) / 1200
         for i in range(3):  # mây cuộn trắng-xanh góc trên-trái
-            cx, cy, r = ox + 54 + i * 34 * k, 40 + i * 16, 40 * k + 16
+            cx, cy, r = ox + 54 + i * 34 * k, oy + 40 + i * 16 * k, 40 * k + 16
             stroke_poly(img, [(cx + math.cos(t) * r, cy + math.sin(t) * r) for t in (math.pi * (.1 + j * .055) for j in range(21))],
                         '#dbeafe', 9 * k + 4, closed=False)
-        for dx, dy, r in [(0, 0, 90), (80, -30, 80), (150, 10, 70), (40, -80, 70)]:  # tán cây góc dưới-trái
-            circle(img, ox + 30 + 60 * k + dx * k, c.H - 88 + dy * k, r * k + 12, '#2f7d3a')
-            circle(img, ox + 30 + 60 * k + dx * k - r * k * .25, c.H - 88 + dy * k - r * k * .3, r * k * .45, (90, 170, 90, 120))
-        reg = (ox + 6, 6, ox + W2 - 6, c.H - 6)
-        scatter(c, R, 6 if W2 < 700 else 8, lambda i: 18 + R.random() * 12, 12, lambda x, y, r, i: lantern(img, x, y, r), region=reg, edge=0.6, spread=4)
+        for tx, ty in f.get('trees') or [(ox + 30 + 60 * k, oy + H2 - 88 * k)]:   # tán cây (mặc định góc dưới-trái mỗi dải)
+            for dx, dy, r in [(0, 0, 90), (80, -30, 80), (150, 10, 70), (40, -80, 70)]:
+                circle(img, tx + dx * k, ty + dy * k, r * k + 12, '#2f7d3a')
+                circle(img, tx + dx * k - r * k * .25, ty + dy * k - r * k * .3, r * k * .45, (90, 170, 90, 120))
+        reg = (ox + 6, oy + 6, ox + W2 - 6, oy + H2 - 6)
+        scatter(c, R, 6 if c.cut_x else 8, lambda i: 18 + R.random() * 12, 12, lambda x, y, r, i: lantern(img, x, y, r), region=reg, edge=0.6, spread=4)
         for _ in range(12):
             p = free_spot(c, R, 6, 0, region=reg)
             if p: glow_star(img, p[0], p[1], 3 + R.random() * 4, '#ffffff', four=True, halo=.3)
-    if f['mode'] == 'F':
-        c.asset('holidays/trungthu/kids.png', img, (760, 1380, 440, 420), 'Trẻ em rước đèn\n(file bản quyền)', align='bottom')
+    if f.get('kids'):
+        c.asset('holidays/trungthu/kids.png', img, f['kids'], 'Trẻ em rước đèn\n(file bản quyền)', align='bottom')
 
 
 STYLES = {
@@ -1069,7 +1074,7 @@ def build(frames, out_dir, asset_dir=None, log=print):
 
 
 # ---------------------------------------------------------------- khai báo vào renderer/config.js (tự sinh, cùng nguồn với PNG)
-CANVAS_DEFAULT = {'A': (1200, 1800), 'B': (1800, 1200), 'C': (1200, 1800), 'D': (1800, 1200), 'F': (1200, 1800)}
+CANVAS_DEFAULT = {'A': (1800, 1200), 'B': (1800, 1200), 'C': (1200, 1800), 'D': (1800, 1200), 'F': (1800, 1200)}
 TEXT_KEYS = ['id', 'label', 'value', 'x', 'xs', 'y', 'ys', 'size', 'fit', 'w', 'lh', 'color', 'ff', 'weight', 'italic', 'ls', 'align',
              'stroke', 'strokeW', 'rotate']
 BEGIN, END = '// ==== KHUNG MỚI cho nút "Chọn khung" — TỰ SINH bởi: py scripts/make-frames.py config', '// ==== HẾT KHUNG MỚI (tự sinh)'
@@ -1153,11 +1158,10 @@ def emit_config(path):
 
 
 # ================================================================================================
-# KHUNG CHO LUỒNG SỰ KIỆN — danh sách user chọn (MO-TA-DANH-SACH-KHUNG.md): chỉ tờ dọc 4×6 / tờ ngang 6×4.
+# KHUNG CHO LUỒNG SỰ KIỆN — danh sách user chọn (MO-TA-DANH-SACH-KHUNG.md). Từ 27/10/2026 chỉ còn tờ ngang 6×4.
 # Thư viện eventFrames (lib='event'), file ở C:\YoungBooth-Frames\events\<bộ>\<mã>.png. Kiểu chụp theo số ảnh:
 #   1 ảnh → Khoảnh Khắc (A) · 2 ảnh → Ngọt Ngào (B) · 3 ảnh → Dịu Dàng (F, chụp 3).  Chạy: py scripts/make-frames.py setev config
 # ================================================================================================
-P_, L_ = (1200, 1800), (1800, 1200)
 GROUPS.update({
     'rv': ('Khung Đỏ Rượu Vang', [('line1', 'Chữ bên trái trái tim', 'Love'), ('line2', 'Chữ bên phải trái tim', 'Forever'),
                                   ('date', 'Ngày (trống = hôm nay)', ''), ('thanks', 'Lời cảm ơn', 'Thank You')]),
@@ -1177,10 +1181,9 @@ def ev_copy(src_id, new_id, folder, name):
     return f
 
 
-# ---------------- BỘ 1 — Cỏ Bốn Lá (CS) — cùng thiết kế bộ #02
-FR.append(ev_copy('A-clover-sage', 'EV-A-cs-d1', 'co-bon-la', 'Cỏ Bốn Lá – Tờ dọc'))
-FR.append(ev_copy('A-clover-sage-wide', 'EV-A-cs-n1', 'co-bon-la', 'Cỏ Bốn Lá – Tờ ngang'))
-for _f in FR[-2:]: _f['photos'] = 1
+# ---------------- BỘ 1 — Cỏ Bốn Lá (CS) — cùng thiết kế bộ #02 (bản tờ dọc EV-A-cs-d1 đã bỏ → alias sang n1)
+FR.append(ev_copy('A-clover-sage', 'EV-A-cs-n1', 'co-bon-la', 'Cỏ Bốn Lá'))
+FR[-1]['photos'] = 1
 
 
 # ---------------- BỘ 2 — Đỏ Rượu Vang – Chữ Ký (RV)
@@ -1193,15 +1196,12 @@ def rv_texts(cx, y, size, fit, dy_date, dy_thx, sd, st):
 
 
 RV_BRAND = dict(text='YOUNG BOOTH', color=(245, 239, 230, 150), ls=5, **BRAND_SERIF)
-add(id='EV-A-rv-d1', mode='A', name='Đỏ Rượu Vang – 1 ảnh dọc', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-d1',
-    photos=1, slots=[S(42, 42, 1116, 1380, 14)], heart=(600, 1532, 30), sprigs=[(1050, 1532, 120, -20, 1)],
-    texts=rv_texts(600, 1560, 84, 330, 70, 146, 26, 42), fixed=[dict(x=600, y=1784, size=12, **RV_BRAND)], qr=qr(120, (1036, 1636)), **EV)
-add(id='EV-B-rv-d2', mode='B', name='Đỏ Rượu Vang – 2 ảnh dọc', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-d2',
-    photos=2, paper='4x6', noRotate=False, slots=[S(42, 42, 1116, 718, 12), S(42, 776, 1116, 718, 12)],
-    heart=(600, 1574, 26), sprigs=[(1040, 1574, 104, -20, 1)],
-    texts=rv_texts(600, 1600, 70, 330, 58, 124, 22, 36), fixed=[dict(x=600, y=1784, size=12, **RV_BRAND)], qr=qr(120, (1036, 1636)), **EV)
-add(id='EV-A-rv-n1', mode='A', name='Đỏ Rượu Vang – 1 ảnh ngang', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-n1',
-    photos=1, canvas=L_, paper='4x6', slots=[S(40, 40, 1720, 900, 14)], heart=(900, 1022, 30),
+add(id='EV-B-rv-d2', mode='B', name='Đỏ Rượu Vang – 2 ảnh', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-d2',
+    photos=2, slots=[S(40, 40, 850, 660, 12), S(910, 40, 850, 660, 12)],
+    heart=(900, 804, 26), sprigs=[(470, 812, 110, -20, -1), (1330, 812, 110, -20, 1)],
+    texts=rv_texts(900, 830, 72, 360, 54, 110, 22, 34), fixed=[dict(x=900, y=1186, size=11, **RV_BRAND)], qr=qr(120, (1620, 1020)), **EV)
+add(id='EV-A-rv-n1', mode='A', name='Đỏ Rượu Vang – 1 ảnh', style='rv', background='#6e0b16', textGroup='rv', file='events/ruou-vang/rv-n1',
+    photos=1, slots=[S(40, 40, 1720, 900, 14)], heart=(900, 1022, 30),
     sprigs=[(470, 1030, 120, -20, -1), (1330, 1030, 120, -20, 1)],
     texts=rv_texts(900, 1050, 80, 380, 58, 112, 24, 36), fixed=[dict(x=900, y=1188, size=11, **RV_BRAND)], qr=qr(120, (1620, 1020)), **EV)
 
@@ -1213,36 +1213,32 @@ def lc_texts(cx, y, size, sd, dy):
 
 
 LC_BRAND = dict(text='YOUNG BOOTH', color='#b39a5e', ls=5, **BRAND_SERIF)
-add(id='EV-A-lc-d1', mode='A', name='Chanh Vàng – Tờ dọc', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-d1',
-    photos=1, slots=[S(42, 42, 1116, 1400)], filigree=True, wreath=(600, 1612, 138),
-    lemons=[(70, 62, 1.0, 'tl'), (1150, 1430, 1.1, 'br')], olives=[(1150, 30, 1.0, 150), (40, 1770, 1.0, -30)],
-    texts=lc_texts(600, 1632, 66, 22, 54), fixed=[dict(x=600, y=1782, size=12, **LC_BRAND)], qr=qr(120, (1036, 1636)), **EV)
-add(id='EV-A-lc-n1', mode='A', name='Chanh Vàng – Tờ ngang', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n1',
-    photos=1, canvas=L_, paper='4x6', slots=[S(42, 42, 1716, 860)], filigree=True, wreath=(900, 1036, 112),
+add(id='EV-A-lc-n1', mode='A', name='Chanh Vàng', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n1',
+    photos=1, slots=[S(42, 42, 1716, 860)], filigree=True, wreath=(900, 1036, 112),
     lemons=[(70, 62, 1.0, 'tl'), (1750, 890, 1.0, 'br')], olives=[(1760, 28, 0.9, 150), (36, 1170, 0.9, -30)],
     texts=lc_texts(900, 1054, 54, 18, 44), fixed=[dict(x=900, y=1186, size=11, **LC_BRAND)], qr=qr(120, (1620, 1020)), **EV)
-add(id='EV-F-lc-n3', mode='F', name='Chanh Vàng – 3 ảnh ngang', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n3',
-    photos=3, canvas=L_, paper='4x6', slots=[S(40, 40, 850, 550), S(40, 610, 850, 550), S(910, 610, 850, 550)],
+add(id='EV-F-lc-n3', mode='F', name='Chanh Vàng – 3 ảnh', style='lemon', background='#fffdf7', textGroup='lc', file='events/chanh-vang/lc-n3',
+    photos=3, slots=[S(40, 40, 850, 550), S(40, 610, 850, 550), S(910, 610, 850, 550)],
     wreath=(1300, 300, 205), lemons=[(68, 60, 1.0, 'tl'), (1752, 1150, 0.9, 'br')], olives=[(1770, 30, 0.9, 150)],
     texts=lc_texts(1300, 322, 112, 30, 82), fixed=[dict(x=1300, y=560, size=13, **LC_BRAND)], qr=qr(120, (1600, 410)), **EV)
 
-# ---------------- BỘ 4 — Báo Cũ – The Daily (BC)
+# ---------------- BỘ 4 — Báo Cũ – The Daily (BC): ảnh trái, cột báo phải (dòng ngày · QR · ô tít "THE DAILY / Young Booth")
 add(id='EV-A-bc-d1', mode='A', name='Báo Cũ – The Daily', style='news', background='#cfc4a5', textGroup='bc', file='events/bao-cu/bc-d1',
-    photos=1, slots=[S(60, 96, 1080, 1290)], headline=(450, 1450, 1140, 1730),
-    texts=[T('bc', 'dateline', x=64, y=1478, size=22, fit=360, align='left', ff=NSERIF, color='#4e4434')],
-    fixed=[dict(text='THE DAILY', x=1110, y=1572, size=108, align='right', ff=NSERIF, weight=700, color='#a2977f', fit=640),
-           dict(text='Young Booth', x=1110, y=1690, size=96, align='right', ff=NSERIF, weight=700, color='#a2977f', fit=640)],
-    qr=qr(120, (70, 1590)), **EV)
+    photos=1, slots=[S(60, 150, 1220, 900)], headline=(1350, 700, 1742, 1100), datebox=(1350, 92, 1742, 150),
+    texts=[T('bc', 'dateline', x=1366, y=130, size=22, fit=360, align='left', ff=NSERIF, color='#4e4434')],
+    fixed=[dict(text='THE DAILY', x=1546, y=860, size=78, ff=NSERIF, weight=700, color='#a2977f', fit=350),
+           dict(text='Young Booth', x=1546, y=980, size=70, ff=NSERIF, weight=700, color='#a2977f', fit=350)],
+    qr=qr(120, (1474, 230)), **EV)
 
 # ---------------- BỘ 5 — Polaroid Băng Dính (PL)
 add(id='EV-B-pl-n2', mode='B', name='Polaroid Băng Dính', style='polaroid', background='#ffffff', textGroup='pl', file='events/polaroid/pl-n2',
-    photos=2, canvas=L_, cards=[(36, 90, 846, 1020), (918, 90, 846, 1020)], slots=[S(99, 153, 720, 720), S(981, 153, 720, 720)],
-    texts=[T('pl', 'caption', xs=[400, 1282], y=1010, size=62, fit=520, ff=SCRIPT, color='#8c8680')],
-    qr=qr(120, (700, 950), (1582, 950)), **EV)
+    photos=2, cards=[(36, 150, 846, 900), (918, 150, 846, 900)], slots=[S(99, 213, 720, 540), S(981, 213, 720, 540)],
+    texts=[T('pl', 'caption', xs=[400, 1282], y=930, size=62, fit=520, ff=SCRIPT, color='#8c8680')],
+    qr=qr(120, (700, 880), (1582, 880)), **EV)
 
 # ---------------- BỘ 6 — Sao Vàng Nền Đen (SV)
 add(id='EV-A-sv-n1', mode='A', name='Sao Vàng Nền Đen', style='goldstar', background='#0b0b0b', file='events/sao-vang/sv-n1',
-    photos=1, canvas=L_, paper='4x6', slots=[S(180, 120, 1440, 960, 125)],
+    photos=1, slots=[S(180, 120, 1440, 960, 125)],
     fixed=[dict(text='Young Booth', x=900, y=1166, size=40, ff=SCRIPT, color='#e8c02e')], qr=qr(120, (1636, 1036)), **EV)
 
 
@@ -1407,13 +1403,13 @@ def st_news_over(img, c, R):
         circle(img, x, 14, 7, brown); circle(img, x, H - 14, 7, brown)
     for y in range(44, H - 30, 30):
         circle(img, 14, y, 7, brown); circle(img, W - 14, y, 7, brown)
-    s = f['slots'][0]; yrow = s['y'] + s['h'] + 30
-    for x in range(s['x'] + 8, s['x'] + s['w'], 26): circle(img, x, yrow, 8, brown)   # hàng chấm ngăn cách
+    s = f['slots'][0]; xcol = s['x'] + s['w'] + 34
+    for y in range(s['y'] + 8, s['y'] + s['h'], 26): circle(img, xcol, y, 8, brown)   # cột chấm ngăn ảnh với cột báo
     x0, y0, x1, y1 = f['headline']
     rect(img, x0 + 4, y0 + 6, x1 + 4, y1 + 6, (0, 0, 0, 40), blur=6)
     rect(img, x0, y0, x1, y1, '#e2dac3')
     stroke_rect(img, x0 + 10, y0 + 10, x1 - 10, y1 - 10, (162, 151, 127, 160), 2)
-    rect(img, 60, yrow + 26, 420, yrow + 70, (207, 196, 165, 230))   # chỗ dòng ngày (chữ động) dễ đọc
+    rect(img, *f['datebox'], (207, 196, 165, 230))   # chỗ dòng ngày (chữ động) dễ đọc
 
 
 def st_polaroid_bg(img, c, R):
@@ -1455,6 +1451,152 @@ STYLES.update({
     'rv': (st_plain_bg, st_rv_over), 'lemon': (st_plain_bg, st_lemon_over), 'news': (st_news_bg, st_news_over),
     'polaroid': (st_polaroid_bg, st_polaroid_over), 'goldstar': (st_plain_bg, st_goldstar_over),
 })
+
+
+# ================================================================ #18 Cosmos (lấy cảm hứng cosmos.so — tối giản, grotesk đậm, ô bo tròn, thẻ nổi)
+# Nền giấy ngà #F4F3F1 (bản Noir: đen), chữ Be Vietnam Pro 800, logo chấm hoa + YOUNG BOOTH, thanh tìm kiếm / chip màu / thẻ QR nổi.
+GROUPS['cosmos'] = ('Khung Cosmos', [('line1', 'Tiêu đề dòng 1', 'Khoảnh khắc'), ('line2', 'Tiêu đề dòng 2', 'có cá tính'),
+                                     ('tagline', 'Chữ trong thanh tìm kiếm', 'Tìm khoảnh khắc của bạn'),
+                                     ('date', 'Ngày (trống = hôm nay)', '')])
+COS_DOTS = ['#f25c54', '#f7a541', '#f2d14b', '#7cc96b', '#4fb3e8', '#6c7cf0', '#b276e6', '#ec6fb4']
+COS_TILES = [('#e9e4dd', '#cfc5b8'), ('#efe9e1', '#d9cbb8'), ('#e4e1dc', '#bdb6ad'), ('#ece5dc', '#c9b49b'), ('#e8e6e2', '#c8c4be')]
+
+
+def cos_pal(f):
+    if f.get('dark'): return dict(bg='#0f0f0f', ink='#f4f3f1', mute='#8d8d8d', chip='#232323', card='#1c1c1c', line=(255, 255, 255, 30))
+    return dict(bg='#f4f3f1', ink='#111111', mute='#8a8a8a', chip='#e7e4df', card='#ffffff', line=(0, 0, 0, 22))
+
+
+def cos_mark(img, cx, cy, r, color=None):
+    """Logo chấm hoa: 8 chấm trên vòng tròn (color=None → 8 màu cầu vồng như nút tìm theo màu của Cosmos)."""
+    for i in range(8):
+        a = i / 8 * 2 * math.pi - math.pi / 2
+        circle(img, cx + r * .7 * math.cos(a), cy + r * .7 * math.sin(a), r * .24, color or COS_DOTS[i])
+
+
+def cos_brand(img, c, x, y, size, color, align='left'):
+    """Logo + 'YOUNG BOOTH' — (x, y) = baseline; align left/center."""
+    fl = c.fonts.get('Be Vietnam Pro', 700, False, size); ls = size * .14
+    tw = text_width('YOUNG BOOTH', fl, ls); mr = size * .62; gap = size * .5
+    x0 = x - (mr * 2 + gap + tw) / 2 if align == 'center' else x
+    cos_mark(img, x0 + mr, y - size * .36, mr, color)
+    draw_text(img, c.fonts, 'YOUNG BOOTH', x0 + mr * 2 + gap, y, dict(size=size, ff=SANS, weight=700, ls=ls, color=color, align='left'))
+
+
+def rrect_pts(cx, cy, w, h, r, deg, n=8):
+    a = math.radians(deg); ca, sa = math.cos(a), math.sin(a); pts = []
+    for qx, qy, a0 in ((w / 2 - r, -h / 2 + r, -90), (w / 2 - r, h / 2 - r, 0), (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180)):
+        for i in range(n + 1):
+            t = math.radians(a0 + 90 * i / n); u, v = qx + r * math.cos(t), qy + r * math.sin(t)
+            pts.append((cx + u * ca - v * sa, cy + u * sa + v * ca))
+    return pts
+
+
+def cos_tile(img, cx, cy, w, h, deg, k, blur=0, alpha=1.0):
+    """Ô ảnh 'thả nổi' nghiêng như hero cosmos.so: bo góc, màu chuyển ấm, đổ bóng mềm."""
+    a, b = COS_TILES[k % len(COS_TILES)]; pts = rrect_pts(cx, cy, w, h, min(w, h) * .16, deg)
+    fill_poly(img, pts, (0, 0, 0, 34), blur=12 + blur, offset=(0, 10), alpha=alpha)
+    fill_poly(img, pts, lambda W, H, x0, y0: lin_grad(W, H, (0, 0), (W, H), [(0, a), (.55, b), (1, a)]), blur=blur, alpha=alpha)
+    # 'vật thể' mờ ở giữa ô (gợi ảnh sản phẩm) + vệt sáng
+    circle(img, cx + w * .05, cy + h * .08, min(w, h) * .2, (255, 255, 255, 110), blur=6 + blur, alpha=alpha)
+    circle(img, cx - w * .08, cy - h * .1, min(w, h) * .09, (120, 100, 80, 60), blur=4 + blur, alpha=alpha)
+
+
+def cos_card(img, x0, y0, x1, y1, fill, r=28, shadow=True):
+    if shadow: rect(img, x0, y0 + 10, x1, y1 + 10, (0, 0, 0, 40), radius=r, blur=16)
+    rect(img, x0, y0, x1, y1, fill, radius=r)
+
+
+def cos_qr_card(img, c, p, label=True):
+    """Thẻ nổi sau ô QR (app tự vẽ QR + nền trắng tại qr.at). label → dòng 'Quét để tải ảnh' phía trên."""
+    q = c.f['qr']['size'] * 1.2; x, y = p['x'], p['y']; pd = 12
+    top = y - (40 if label else pd)
+    cos_card(img, x - pd, top, x + q + pd, y + q + pd, '#ffffff', r=26)
+    if label:
+        cos_mark(img, x + 14, top + 22, 9, '#111111')
+        draw_text(img, c.fonts, 'Quét để tải ảnh', x + 30, top + 28, dict(size=17, ff=SANS, weight=600, color='#111111', align='left'))
+
+
+def cos_search(img, c, x0, y0, x1, y1, pal, button=True):
+    """Thanh tìm kiếm Cosmos: viên ngoài nhạt + pill trắng + kính lúp (+ nút tròn logo màu bên phải)."""
+    h = y1 - y0; cy = (y0 + y1) / 2
+    rect(img, x0, y0, x1, y1, '#e9e7e3' if not c.f.get('dark') else '#1d1d1d', radius=h / 2)
+    bx = x1 - h / 2 if button else None
+    px1 = (x1 - h - 6) if button else (x1 - 9)
+    rect(img, x0 + 9, y0 + 9, px1, y1 - 9, pal['card'], radius=(h - 18) / 2)
+    stroke_rect(img, x0 + 9, y0 + 9, px1, y1 - 9, pal['line'], 2, radius=(h - 18) / 2)
+    mx, mr = x0 + 9 + h * .42, h * .14
+    stroke_poly(img, ellipse_rot(mx, cy - 2, mr, mr, 0, 36), pal['mute'], 3.5)
+    stroke_poly(img, [(mx + mr * .72, cy - 2 + mr * .72), (mx + mr * 1.45, cy - 2 + mr * 1.45)], pal['mute'], 4, closed=False)
+    if button:
+        circle(img, bx, cy, h / 2 - 9, pal['card'])
+        cos_mark(img, bx, cy, h * .2)
+
+
+def st_cosmos_bg(img, c, R):
+    f = c.f; pal = cos_pal(f); v = f['cos']
+    rect(img, 0, 0, c.W, c.H, pal['bg'])
+    if v == 'hero':   # tờ ngang: ảnh giữa, ô 'thả nổi' 2 bên, chữ + thanh tìm kiếm dưới ảnh
+        for i, (x, y, w, h, d, bl) in enumerate([(130, 200, 128, 160, -12, 0), (90, 470, 96, 120, 14, 2), (150, 720, 128, 104, -7, 0),
+                                                 (1670, 190, 112, 144, 13, 0), (1700, 450, 84, 104, -10, 2), (1640, 700, 120, 96, 9, 0)]):
+            cos_tile(img, x, y, w, h, d, i, blur=bl, alpha=.55 if bl else 1)
+        cos_search(img, c, 560, 1030, 1240, 1116, pal)
+        rect(img, 70, 1092, 390, 1156, pal['ink'], radius=32)
+        draw_text(img, c.fonts, 'YOUNG BOOTH', 230, 1134, dict(size=22, ff=SANS, weight=700, ls=3.5, color=pal['bg']))
+        cos_qr_card(img, c, f['qr']['at'][0])
+    elif v == 'editorial':   # tờ ngang: ảnh trái, tiêu đề cột phải, thanh tìm kiếm dưới ảnh
+        cos_search(img, c, 48, 972, 900, 1062, pal, button=False)
+        cos_brand(img, c, 56, 1138, 24, pal['ink'])
+        cos_qr_card(img, c, f['qr']['at'][0])
+    elif v == 'grid':        # tờ ngang: lưới 2×2 trái, cột phải
+        rect(img, 1440, 880, 1720, 932, pal['chip'], radius=26); circle(img, 1468, 906, 11, '#ce71c9')
+        cos_brand(img, c, 1440, 836, 22, pal['ink'])   # trên chip ngày — không đụng thẻ QR
+        cos_qr_card(img, c, f['qr']['at'][0])
+    elif v == 'strip':
+        for k, (ox, _, _, _) in enumerate(c.strips()):
+            rect(img, ox + 36, 1652, ox + 300, 1702, pal['chip'], radius=25); circle(img, ox + 62, 1677, 11, ['#ce71c9', '#4fb3e8'][k])
+            cos_brand(img, c, ox + 40, 1764, 18, pal['ink'])
+        for p in f['qr']['at']: cos_qr_card(img, c, p, label=False)
+
+
+STYLES['cosmos'] = (st_cosmos_bg, None)
+
+
+def cos_texts(dark, l1, l2, d, tg=None, align='left'):
+    g = 'cosmos'; pal = cos_pal(dict(dark=dark)); H = dict(ff=SANS, weight='800', color=pal['ink'], align=align)
+    out = [T(g, 'line1', **l1, **H), T(g, 'line2', **l2, **H)]
+    if tg: out.append(T(g, 'tagline', **tg, ff=SANS, weight='500', color=pal['mute'], align='left'))
+    chip = d.pop('chip', False); da = d.pop('align', align)
+    out.append(T(g, 'date', **d, ff=SANS, weight='600', color=pal['ink'] if chip else pal['mute'], align=da))
+    return out
+
+
+COS = dict(set='18', style='cosmos', textGroup='cosmos', background='#f4f3f1')
+add(id='A-cosmos', mode='A', name='Cosmos – Tạp Chí', cos='editorial', **COS,
+    slots=[S(48, 48, 1260, 880, 48)],
+    texts=cos_texts(False, dict(x=1350, y=170, size=88, fit=410), dict(x=1350, y=268, size=88, fit=410),
+                    dict(x=1300, y=1138, size=22, align='right'), dict(x=140, y=1029, size=32, fit=700)),
+    qr=qr(120, (1600, 1000)))
+add(id='A-cosmos-hero', mode='A', name='Cosmos – Thả Nổi', cos='hero', **COS,
+    slots=[S(260, 48, 1280, 780, 56)],
+    texts=cos_texts(False, dict(x=900, y=914, size=70, fit=1000), dict(x=900, y=990, size=70, fit=1000),
+                    dict(x=230, y=1062, size=22), dict(x=650, y=1085, size=28, fit=440), align='center'),
+    qr=qr(120, (1600, 1000)))
+add(id='C-cosmos', mode='C', name='Cosmos – Ngà', cos='strip', cut2inch=True, **COS, canvas=CP,
+    slots=strip_slots(36, 330, 36, 14, 28),
+    texts=cos_texts(False, dict(xs=[40, 640], y=1556, size=54, fit=520), dict(xs=[40, 640], y=1614, size=54, fit=520),
+                    dict(xs=[84, 684], y=1686, size=22, fit=200, chip=True)),
+    qr=qr(110, (448, 1640), (1048, 1640)))
+add(id='C-cosmos-noir', mode='C', name='Cosmos – Noir', cos='strip', dark=True, cut2inch=True, canvas=CP, **dict(COS, background='#0f0f0f'),
+    slots=strip_slots(36, 330, 36, 14, 28),
+    texts=cos_texts(True, dict(xs=[40, 640], y=1556, size=54, fit=520), dict(xs=[40, 640], y=1614, size=54, fit=520),
+                    dict(xs=[84, 684], y=1686, size=22, fit=200, chip=True)),
+    qr=qr(110, (448, 1640), (1048, 1640)))
+add(id='F-cosmos', mode='F', name='Cosmos – Lưới', cos='grid', **COS,
+    slots=grid2x2_wide_slots(40, 40, 40, 400, 16, 36),
+    texts=cos_texts(False, dict(x=1440, y=170, size=66, fit=320), dict(x=1440, y=246, size=66, fit=320),
+                    dict(x=1490, y=915, size=22, fit=210, chip=True)),
+    qr=qr(120, (1600, 1000)))
 
 
 # ================================================================ #19 Music Player (màn "Đang phát" kiểu iPhone)
@@ -1501,24 +1643,30 @@ def mus_airplay(img, cx, cy, s, color, ring=False):
     fill_poly(img, [(cx - s * .2, cy + s * .42), (cx, cy + s * .16), (cx + s * .2, cy + s * .42)], color2)
 
 
+# Bản NGANG (kiểu iPad nằm ngang): ảnh bìa vuông bên trái, cột điều khiển bên phải (MUS_X0..MUS_X1).
+MUS_X0, MUS_X1 = 1200, 1730
+MUS_CX = (MUS_X0 + MUS_X1) // 2
+
+
 def st_music_bg(img, c, R):
     f = c.f; pal = mus_pal(f); W, H = c.W, c.H
     rect(img, 0, 0, W, H, lambda w, h, x0, y0: lin_grad(w, h, (0, 0), (w * .3, h), pal['bg']))
-    s = f['slots'][0]; x0, x1 = s['x'], s['x'] + s['w']
-    rect(img, x0 - 2, s['y'] + 14, x1 + 2, s['y'] + s['h'] + 22, (0, 0, 0, 70), radius=s['radius'], blur=22)   # bóng ảnh bìa
+    s = f['slots'][0]
+    rect(img, s['x'] - 2, s['y'] + 14, s['x'] + s['w'] + 2, s['y'] + s['h'] + 22, (0, 0, 0, 70), radius=s['radius'], blur=22)   # bóng ảnh bìa
+    x0, x1, cx = MUS_X0, MUS_X1, MUS_CX
     # thanh tiến trình
-    y = 1352; p = x0 + (x1 - x0) * .6
+    y = 560; p = x0 + (x1 - x0) * .6
     rect(img, x0, y - 5, x1, y + 5, pal['dim'], radius=5)
     rect(img, x0, y - 5, p, y + 5, pal['ink'], radius=5)
     circle(img, p, y, 12, pal['ink'])
     # nút điều khiển
-    cy = 1508
-    mus_skip(img, 600 - 250, cy, 62, pal['ink'], back=True)
-    rect(img, 600 - 32, cy - 44, 600 - 8, cy + 44, pal['ink'], radius=6)
-    rect(img, 600 + 8, cy - 44, 600 + 32, cy + 44, pal['ink'], radius=6)
-    mus_skip(img, 600 + 250, cy, 62, pal['ink'])
+    cy = 750
+    mus_skip(img, cx - 190, cy, 56, pal['ink'], back=True)
+    rect(img, cx - 30, cy - 40, cx - 8, cy + 40, pal['ink'], radius=6)
+    rect(img, cx + 8, cy - 40, cx + 30, cy + 40, pal['ink'], radius=6)
+    mus_skip(img, cx + 190, cy, 56, pal['ink'])
     # âm lượng
-    vy = 1628; vx0, vx1 = x0 + 66, x1 - 82; vp = vx0 + (vx1 - vx0) * .9
+    vy = 910; vx0, vx1 = x0 + 66, x1 - 82; vp = vx0 + (vx1 - vx0) * .9
     mus_speaker(img, x0, vy, 40, pal['mute'])
     rect(img, vx0, vy - 5, vx1, vy + 5, pal['dim'], radius=5)
     rect(img, vx0, vy - 5, vp, vy + 5, pal['ink'], radius=5)
@@ -1526,14 +1674,14 @@ def st_music_bg(img, c, R):
     circle(img, vp, vy, 28, '#ffffff')
     mus_speaker(img, x1 - 54, vy, 40, pal['mute'], waves=2)
     # hàng icon dưới cùng: lời bài hát · AirPlay · danh sách
-    by = 1728; col = pal['mute']
-    stroke_rect(img, 600 - 270 - 26, by - 22, 600 - 270 + 26, by + 16, col, 4, radius=12)
-    fill_poly(img, [(600 - 270 - 14, by + 14), (600 - 270 - 14, by + 30), (600 - 270 + 2, by + 14)], col)
-    for dx in (-9, 9): circle(img, 600 - 270 + dx, by - 4, 5, col)
-    mus_airplay(img, 600, by - 2, 58, col)
+    by = 1070; col = pal['mute']; d = 200
+    stroke_rect(img, cx - d - 26, by - 22, cx - d + 26, by + 16, col, 4, radius=12)
+    fill_poly(img, [(cx - d - 14, by + 14), (cx - d - 14, by + 30), (cx - d + 2, by + 14)], col)
+    for dx in (-9, 9): circle(img, cx - d + dx, by - 4, 5, col)
+    mus_airplay(img, cx, by - 2, 58, col)
     for k in range(3):
-        circle(img, 600 + 270 - 24, by - 16 + k * 16, 4, col)
-        rect(img, 600 + 270 - 12, by - 18 + k * 16, 600 + 270 + 28, by - 14 + k * 16, col, radius=2)
+        circle(img, cx + d - 24, by - 16 + k * 16, 4, col)
+        rect(img, cx + d - 12, by - 18 + k * 16, cx + d + 28, by - 14 + k * 16, col, radius=2)
     # nền thẻ sau QR (app vẽ QR trắng ở qr.at)
     q = f['qr']['at'][0]; t = f['qr']['size'] * 1.2
     rect(img, q['x'] - 8, q['y'] - 8, q['x'] + t + 8, q['y'] + t + 8, (255, 255, 255, 40), radius=24)
@@ -1544,16 +1692,16 @@ STYLES['music'] = (st_music_bg, None)
 
 def mus_texts(sub):
     g = 'music'
-    return [T(g, 'title', x=86, y=1208, size=50, fit=820, ff=SANS, weight='700', color='#ffffff', align='left'),
-            T(g, 'artist', x=86, y=1266, size=36, fit=820, ff=SANS, weight='500', color=sub, align='left')]
+    return [T(g, 'title', x=MUS_X0, y=340, size=50, fit=360, ff=SANS, weight='700', color='#ffffff', align='left'),
+            T(g, 'artist', x=MUS_X0, y=398, size=36, fit=360, ff=SANS, weight='500', color=sub, align='left')]
 
 
 def mus_fixed():
-    o = dict(y=1404, size=24, ff=SANS, weight=600, color=(255, 255, 255, 165))
-    return [dict(text='1:53', x=84, align='left', **o), dict(text='-1:20', x=1116, align='right', **o)]
+    o = dict(y=612, size=24, ff=SANS, weight=600, color=(255, 255, 255, 165))
+    return [dict(text='1:53', x=MUS_X0, align='left', **o), dict(text='-1:20', x=MUS_X1, align='right', **o)]
 
 
-MUS = dict(set='19', style='music', textGroup='music', slots=[S(84, 84, 1032, 1032, 44)], qr=qr(120, (972, 1150)))
+MUS = dict(set='19', style='music', textGroup='music', slots=[S(70, 220, 1060, 760, 44)], qr=qr(120, (1586, 282)))
 add(id='A-music-gray', mode='A', name='Music Player – Xám', mus='gray', background='#6a6a6a', texts=mus_texts('#cdcdcd'), fixed=mus_fixed(), **MUS)
 add(id='A-music-night', mode='A', name='Music Player – Đêm Tím', mus='night', background='#2a2238', texts=mus_texts('#bcb6c8'), fixed=mus_fixed(), **MUS)
 
@@ -1591,9 +1739,9 @@ def st_polaroid_love_over(img, c, R):
 
 STYLES['polaroid-love'] = (st_polaroid_love_bg, st_polaroid_love_over)
 add(id='A-polaroid-love', mode='A', name='Polaroid – I Love You', set='20', style='polaroid-love', textGroup='polaroid-love',
-    background='#efebe6', slots=[S(92, 92, 1016, 1290)],
-    texts=[T('polaroid-love', 'caption', x=600, y=1590, size=128, fit=820, ff=HANDP, weight='400', color='#161616', ls=2)],
-    qr=qr(120, (1014, 1622)))
+    background='#efebe6', slots=[S(80, 80, 1640, 880)],
+    texts=[T('polaroid-love', 'caption', x=900, y=1120, size=110, fit=1100, ff=HANDP, weight='400', color='#161616', ls=2)],
+    qr=qr(120, (1620, 1020)))
 
 
 # ================================================================ Khung TRƯỜNG CẤP 3 (giống Quốc Khánh: mặc định ẨN, bật trong ⚙️ Cài đặt → "Khung Trường cấp 3")
@@ -1620,7 +1768,7 @@ TR_INK, TR_BLUE = '#4a0c14', '#1f4fa3'
 
 
 def tr_panels(c):
-    """Các tấm hoàn chỉnh trên tờ: Nhật Ký cắt x=600, Chia Đôi cắt x=900, còn lại 1 tấm."""
+    """Các tấm hoàn chỉnh trên tờ: Nhật Ký cắt x=600 (2 dải dọc), Chia Đôi cắt x=900, còn lại 1 tấm."""
     if c.f['mode'] == 'C': return [(0, 0, 600, c.H), (600, 0, 600, c.H)]
     if c.f['mode'] == 'D': return [(0, 0, 900, c.H), (900, 0, 900, c.H)]
     return [(0, 0, c.W, c.H)]
@@ -1884,7 +2032,7 @@ TRS = dict(set='TR', style='tet-truong', background=TR_RED, keepFit=True, **TR) 
 
 # --- Nhật Ký: 2 dải 2×6, mỗi dải 1 kiểu trang trí khác nhau (giống 2 dải trong ảnh mẫu); 4 ô/dải, ảnh lặp ở 2 dải.
 _CB = [(44, 1506, 556, 1598), (644, 1506, 1156, 1598)]
-add(id='C-tet-truong', mode='C', name='Tết Trường – Đỏ Son', cut2inch=True, **TRS, slots=strip_slots(96, 318, 44, 34),
+add(id='C-tet-truong', mode='C', name='Tết Trường – Đỏ Son', cut2inch=True, **TRS, canvas=CP, slots=strip_slots(96, 318, 44, 34),
     shapes=['cloudtop', 'notch', 'round', 'cloud'], badges=_CB,
     texts=tr_texts(_CB[0], dict(x=48, y=80, size=58), dict(xs=[556, 1156], y=1750, size=18, align='right'))
           + tr_texts(_CB[1], dict(x=648, y=80, size=58)),
@@ -1894,29 +2042,29 @@ add(id='C-tet-truong', mode='C', name='Tết Trường – Đỏ Son', cut2inch=
           ('mai_r', 1046, 112, 140, 0), ('book', 1104, 790, 100, 6), ('camera', 696, 1150, 92, -8), ('banhchung', 1108, 1474, 100, 6)],
     sparkles=10, qr=qr(110, (44, 1622), (644, 1622)))
 
-# --- Khoảnh Khắc: 1 ảnh lớn hình mây.
-_AB = (64, 1428, 760, 1556)
-add(id='A-tet-truong', mode='A', name='Tết Trường – Đỏ Son', **TRS, slots=[S(70, 196, 1060, 1196)], shapes=['cloud'], badges=[_AB],
-    texts=tr_texts(_AB, dict(x=70, y=158, size=118), dict(x=70, y=1758, size=24, align='left')),
-    fixed=tr_photo(70, 1660, 76, (52, 32)),
-    deco=[('mai_r', 960, 178, 260, 0), ('lixi', 780, 100, 120, 8), ('medal', 84, 820, 120, -10), ('camera', 1120, 640, 120, 10),
-          ('banhchung', 120, 1360, 136, 6), ('melon', 880, 1490, 124, -8), ('shirt', 1112, 1250, 116, 10)],
-    sparkles=16, qr=qr(120, (1010, 1612)))
+# --- Khoảnh Khắc: 1 ảnh lớn hình mây bên trái, cột phải: năm · thẻ trường · khẩu hiệu.
+_AB = (1330, 300, 1772, 396)
+add(id='A-tet-truong', mode='A', name='Tết Trường – Đỏ Son', **TRS, slots=[S(60, 150, 1240, 880)], shapes=['cloud'], badges=[_AB],
+    texts=tr_texts(_AB, dict(x=1346, y=200, size=110), dict(x=1346, y=1160, size=22, align='left')),
+    fixed=tr_photo(1346, 560, 66, (46, 30)),
+    deco=[('mai_r', 1640, 130, 210, 0), ('lixi', 1450, 790, 120, 8), ('camera', 1660, 790, 116, 10), ('medal', 84, 640, 120, -10),
+          ('banhchung', 1240, 1090, 130, 6)],
+    sparkles=14, qr=qr(120, (1616, 1030)))
 
-# --- Ngọt Ngào: tờ dọc 4×6, 2 ảnh xếp chồng (ô trên mây, ô dưới sóng).
-_BB = (64, 1484, 720, 1598)
-add(id='B-tet-truong', mode='B', name='Tết Trường – Đỏ Son (dọc)', paper='4x6', noRotate=False, **TRS,
-    slots=[S(70, 176, 1060, 620), S(70, 836, 1060, 620)], shapes=['cloudtop', 'wave'], badges=[_BB],
-    texts=tr_texts(_BB, dict(x=70, y=146, size=108), dict(x=70, y=1764, size=22, align='left')),
-    fixed=tr_photo(70, 1680, 64, (44, 28)),
-    deco=[('mai_r', 960, 172, 240, 0), ('lixi', 760, 96, 112, 8), ('shirt', 96, 806, 116, -10), ('book', 1104, 812, 120, 8),
-          ('camera', 1110, 1420, 116, 10), ('banhchung', 830, 1532, 116, -6)],
-    sparkles=14, qr=qr(120, (1010, 1612)))
+# --- Ngọt Ngào: 2 ảnh cạnh nhau (ô trái mây, ô phải sóng), dải dưới: thẻ trường · khẩu hiệu · QR.
+_BB = (50, 880, 700, 990)
+add(id='B-tet-truong', mode='B', name='Tết Trường – Đỏ Son', **TRS,
+    slots=[S(50, 170, 830, 640), S(920, 170, 830, 640)], shapes=['cloudtop', 'wave'], badges=[_BB],
+    texts=tr_texts(_BB, dict(x=56, y=122, size=100), dict(x=56, y=1166, size=22, align='left')),
+    fixed=tr_photo(1560, 1060, 62, (42, 28), 'right'),
+    deco=[('mai_r', 1640, 120, 220, 0), ('lixi', 820, 80, 112, 8), ('shirt', 900, 560, 110, -10), ('camera', 790, 1060, 100, 10),
+          ('book', 90, 520, 110, 8)],
+    sparkles=12, qr=qr(120, (1616, 1030)))
 
 # --- Chia Đôi: tờ ngang 6×4, 2 ảnh khác nhau, cắt x=900 → 2 tấm 3×4" dọc hoàn chỉnh (mỗi tấm thẻ trường + năm + QR riêng).
-_DB = [(56, 950, 640, 1040), (956, 950, 1540, 1040)]
+_DB = [(56, 800, 640, 890), (956, 800, 1540, 890)]
 add(id='D-tet-truong', mode='D', name='Tết Trường – Đỏ Son', **TRS, canvas=(1800, 1200),
-    slots=[S(60, 112, 780, 800), S(960, 112, 780, 800)], shapes=['cloud', 'cloudtop'], badges=_DB,
+    slots=[S(60, 112, 780, 620), S(960, 112, 780, 620)], shapes=['cloud', 'cloudtop'], badges=_DB,
     texts=tr_texts(_DB[0], dict(x=62, y=92, size=64), dict(xs=[62, 962], y=1164, size=18, align='left'))
           + tr_texts(_DB[1], dict(x=962, y=92, size=64)),
     fixed=[*tr_photo(62, 1098, 44, (34, 21)), *tr_photo(962, 1098, 44, (34, 21))],
@@ -1924,19 +2072,19 @@ add(id='D-tet-truong', mode='D', name='Tết Trường – Đỏ Son', **TRS, ca
           ('mai_r', 1630, 128, 170, 0), ('camera', 976, 640, 100, -8), ('melon', 1716, 862, 100, 8)],
     sparkles=10, qr=qr(120, (716, 1012), (1616, 1012)))
 
-# --- Dịu Dàng: lưới 2×2, mỗi ô 1 hình (mây / lõm / sóng / mây tròn).
-_FB = (64, 1500, 760, 1612)
-add(id='F-tet-truong', mode='F', name='Tết Trường – Đỏ Son', **TRS, slots=grid2x2_slots(186, 330, 60, 34),
+# --- Dịu Dàng: lưới 2×2 bên trái (mây / lõm / sóng / mây tròn), cột phải: thẻ trường · khẩu hiệu · QR.
+_FB = (1384, 300, 1772, 396)
+add(id='F-tet-truong', mode='F', name='Tết Trường – Đỏ Son', **TRS, slots=grid2x2_wide_slots(150, 50, 50, 430, 30),
     shapes=['cloudtop', 'notch', 'wave', 'cloud'], badges=[_FB],
-    texts=tr_texts(_FB, dict(x=64, y=150, size=112), dict(x=70, y=1766, size=22, align='left')),
-    fixed=tr_photo(70, 1690, 62, (40, 27)),
-    deco=[('mai_r', 960, 176, 250, 0), ('lixi', 760, 96, 112, 8), ('shirt', 90, 830, 104, -10), ('book', 1110, 1240, 104, 8),
-          ('medal', 600, 840, 96, 0), ('camera', 1112, 830, 104, 10), ('banhchung', 830, 1548, 116, -6)],
-    sparkles=14, qr=qr(120, (1010, 1612)))
+    texts=tr_texts(_FB, dict(x=56, y=124, size=100), dict(x=1388, y=1160, size=22, align='left')),
+    fixed=tr_photo(1388, 560, 60, (40, 27)),
+    deco=[('mai_r', 1640, 130, 220, 0), ('lixi', 760, 80, 112, 8), ('medal', 720, 662, 96, 0), ('camera', 1690, 790, 104, 10),
+          ('book', 1460, 800, 104, 8)],
+    sparkles=14, qr=qr(120, (1616, 1030)))
 
 
 # Chữ lớn "PHOTO TIME" của mẫu → chữ động 'slogan' (mặc định THANH XUÂN, admin đổi trong Cài đặt). Thương hiệu YOUNG BOOTH giữ cố định.
-_TR_FIT = {'A': 900, 'B': 900, 'F': 900, 'C': 360, 'D': 630}
+_TR_FIT = {'A': 420, 'B': 640, 'F': 380, 'C': 560, 'D': 630}
 for _f in [f for f in FR if f['set'] == 'TR']:
     for _t in [t for t in _f['fixed'] if t['text'] == 'PHOTO TIME']:
         _f['fixed'].remove(_t)

@@ -107,11 +107,12 @@ def dashed_v(d, x, h, color, dash=16, gap=16):
         d.line([(x, y), (x, min(y + dash, h))], fill=color, width=2)
 
 SLOTS = {
-    'A': [(60, 150, 1080, 1390)],  # 1 ảnh gallery; viền ngoài cách mép 42px, footer chừa chữ + ngày + QR
-    'B': [(110, 160, 680, 810), (1010, 160, 680, 810)],  # 2 tấm 900px, ảnh bo góc 24; footer chừa tên/ngày/QR
+    # Từ 28/10/2026: mọi khung (trừ Nhật Ký) là tờ NGANG 1800×1200 và ô ảnh NẰM NGANG (khớp ảnh camera 3:2).
+    'A': [(70, 120, 1290, 960)],   # 1 ảnh gallery bên trái; cột phải x≥1400: logo + chữ + ngày + QR
+    'B': [(60, 150, 780, 585), (960, 150, 780, 585)],  # 2 tấm 900px, ảnh ngang 4:3 bo góc 24 (viền ren sát mép 34px); dưới ảnh: tên/ngày/QR
     'C': [(ox, y, 516, 340) for ox in (42, 642) for y in (124, 478, 832, 1186)],  # khung C cũ (grid6-navy.png), không còn dùng
-    'D': [(110, 150, 680, 810), (1010, 150, 680, 810)],  # 2 tấm 3×4 dọc, polaroid 14px; footer chừa chữ/ngày/QR
-    'F': [(x, y, 490, 650) for y in (168, 854) for x in (92, 618)],  # lưới 2×2, bo góc 28, viền trắng 8, khe 20
+    'D': [(100, 170, 700, 520), (1000, 170, 700, 520)],  # 2 tấm 3×4, ảnh ngang polaroid 14px; dưới ảnh: chữ/ngày/QR
+    'F': [(x, y, 600, 440) for y in (142, 618) for x in (70, 706)],  # lưới 2×2 bên trái, bo góc 28, viền trắng 8, khe 36; cột phải chữ + QR
     # YoungBooth (dùng cho Layout C "Nhật Ký"): dải đôi 2×6, 4 ô 500×330 (3:2) / dải. Khớp mode 'C' trong config.js.
     'YB': [(ox + 50, y, 500, 330) for ox in (0, 600) for y in (112, 468, 824, 1180)],
 }
@@ -149,7 +150,7 @@ def make_a():
     """A — Khoảnh Khắc: GALLERY sang trọng. Nền navy nhung, ảnh 2 lớp viền vàng đồng
     (3px sát ảnh, cách 14px viền 1px), 4 góc hoa văn art-deco. 3 màu: navy, vàng đồng, kem.
     Logo + chữ "YoungBooth" + ngày do app vẽ (logo/texts trong config.js)."""
-    W, H = 1200, 1800
+    W, H = 1800, 1200
     NAVY, GOLD = (28, 37, 65), (201, 169, 97)
     (x0, y0, w, h), = SLOTS['A']
     x1, y1 = x0 + w, y0 + h
@@ -159,8 +160,8 @@ def make_a():
     G = GOLD + (255,)
     d.rectangle(sc(x0 - 3, y0 - 3, x1 + 3, y1 + 3), outline=G, width=3 * SS)           # viền trong 3px sát ảnh
     d.rectangle(sc(x0 - 18, y0 - 18, x1 + 18, y1 + 18), outline=G, width=1 * SS)       # viền ngoài 1px, cách 14px
-    ly = 81                                                                              # header: 2 đường kẻ có chấm
-    for a, b in ((150, 466), (734, 1050)):
+    for ly in (260, 540):                                                                # cột phải: 2 đường kẻ có chấm
+        a, b = 1450, 1710
         d.line(sc(a, ly, b, ly), fill=G, width=1 * SS)
         for x in (a, b): d.ellipse(sc(x - 4, ly - 4, x + 4, ly + 4), fill=G)
     base.alpha_composite(down(lay, W, H))
@@ -223,22 +224,22 @@ def make_b():
     lay, d, sc = ss_layer(W, H)
     for i in range(2):
         ox = i * HALF
-        d.rounded_rectangle(sc(ox + 58, 58, ox + HALF - 58, H - 58), radius=22 * SS, outline=B_, width=2 * SS)   # viền ren
-        for x in range(ox + 74, ox + HALF - 73, 16):                    # chấm ren trên/dưới
-            for y in (46, H - 46):
+        d.rounded_rectangle(sc(ox + 34, 34, ox + HALF - 34, H - 34), radius=22 * SS, outline=B_, width=2 * SS)   # viền ren (sát mép → ảnh to hơn)
+        for x in range(ox + 50, ox + HALF - 49, 16):                    # chấm ren trên/dưới
+            for y in (22, H - 22):
                 d.ellipse(sc(x - 3, y - 3, x + 3, y + 3), fill=B_)
-        for y in range(74, H - 73, 16):                                 # chấm ren trái/phải
-            for x in (ox + 46, ox + HALF - 46):
+        for y in range(50, H - 49, 16):                                 # chấm ren trái/phải
+            for x in (ox + 22, ox + HALF - 22):
                 d.ellipse(sc(x - 3, y - 3, x + 3, y + 3), fill=B_)
         cx = ox + HALF / 2                                              # header: kẻ + tim 2 bên logo
-        for a, b, hx in ((cx - 300, cx - 140, cx - 128), (cx + 140, cx + 300, cx + 128)):
+        for a, b, hx in ((cx - 300, cx - 140, cx - 128), (cx + 140, cx + 300, cx + 128)):  # (logo y 60–126)
             d.line(sc(a, 93, b, 93), fill=B_, width=2 * SS)
             heart_shape(d, sc, hx, 92, 7, R_)
     for x, y, w, h in SLOTS['B']:                                       # nền trắng quanh ảnh
         d.rounded_rectangle(sc(x - MAT, y - MAT, x + w + MAT, y + h + MAT), radius=(RAD + MAT) * SS, fill=Wt)
         d.rounded_rectangle(sc(x - MAT + 5, y - MAT + 5, x + w + MAT - 5, y + h + MAT - 5), radius=(RAD + MAT - 5) * SS, outline=B_, width=1 * SS)
-    for ox in (0, HALF):                                                # tim nhỏ rải 2 bên ảnh
-        for hx, hy, s in ((76, 330, 8), (82, 560, 6), (74, 790, 9), (HALF - 78, 420, 7), (HALF - 74, 660, 9), (HALF - 80, 880, 6)):
+    for ox in (0, HALF):                                                # tim nhỏ rải quanh vùng chữ dưới ảnh
+        for hx, hy, s in ((80, 820, 8), (110, 960, 6), (78, 1100, 9), (HALF - 82, 860, 7), (HALF - 108, 1010, 9), (HALF - 80, 1120, 6)):
             heart_shape(d, sc, ox + hx, hy, s, B_)
     base.alpha_composite(down(lay, W, H))
     punch(base, SLOTS['B'], RAD)
@@ -347,8 +348,8 @@ def make_d():
         d.rectangle(sc(x - MAT, y - MAT, x + w + MAT, y + h + MAT), fill=WHITE + (255,))    # viền polaroid 14px
     for ox in (0, HALF):                                                                  # highlight vàng dưới chữ
         cx = ox + 450
-        d.line(sc(cx - 150, 1068, cx + 148, 1062), fill=YEL + (235,), width=16 * SS)
-        for ex, ey in ((cx - 150, 1068), (cx + 148, 1062)):
+        d.line(sc(cx - 150, 872, cx + 148, 866), fill=YEL + (235,), width=16 * SS)
+        for ex, ey in ((cx - 150, 872), (cx + 148, 866)):
             d.ellipse(sc(ex - 8, ey - 8, ex + 8, ey + 8), fill=YEL + (235,))
     base.alpha_composite(down(lay, W, H))
     punch(base, SLOTS['D'])
@@ -364,8 +365,8 @@ def make_d():
         doodle_heart(dd, sc, ox + 66, 330, 22, K, s + 1)
         doodle_sparkle(dd, sc, ox + 836, 250, 20, K, s + 2)
         doodle_cloud(dd, sc, ox + 642, 84, 80, K, s + 3)
-        doodle_sparkle(dd, sc, ox + 838, 860, 14, K, s + 4)
-        doodle_arrow(dd, sc, (ox + 150, 1130), (ox + 160, 1060), (ox + 278, 1046), K, s + 5)
+        doodle_sparkle(dd, sc, ox + 838, 760, 14, K, s + 4)
+        doodle_arrow(dd, sc, (ox + 120, 1050), (ox + 120, 900), (ox + 260, 860), K, s + 5)
     base.alpha_composite(down(deco, W, H))
     cd = ImageDraw.Draw(base)
     for y in range(0, H, 24):                                                             # vạch cắt nét đứt
@@ -392,7 +393,7 @@ def make_f():
     """F — Dịu Dàng: PASTEL HÀN QUỐC (Life4Cuts). Nền gradient hồng phấn → kem + chấm bi trắng mờ,
     lưới 2×2 ảnh bo góc 28 viền trắng 8px, khe ~20px; mỗi ảnh 1 sticker bế ở 1 góc khác nhau
     (nơ, mây, sao lấp lánh, tim). Logo + "YoungBooth" + ngày + QR do app vẽ."""
-    W, H = 1200, 1800
+    W, H = 1800, 1200
     TOP, BOT, DEEP, WHITE = (248, 221, 227), (251, 243, 233), (216, 106, 138), (255, 255, 255)
     LIGHT = (244, 166, 184)        # hồng trung gian cho sticker (pha từ hồng phấn & hồng đậm)
     RAD, BW = 28, 8
@@ -407,9 +408,9 @@ def make_f():
     lay, d, sc = ss_layer(W, H)
     for x, y, w, h in SLOTS['F']:                                       # viền trắng 8px bo góc
         d.rounded_rectangle(sc(x - BW, y - BW, x + w + BW, y + h + BW), radius=(RAD + BW) * SS, fill=WHITE + (255,))
-    for side in (-1, 1):                                                # header: 3 sao nhỏ mỗi bên logo
-        for k, (dx, r) in enumerate(((136, 13), (172, 10), (202, 7))):
-            sparkle(d, sc, 600 + side * dx, 87, r, DEEP + (255,))
+    for side in (-1, 1):                                                # cột phải: 3 sao nhỏ mỗi bên logo (tâm x=1560)
+        for k, (dx, r) in enumerate(((136, 13), (162, 10), (184, 7))):
+            sparkle(d, sc, 1560 + side * dx, 197, r, DEEP + (255,))
     base.alpha_composite(down(lay, W, H))
     punch(base, SLOTS['F'], RAD)
 
