@@ -1,5 +1,5 @@
 ﻿==========================================================
-   YOUNGBOOTH 0.2.4 — HƯỚNG DẪN CÀI TRÊN MÁY MỚI
+   YOUNGBOOTH 0.2.9 — HƯỚNG DẪN CÀI TRÊN MÁY MỚI
 ==========================================================
 
 Yêu cầu: Windows 10/11 64-bit · máy ảnh Canon (cáp USB) · máy in DNP DS-RX1 (cáp USB, nếu in).
@@ -24,7 +24,7 @@ MÁY CÀI TRẮNG: KHÔNG cần cài thêm gì (không cần Node.js, .NET, Visu
   4. Làm tiếp 3 việc ở mục "SAU KHI CÀI" bên dưới.
 
 Bộ cài gồm:
-  YoungBooth Setup 0.2.4.exe   ← app (có thể chạy tay nếu không dùng CAI-DAT.bat)
+  YoungBooth Setup 0.2.9.exe   ← app (có thể chạy tay nếu không dùng CAI-DAT.bat)
   YoungBooth-Frames\           ← toàn bộ khung ảnh (luồng thường + luồng sự kiện), logo
   Du-lieu-cai-dat\             ← booth-settings.json: sự kiện, giá, thanh toán, PIN
   May-in-DNP\                  ← driver DNP DS-RX1 + setup-dnp.ps1 (thiết lập hàng in)
@@ -48,6 +48,20 @@ SAU KHI CÀI (bắt buộc, ~3 phút)
        Cũng được nạp sẵn: nguồn ảnh = máy ảnh Canon, chữ trên khung, khung bật/tắt (Quốc Khánh,
        Trung Thu, Trường cấp 3, Orientation), sự kiện, PIN, thanh toán. Nếu thấy khác thì chọn lại → Lưu.
 [ ] 3. IN THỬ 1 tấm Khoảnh Khắc (4×6) và 1 tấm Nhật Ký (dải) để kiểm tra chiều in + màu.
+
+----------------------------------------------------------
+MỚI TRONG 0.2.9
+----------------------------------------------------------
+- MỌI KHUNG LÀ TỜ NGANG 6×4, ẢNH NGANG (đúng tỉ lệ máy ảnh, không bị cắt mất 2 bên người đứng ngoài):
+  Khoảnh Khắc, Ngọt Ngào, Chia Đôi, Dịu Dàng + khung sự kiện. Nhật Ký (dải 2×6) giữ nguyên như cũ.
+  Sự kiện / cài đặt đã chọn khung cũ vẫn tự chuyển sang khung mới tương ứng.
+- KHUNG CƯỚI "HOA TRẮNG – RÈM KEM" (khung sự kiện, 2 ảnh, tờ DỌC — ngoại lệ duy nhất ngoài Nhật Ký):
+    Webadmin → Luồng sự kiện → kiểu chụp Ngọt Ngào → thêm khung "Cưới Hoa Trắng – 2 ảnh dọc" → làm mặc định.
+    Chữ trên khung, nhóm "Khung Cưới Hoa Trắng": Ngày / Tháng / Năm (2 số mỗi ô), Tên chú rể, Tên cô dâu
+    (nên gõ CHỮ HOA cho giống mẫu), chữ nối "and", lời cảm ơn → Lưu.
+    In ra: tờ dọc được máy in tự xoay — ảnh nằm nghiêng trên giấy là ĐÚNG. IN THỬ 1 tấm trước sự kiện.
+- Ảnh in nét hơn: thu nhỏ ảnh chất lượng cao + làm nét sau cùng; làm đẹp chỉ mịn vùng da, không làm mờ cả ảnh.
+- Màn kết quả: ảnh hiện thẳng (bỏ nghiêng).
 
 ----------------------------------------------------------
 MỚI TRONG 0.2.4
