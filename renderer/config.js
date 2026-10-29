@@ -394,6 +394,17 @@ const EVENT_FRAMES = [
       { id: 'EV-A-sv-n1', mode: 'A', name: 'Sao Vàng Nền Đen', photos: 1, overlay: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1.png', thumb: 'file:///C:/YoungBooth-Frames/events/sao-vang/sv-n1-thumb.png', background: '#0b0b0b', logo: null, showBrand: false, canvas: { w: 1800, h: 1200 }, qr: { size: 120, label: false, at: [{ x: 1636, y: 1036 }] },
         slots: [{ x: 180, y: 120, w: 1440, h: 960, radius: 125 }],
         texts: [] },
+      { id: 'EV-B-ht-d2', mode: 'B', name: 'Cưới Hoa Trắng – 2 ảnh dọc', photos: 2, textGroup: 'ht', overlay: 'file:///C:/YoungBooth-Frames/events/hoa-trang/ht-d2.png', thumb: 'file:///C:/YoungBooth-Frames/events/hoa-trang/ht-d2-thumb.png', background: '#f6f1e6', logo: null, showBrand: false, canvas: { w: 1200, h: 1800 }, noRotate: false, qr: { size: 120, label: false, at: [{ x: 1012, y: 1482 }] },
+        slots: [{ x: 45, y: 95, w: 1110, h: 640 }, { x: 45, y: 765, w: 1110, h: 640 }],
+        texts: [
+          { id: 'dd', label: 'Ngày (2 số)', value: '20', x: 150, y: 1520, size: 58, color: '#3f5446', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '600' },
+          { id: 'mm', label: 'Tháng (2 số)', value: '09', x: 150, y: 1608, size: 58, color: '#3f5446', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '600' },
+          { id: 'yy', label: 'Năm (2 số)', value: '26', x: 150, y: 1696, size: 58, color: '#3f5446', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '600' },
+          { id: 'name1', label: 'Tên chú rể', value: 'MINH VIỆT', x: 560, y: 1580, size: 58, fit: 300, color: '#3f5446', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '600', ls: 2, align: 'right' },
+          { id: 'conn', label: 'Chữ nối 2 tên', value: 'and', x: 618, y: 1582, size: 70, color: '#3f5446', ff: '"Great Vibes", "YB Script", cursive' },
+          { id: 'name2', label: 'Tên cô dâu', value: 'HÀ VY', x: 676, y: 1580, size: 58, fit: 300, color: '#3f5446', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '600', ls: 2, align: 'left' },
+          { id: 'thanks', label: 'Lời cảm ơn', value: 'Thank you for being part of our special day', x: 618, y: 1648, size: 32, fit: 640, color: '#5d6b5f', ff: '"Cormorant Garamond", "YB Serif", Georgia, serif', weight: '500', italic: true },
+        ] },
 ];
 const FRAME_TEXT_GROUPS = {
   'std-white': 'Khung Save The Date (Nhật Ký · Chia Đôi · Ngọt Ngào)',
@@ -411,6 +422,7 @@ const FRAME_TEXT_GROUPS = {
   'lc': 'Khung Chanh Vàng (khung sự kiện)',
   'bc': 'Khung Báo Cũ (khung sự kiện)',
   'pl': 'Khung Polaroid (khung sự kiện)',
+  'ht': 'Khung Cưới Hoa Trắng (khung sự kiện)',
   'cosmos': 'Khung Cosmos (Khoảnh Khắc · Nhật Ký · Dịu Dàng)',
   'music': 'Khung Music Player (Khoảnh Khắc)',
   'polaroid-love': 'Khung Polaroid Giấy Cũ (Khoảnh Khắc)',

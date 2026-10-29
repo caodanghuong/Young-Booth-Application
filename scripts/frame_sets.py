@@ -1060,6 +1060,8 @@ def build(frames, out_dir, asset_dir=None, log=print):
     fonts = Fonts()
     asset_dir = asset_dir or os.path.join(out_dir, 'assets')
     for f in frames:
+        if f.get('external'):   # PNG vẽ bằng script riêng (vd make-frame-hoa-trang.py) → không vẽ đè
+            log(f"  {f['id']:<24} bỏ qua (PNG vẽ bằng script riêng)"); continue
         png, c = render(f, fonts, asset_dir)
         base = os.path.join(out_dir, *f.get('file', f['id']).split('/'))
         os.makedirs(os.path.dirname(base), exist_ok=True)
@@ -1240,6 +1242,26 @@ add(id='EV-B-pl-n2', mode='B', name='Polaroid Băng Dính', style='polaroid', ba
 add(id='EV-A-sv-n1', mode='A', name='Sao Vàng Nền Đen', style='goldstar', background='#0b0b0b', file='events/sao-vang/sv-n1',
     photos=1, slots=[S(180, 120, 1440, 960, 125)],
     fixed=[dict(text='Young Booth', x=900, y=1166, size=40, ff=SCRIPT, color='#e8c02e')], qr=qr(120, (1636, 1036)), **EV)
+
+# ---------------- BỘ 7 — Cưới Hoa Trắng – Rèm Kem (HT), khung #19 (SPEC-KHUNG-19-CUOI-HOA-TRANG.md)
+# NGOẠI LỆ quy ước tờ ngang: tờ 4×6 DỌC 1200×1800, 2 ảnh ngang xếp chồng; noRotate=False để in DNP tự xoay 90°.
+# PNG vẽ bằng scripts/make-frame-hoa-trang.py (external → build() bỏ qua). SLOTS / QR / TEXTS trong script PHẢI khớp dưới đây.
+GROUPS['ht'] = ('Khung Cưới Hoa Trắng', [('dd', 'Ngày (2 số)', '20'), ('mm', 'Tháng (2 số)', '09'), ('yy', 'Năm (2 số)', '26'),
+                                        ('name1', 'Tên chú rể', 'MINH VIỆT'), ('conn', 'Chữ nối 2 tên', 'and'),
+                                        ('name2', 'Tên cô dâu', 'HÀ VY'),
+                                        ('thanks', 'Lời cảm ơn', 'Thank you for being part of our special day')])
+HT_SERIF = '"Cormorant Garamond", "YB Serif", Georgia, serif'
+HT_INK = '#3f5446'
+add(id='EV-B-ht-d2', mode='B', name='Cưới Hoa Trắng – 2 ảnh dọc', textGroup='ht', file='events/hoa-trang/ht-d2', background='#f6f1e6',
+    photos=2, canvas=CP, noRotate=False, external=True, slots=[S(45, 95, 1110, 640), S(45, 765, 1110, 640)],
+    texts=[T('ht', 'dd', x=150, y=1520, size=58, color=HT_INK, ff=HT_SERIF, weight='600'),
+           T('ht', 'mm', x=150, y=1608, size=58, color=HT_INK, ff=HT_SERIF, weight='600'),
+           T('ht', 'yy', x=150, y=1696, size=58, color=HT_INK, ff=HT_SERIF, weight='600'),
+           T('ht', 'name1', x=560, y=1580, size=58, fit=300, color=HT_INK, ff=HT_SERIF, weight='600', ls=2, align='right'),
+           T('ht', 'conn', x=618, y=1582, size=70, color=HT_INK, ff='"Great Vibes", "YB Script", cursive'),
+           T('ht', 'name2', x=676, y=1580, size=58, fit=300, color=HT_INK, ff=HT_SERIF, weight='600', ls=2, align='left'),
+           T('ht', 'thanks', x=618, y=1648, size=32, fit=640, color='#5d6b5f', ff=HT_SERIF, weight='500', italic=True)],
+    qr=qr(120, (1012, 1482)), **EV)
 
 
 # ---------------- cách vẽ các bộ mới
